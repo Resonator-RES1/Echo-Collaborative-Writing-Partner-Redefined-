@@ -140,6 +140,7 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
           draft: textToRefine, mode,
           generationConfig: { model, temperature: currentTemperature },
           focusAreas, characterProfiles: activeProfiles, reviewPerspective,
+          feedbackDepth,
           loreEntries, voiceProfiles
         };
         

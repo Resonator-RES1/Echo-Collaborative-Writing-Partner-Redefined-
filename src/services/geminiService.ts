@@ -22,7 +22,8 @@ import {
     ComplianceReport,
     VoiceCheckResponse,
     LoreEntry,
-    VoiceProfile
+    VoiceProfile,
+    FeedbackDepth
 } from '../types';
 
 export interface GenerationConfig {
@@ -31,15 +32,17 @@ export interface GenerationConfig {
 }
 
 const getSystemPrompt = (mode: RefineMode, reviewPerspective: ReviewPerspective) => {
+    let basePrompt = ECHO_SYSTEM_PROMPT;
+    
     switch (mode) {
         case 'review':
-            const specificPrompt = REVIEW_PROMPTS[reviewPerspective] || REVIEW_PROMPTS.reader; 
-            return `${specificPrompt}\n\n---\n\n${ECHO_REVIEW_PROMPT_BASE}`;
+            const specificPerspective = REVIEW_PROMPTS[reviewPerspective] || REVIEW_PROMPTS.reader; 
+            return `${basePrompt}\n\n---\n\n## ACTIVE MODE: REVIEW MODE\n${specificPerspective}\n\n${ECHO_REVIEW_PROMPT_BASE}`;
         case 'reaction':
-            return ECHO_REACTION_PROMPT_BASE;
+            return `${basePrompt}\n\n---\n\n## ACTIVE MODE: REACTION MODE\n${ECHO_REACTION_PROMPT_BASE}`;
         case 'collaborative':
         default:
-            return ECHO_SYSTEM_PROMPT;
+            return `${basePrompt}\n\n---\n\n## ACTIVE MODE: REFINE MODE\nProduce a polished version of the text that is fully integrated with Lore + Voice + Focus Areas. Clean, immersive, and publication-ready.`;
     }
 };
 
@@ -82,6 +85,7 @@ export interface RefineDraftOptions {
   loreEntries?: LoreEntry[];
   voiceProfiles?: VoiceProfile[];
   reviewPerspective?: ReviewPerspective;
+  feedbackDepth?: FeedbackDepth;
   chapterNumber?: number;
 }
 
@@ -101,12 +105,22 @@ export const refineDraft = async (options: RefineDraftOptions): Promise<RefineDr
       loreEntries = [],
       voiceProfiles = [],
       reviewPerspective = 'reader',
+      feedbackDepth = 'balanced',
       chapterNumber,
     } = options;
 
     const systemInstruction = getSystemPrompt(mode, reviewPerspective);
     
     let preamble = '';
+
+    preamble += `*** INTENSITY MODE: ${feedbackDepth.toUpperCase()} ***\n`;
+    if (feedbackDepth === 'casual') {
+        preamble += 'Apply light polish and minimal intervention. Preserve the draft as much as possible while fixing glaring issues.\n\n';
+    } else if (feedbackDepth === 'in-depth') {
+        preamble += 'Apply deep, high-effort refinement with structural improvements. Do not be afraid to rephrase significantly if it improves the narrative.\n\n';
+    } else {
+        preamble += 'Apply moderate refinement. This is the default balanced mode.\n\n';
+    }
 
     if (loreEntries.length > 0) {
         preamble += '*** LORE CONTEXT ***\nUse the following lore entries for consistency and world-building:\n' +
@@ -163,23 +177,23 @@ export const refineDraft = async (options: RefineDraftOptions): Promise<RefineDr
         outputInstruction = `
 \n*** OUTPUT INSTRUCTIONS ***
 You must return a JSON object containing two fields:
-1. "refinedText": The detailed review and critique in clean Markdown, following the requested structure. Do NOT wrap this text in markdown code blocks. Return ONLY the content itself.
+1. "refinedText": The detailed review and critique in clean Markdown, following the requested structure (Overall Impression, Strengths, Weaknesses, Actionable Advice). Do NOT wrap this text in markdown code blocks. Return ONLY the content itself.
 2. "complianceReport": A structured object containing the following fields:
-   - mythicResonance: { "status": "Pass" or "Fail", "reasoning": "string" }
-   - characterVoice: { "status": "Pass" or "Fail", "reasoning": "string" }
-   - loreConsistency: { "status": "Pass" or "Fail", "reasoning": "string" }
-   - thematicNote: "string" (One sentence summary)
+   - mythicResonance: { "status": "Pass" or "Fail", "reasoning": "Explain how well the text achieves thematic depth or mythic weight." }
+   - characterVoice: { "status": "Pass" or "Fail", "reasoning": "Explain if character voices are distinct and locked to their profiles." }
+   - loreConsistency: { "status": "Pass" or "Fail", "reasoning": "Explain if the text aligns with established world rules and lore." }
+   - thematicNote: "string" (A one-sentence summary of the core theme or emotional beat)
 `;
     } else if (mode === 'reaction') {
         outputInstruction = `
 \n*** OUTPUT INSTRUCTIONS ***
 You must return a JSON object containing two fields:
-1. "refinedText": Your casual reaction and feedback in clean Markdown, following the requested structure. Do NOT wrap this text in markdown code blocks. Return ONLY the content itself.
+1. "refinedText": Your casual reaction and feedback in clean Markdown, following the requested structure (Initial Reaction, Standout Moments, Confusing/Slow Parts, Expectations). Do NOT wrap this text in markdown code blocks. Return ONLY the content itself.
 2. "complianceReport": A structured object containing the following fields:
-   - mythicResonance: { "status": "Pass" or "Fail", "reasoning": "string" }
-   - characterVoice: { "status": "Pass" or "Fail", "reasoning": "string" }
-   - loreConsistency: { "status": "Pass" or "Fail", "reasoning": "string" }
-   - thematicNote: "string" (One sentence summary)
+   - mythicResonance: { "status": "Pass" or "Fail", "reasoning": "Explain your emotional engagement and immersion level." }
+   - characterVoice: { "status": "Pass" or "Fail", "reasoning": "Explain if the characters felt authentic and distinct to you." }
+   - loreConsistency: { "status": "Pass" or "Fail", "reasoning": "Explain if the world felt consistent and believable." }
+   - thematicNote: "string" (A one-sentence summary of your biggest takeaway)
 `;
     } else {
         outputInstruction = `
@@ -187,10 +201,10 @@ You must return a JSON object containing two fields:
 You must return a JSON object containing two fields:
 1. "refinedText": The polished text in clean Markdown. Do NOT wrap this text in markdown code blocks (e.g., do not start with \`\`\`markdown). Return ONLY the content itself.
 2. "complianceReport": A structured object containing the following fields:
-   - mythicResonance: { "status": "Pass" or "Fail", "reasoning": "string" }
-   - characterVoice: { "status": "Pass" or "Fail", "reasoning": "string" }
-   - loreConsistency: { "status": "Pass" or "Fail", "reasoning": "string" }
-   - thematicNote: "string" (One sentence summary)
+   - mythicResonance: { "status": "Pass" or "Fail", "reasoning": "Explain how the refinement enhanced thematic depth or mythic weight." }
+   - characterVoice: { "status": "Pass" or "Fail", "reasoning": "Explain how character voices were preserved and locked." }
+   - loreConsistency: { "status": "Pass" or "Fail", "reasoning": "Explain how lore alignment was maintained." }
+   - thematicNote: "string" (A one-sentence summary of the refined narrative intent)
 `;
     }
     
