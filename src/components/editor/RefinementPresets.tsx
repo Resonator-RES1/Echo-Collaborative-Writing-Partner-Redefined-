@@ -16,12 +16,13 @@ import { LoreContextManager } from './LoreContextManager';
 
 const focusAreaOptions: { id: FocusArea, label: string, icon: React.ReactNode, title: string }[] = [
   { id: 'tone', label: 'Tone', icon: <MessageSquareQuote className="w-5 h-5" />, title: 'Adjust Tone (Atmosphere & Mood)' },
-  { id: 'rhythm', label: 'Rhythm', icon: <Waves className="w-5 h-5" />, title: 'Rhythm & Cadence (Musicality)' },
+  { id: 'rhythm', label: 'Rhythm', icon: <Waves className="w-5 h-5" />, title: 'Sentence Flow & Cadence (Variety)' },
   { id: 'emotion', label: 'Emotion', icon: <Smile className="w-5 h-5" />, title: 'Visceral Emotion (Show, Don\'t Tell)' },
   { id: 'plot', label: 'Plot', icon: <Network className="w-5 h-5" />, title: 'Narrative Drive & Logic' },
   { id: 'sensory', label: 'Sensory', icon: <Eye className="w-5 h-5" />, title: 'High-Fidelity Sensory Details' },
   { id: 'thematic', label: 'Mythic Weight', icon: <Globe className="w-5 h-5" />, title: 'Mythic Weight & Themes (Lore Elevation)' },
   { id: 'dialogue', label: 'Dialogue', icon: <MessagesSquare className="w-5 h-5" />, title: 'Dialogue Authenticity & Subtext' },
+  { id: 'voiceIntegrity', label: 'Voice Integrity', icon: <ShieldCheck className="w-5 h-5" />, title: 'Preserve Authorial Voice & Style' },
   { id: 'continuity', label: 'Structural Clock', icon: <Clock className="w-5 h-5" />, title: 'Structural Clock & Continuity' },
 ];
 
@@ -141,7 +142,8 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
           generationConfig: { model, temperature: currentTemperature },
           focusAreas, characterProfiles: activeProfiles, reviewPerspective,
           feedbackDepth,
-          loreEntries, voiceProfiles
+          loreEntries, voiceProfiles,
+          previousEchoes: versionHistory.slice(0, 2)
         };
         
         const result = await refineDraft(options);

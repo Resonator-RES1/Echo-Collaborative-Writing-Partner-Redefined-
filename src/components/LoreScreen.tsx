@@ -1,18 +1,22 @@
 import React, { useState, useRef } from 'react';
-import { Search, Filter, BookOpen, Plus, Download, Upload } from 'lucide-react';
+import { Search, Filter, BookOpen, Plus, Download, Upload, Trash2 } from 'lucide-react';
 import { LoreEntry, Screen } from '../types';
 import { LoreEntryForm } from './forms/LoreEntryForm';
+import { BulkLoreExtractorModal } from './BulkExtractorModals';
+import { Sparkles } from 'lucide-react';
 
 interface LoreScreenProps {
   setCurrentScreen: (screen: Screen) => void;
   loreEntries: LoreEntry[];
   onAddEntry: (entry: LoreEntry) => void;
+  onDeleteEntry: (id: string) => void;
   onImportEntries: (entries: LoreEntry[]) => void;
 }
 
-export function LoreScreen({ setCurrentScreen, loreEntries, onAddEntry, onImportEntries }: LoreScreenProps) {
+export function LoreScreen({ setCurrentScreen, loreEntries, onAddEntry, onDeleteEntry, onImportEntries }: LoreScreenProps) {
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [showForm, setShowForm] = useState(false);
+  const [showBulkModal, setShowBulkModal] = useState(false);
   const [editingEntry, setEditingEntry] = useState<LoreEntry | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -30,6 +34,10 @@ export function LoreScreen({ setCurrentScreen, loreEntries, onAddEntry, onImport
   const handleAddNew = () => {
     setEditingEntry(undefined);
     setShowForm(true);
+  };
+
+  const handleAddBulk = (newEntries: LoreEntry[]) => {
+    newEntries.forEach(entry => onAddEntry(entry));
   };
 
   const handleExport = () => {
@@ -76,6 +84,13 @@ export function LoreScreen({ setCurrentScreen, loreEntries, onAddEntry, onImport
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setShowBulkModal(true)}
+                className="p-3 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-on-primary transition-all"
+                title="Bulk AI Extract"
+              >
+                <Sparkles className="w-5 h-5" />
+              </button>
               <button 
                 onClick={handleExport}
                 className="p-3 rounded-full bg-surface-container-highest text-on-surface-variant hover:text-primary transition-all"
@@ -165,7 +180,16 @@ export function LoreScreen({ setCurrentScreen, loreEntries, onAddEntry, onImport
                 >
                   <div className="flex justify-between items-start mb-4">
                     <span className="font-label text-[10px] uppercase tracking-widest text-primary">{entry.category}</span>
-                    <span className="font-label text-[9px] text-on-surface-variant/50">{new Date(entry.lastModified).toLocaleDateString()}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-label text-[9px] text-on-surface-variant/50">{new Date(entry.lastModified).toLocaleDateString()}</span>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); onDeleteEntry(entry.id); }}
+                        className="text-on-surface-variant/30 hover:text-error transition-colors"
+                        title="Delete Entry"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
                   </div>
                   <h4 className="font-headline text-xl mb-2 group-hover:text-primary transition-colors">{entry.title}</h4>
                   <p className="font-body text-sm text-on-surface-variant line-clamp-3 leading-relaxed">
@@ -191,6 +215,13 @@ export function LoreScreen({ setCurrentScreen, loreEntries, onAddEntry, onImport
           onClose={() => setShowForm(false)} 
           onSave={handleSaveEntry}
           initialData={editingEntry}
+        />
+      )}
+
+      {showBulkModal && (
+        <BulkLoreExtractorModal
+          onClose={() => setShowBulkModal(false)}
+          onAddEntries={handleAddBulk}
         />
       )}
     </div>

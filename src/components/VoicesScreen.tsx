@@ -1,17 +1,21 @@
 import React, { useState, useRef } from 'react';
-import { User, UserPlus, Mic2, Quote, Brain, Plus, Download, Upload } from 'lucide-react';
+import { User, UserPlus, Mic2, Quote, Brain, Plus, Download, Upload, Trash2 } from 'lucide-react';
 import { VoiceProfile, Screen } from '../types';
 import { VoiceProfileForm } from './forms/VoiceProfileForm';
+import { BulkVoiceExtractorModal } from './BulkExtractorModals';
+import { Sparkles } from 'lucide-react';
 
 interface VoicesScreenProps {
   setCurrentScreen: (screen: Screen) => void;
   voiceProfiles: VoiceProfile[];
   onAddProfile: (profile: VoiceProfile) => void;
+  onDeleteProfile: (id: string) => void;
   onImportProfiles: (profiles: VoiceProfile[]) => void;
 }
 
-export function VoicesScreen({ setCurrentScreen, voiceProfiles, onAddProfile, onImportProfiles }: VoicesScreenProps) {
+export function VoicesScreen({ setCurrentScreen, voiceProfiles, onAddProfile, onDeleteProfile, onImportProfiles }: VoicesScreenProps) {
   const [showForm, setShowForm] = useState(false);
+  const [showBulkModal, setShowBulkModal] = useState(false);
   const [editingProfile, setEditingProfile] = useState<VoiceProfile | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -29,6 +33,10 @@ export function VoicesScreen({ setCurrentScreen, voiceProfiles, onAddProfile, on
   const handleAddNew = () => {
     setEditingProfile(undefined);
     setShowForm(true);
+  };
+
+  const handleAddBulk = (newProfiles: VoiceProfile[]) => {
+    newProfiles.forEach(profile => onAddProfile(profile));
   };
 
   const handleExport = () => {
@@ -75,6 +83,13 @@ export function VoicesScreen({ setCurrentScreen, voiceProfiles, onAddProfile, on
           </p>
         </div>
         <div className="flex items-center gap-2 mb-2">
+          <button 
+            onClick={() => setShowBulkModal(true)}
+            className="p-3 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-on-primary transition-all"
+            title="Bulk AI Extract"
+          >
+            <Sparkles className="w-5 h-5" />
+          </button>
           <button 
             onClick={handleExport}
             className="p-3 rounded-full bg-surface-container-highest text-on-surface-variant hover:text-primary transition-all"
@@ -124,18 +139,27 @@ export function VoicesScreen({ setCurrentScreen, voiceProfiles, onAddProfile, on
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                     <User className="text-primary w-6 h-6" />
                   </div>
-                  <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/50">{profile.archetype}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/50">{profile.archetype}</span>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); onDeleteProfile(profile.id); }}
+                      className="text-on-surface-variant/30 hover:text-error transition-colors"
+                      title="Delete Profile"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
                 <h4 className="font-headline text-2xl mb-4 group-hover:text-primary transition-colors">{profile.name}</h4>
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <span className="font-label text-[9px] uppercase tracking-widest text-on-surface-variant">Patterns</span>
+                    <span className="font-label text-[9px] uppercase tracking-widest text-on-surface-variant">Signature Traits</span>
                     <div className="flex flex-wrap gap-2">
-                      {profile.patterns.slice(0, 3).map((p, i) => (
-                        <span key={i} className="px-2 py-1 bg-surface-container rounded text-[10px] text-on-surface-variant">{p}</span>
+                      {profile.signatureTraits?.slice(0, 3).map((t, i) => (
+                        <span key={i} className="px-2 py-1 bg-surface-container rounded text-[10px] text-on-surface-variant">{t}</span>
                       ))}
-                      {profile.patterns.length > 3 && (
-                        <span className="px-2 py-1 bg-surface-container rounded text-[10px] text-on-surface-variant">+{profile.patterns.length - 3} more</span>
+                      {profile.signatureTraits && profile.signatureTraits.length > 3 && (
+                        <span className="px-2 py-1 bg-surface-container rounded text-[10px] text-on-surface-variant">+{profile.signatureTraits.length - 3} more</span>
                       )}
                     </div>
                   </div>
@@ -169,7 +193,7 @@ export function VoicesScreen({ setCurrentScreen, voiceProfiles, onAddProfile, on
             </h3>
             
             <div className="space-y-4">
-              {voiceProfiles.flatMap(p => p.idioms).length === 0 ? (
+              {voiceProfiles.flatMap(p => p.idioms || []).length === 0 ? (
                 /* Empty State for Phrases */
                 <div className="glass-slab p-8 rounded-xl border border-dashed border-outline-variant/30 text-center space-y-4">
                   <Quote className="text-on-surface-variant/30 w-10 h-10 mx-auto" />
@@ -184,15 +208,15 @@ export function VoicesScreen({ setCurrentScreen, voiceProfiles, onAddProfile, on
                   </button>
                 </div>
               ) : (
-                voiceProfiles.flatMap(p => p.idioms).slice(0, 10).map((idiom, i) => (
+                voiceProfiles.flatMap(p => p.idioms || []).slice(0, 10).map((idiom, i) => (
                   <div key={i} className="glass-slab p-4 rounded-lg border border-outline-variant/10 italic text-sm text-on-surface-variant">
                     {idiom}
                   </div>
                 ))
               )}
-              {voiceProfiles.flatMap(p => p.idioms).length > 10 && (
+              {voiceProfiles.flatMap(p => p.idioms || []).length > 10 && (
                 <p className="text-center text-[10px] font-label uppercase tracking-widest text-on-surface-variant/40">
-                  + {voiceProfiles.flatMap(p => p.idioms).length - 10} more idioms in archives
+                  + {voiceProfiles.flatMap(p => p.idioms || []).length - 10} more idioms in archives
                 </p>
               )}
             </div>
@@ -214,6 +238,13 @@ export function VoicesScreen({ setCurrentScreen, voiceProfiles, onAddProfile, on
           onClose={() => setShowForm(false)} 
           onSave={handleSaveProfile}
           initialData={editingProfile}
+        />
+      )}
+
+      {showBulkModal && (
+        <BulkVoiceExtractorModal
+          onClose={() => setShowBulkModal(false)}
+          onAddProfiles={handleAddBulk}
         />
       )}
     </div>

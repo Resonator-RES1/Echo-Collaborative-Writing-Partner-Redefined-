@@ -1,6 +1,6 @@
 export type RefineMode = 'collaborative' | 'review' | 'reaction';
 
-export type FocusArea = 'tone' | 'rhythm' | 'emotion' | 'plot' | 'sensory' | 'thematic' | 'dialogue' | 'continuity';
+export type FocusArea = 'tone' | 'rhythm' | 'emotion' | 'plot' | 'sensory' | 'thematic' | 'dialogue' | 'continuity' | 'voiceIntegrity';
 
 export type ReviewPerspective = 'reader' | 'editor' | 'publisher';
 
@@ -30,19 +30,39 @@ export interface LoreEntry {
 export interface VoiceProfile {
   id: string;
   name: string;
+  gender: Gender | 'other';
   archetype: string;
-  patterns: string[];
+  soulPattern: string;
+  cognitivePatterns: string;
+  speechPatterns: string;
+  emotionalExpression: string;
+  behavioralAnchors: string;
+  conversationalRole: string;
+  signatureTraits: string[];
   idioms: string[];
-  soulPattern?: string;
+  exampleLines: string[];
+  physicalTells?: string;
+  internalMonologueStyle?: string;
+  conflictStyle?: string;
   lastModified: string;
   isActive?: boolean;
+  isMasterVoice?: boolean;
 }
 
 export interface ComplianceReport {
-  mythicResonance: { status: 'Pass' | 'Fail'; reasoning: string };
-  characterVoice: { status: 'Pass' | 'Fail'; reasoning: string };
-  loreConsistency: { status: 'Pass' | 'Fail'; reasoning: string };
-  thematicNote: string;
+  metrics: {
+    loreConsistency: number;
+    voiceAuthenticity: number;
+    mythicResonance: number;
+    structuralCompliance: number;
+  };
+  audit: {
+    lore: string[];
+    voice: string[];
+    structure: string[];
+    thematic?: string[];
+  };
+  thematicNote?: string;
 }
 
 export interface RefinedVersion {
@@ -61,11 +81,15 @@ export interface ComparisonResponse {
     reasoning: string;
   }[];
   summary: string;
+  keyHighlights: string[];
   metrics: {
     wordCountChange: number;
     readabilityShift: string;
     toneShift: string;
+    loreAlignment?: string;
+    voiceLock?: string;
   };
+  compliance?: ComplianceReport;
 }
 
 export interface VoiceCheckResponse {

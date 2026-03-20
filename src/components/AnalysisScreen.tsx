@@ -25,11 +25,12 @@ export function AnalysisScreen({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Calculate some dummy metrics based on data presence
-  const loreScore = loreEntries.length > 0 ? (report && typeof report !== 'string' && report.loreConsistency?.status === 'Pass' ? 95 : 65) : 0;
-  const voiceScore = voiceProfiles.length > 0 ? (report && typeof report !== 'string' && report.characterVoice?.status === 'Pass' ? 92 : 60) : 0;
-  const resonanceScore = hasData ? (report && typeof report !== 'string' && report.mythicResonance?.status === 'Pass' ? 88 : 55) : 0;
+  const loreScore = loreEntries.length > 0 ? (report && typeof report !== 'string' && report.metrics?.loreConsistency ? report.metrics.loreConsistency : 65) : 0;
+  const voiceScore = voiceProfiles.length > 0 ? (report && typeof report !== 'string' && report.metrics?.voiceAuthenticity ? report.metrics.voiceAuthenticity : 60) : 0;
+  const resonanceScore = hasData ? (report && typeof report !== 'string' && report.metrics?.mythicResonance ? report.metrics.mythicResonance : 55) : 0;
+  const structuralScore = hasData ? (report && typeof report !== 'string' && report.metrics?.structuralCompliance ? report.metrics.structuralCompliance : 50) : 0;
 
-  const averageScore = hasData ? Math.round((loreScore + voiceScore + resonanceScore) / 3) : 0;
+  const averageScore = hasData ? Math.round((loreScore + voiceScore + resonanceScore + structuralScore) / 4) : 0;
 
   const handleExport = () => {
     const dataStr = JSON.stringify(versionHistory, null, 2);
@@ -156,27 +157,34 @@ export function AnalysisScreen({
               <div className="glass-slab p-8 rounded-[0.75rem] border border-outline-variant/10 space-y-6">
                 <h3 className="font-label text-xs uppercase tracking-[0.2em] text-on-surface-variant font-bold">Latest Polish Insights</h3>
                 {report && typeof report !== 'string' ? (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div className="p-4 rounded-xl bg-surface-container-highest/30 border border-outline-variant/10">
-                      <span className="block text-[10px] uppercase font-label text-on-surface-variant mb-2">Lore Alignment</span>
-                      <div className={`text-sm font-medium ${report.loreConsistency.status === 'Pass' ? 'text-primary' : 'text-error'}`}>
-                        {report.loreConsistency.status}
+                      <span className="block text-[10px] uppercase font-label text-on-surface-variant mb-2">Lore Consistency</span>
+                      <div className={`text-sm font-medium ${report.metrics?.loreConsistency >= 80 ? 'text-primary' : 'text-error'}`}>
+                        {report.metrics?.loreConsistency || 0}%
                       </div>
-                      <p className="text-[10px] text-on-surface-variant mt-2 leading-tight">{report.loreConsistency.reasoning}</p>
+                      <p className="text-[10px] text-on-surface-variant mt-2 leading-tight">{report.audit?.lore?.[0] || 'Lore audit pending.'}</p>
                     </div>
                     <div className="p-4 rounded-xl bg-surface-container-highest/30 border border-outline-variant/10">
                       <span className="block text-[10px] uppercase font-label text-on-surface-variant mb-2">Voice Authenticity</span>
-                      <div className={`text-sm font-medium ${report.characterVoice.status === 'Pass' ? 'text-primary' : 'text-error'}`}>
-                        {report.characterVoice.status}
+                      <div className={`text-sm font-medium ${report.metrics?.voiceAuthenticity >= 80 ? 'text-primary' : 'text-error'}`}>
+                        {report.metrics?.voiceAuthenticity || 0}%
                       </div>
-                      <p className="text-[10px] text-on-surface-variant mt-2 leading-tight">{report.characterVoice.reasoning}</p>
+                      <p className="text-[10px] text-on-surface-variant mt-2 leading-tight">{report.audit?.voice?.[0] || 'Voice audit pending.'}</p>
                     </div>
                     <div className="p-4 rounded-xl bg-surface-container-highest/30 border border-outline-variant/10">
                       <span className="block text-[10px] uppercase font-label text-on-surface-variant mb-2">Mythic Resonance</span>
-                      <div className={`text-sm font-medium ${report.mythicResonance.status === 'Pass' ? 'text-primary' : 'text-error'}`}>
-                        {report.mythicResonance.status}
+                      <div className={`text-sm font-medium ${report.metrics?.mythicResonance >= 80 ? 'text-primary' : 'text-error'}`}>
+                        {report.metrics?.mythicResonance || 0}%
                       </div>
-                      <p className="text-[10px] text-on-surface-variant mt-2 leading-tight">{report.mythicResonance.reasoning}</p>
+                      <p className="text-[10px] text-on-surface-variant mt-2 leading-tight">{report.audit?.thematic?.[0] || 'Thematic audit pending.'}</p>
+                    </div>
+                    <div className="p-4 rounded-xl bg-surface-container-highest/30 border border-outline-variant/10">
+                      <span className="block text-[10px] uppercase font-label text-on-surface-variant mb-2">Structural Compliance</span>
+                      <div className={`text-sm font-medium ${report.metrics?.structuralCompliance >= 80 ? 'text-primary' : 'text-error'}`}>
+                        {report.metrics?.structuralCompliance || 0}%
+                      </div>
+                      <p className="text-[10px] text-on-surface-variant mt-2 leading-tight">{report.audit?.structure?.[0] || 'Structural audit pending.'}</p>
                     </div>
                   </div>
                 ) : (
@@ -256,7 +264,8 @@ export function AnalysisScreen({
               {[
                 { label: 'Lore Consistency', value: `${loreScore}%`, color: 'bg-primary' },
                 { label: 'Voice Authenticity', value: `${voiceScore}%`, color: 'bg-secondary' },
-                { label: 'Stylistic Resonance', value: `${resonanceScore}%`, color: 'bg-tertiary' }
+                { label: 'Mythic Resonance', value: `${resonanceScore}%`, color: 'bg-tertiary' },
+                { label: 'Structural Compliance', value: `${structuralScore}%`, color: 'bg-primary/60' }
               ].map((stat, index) => (
                 <div key={`${stat.label}-${index}`} className="space-y-2">
                   <div className="flex justify-between items-end">

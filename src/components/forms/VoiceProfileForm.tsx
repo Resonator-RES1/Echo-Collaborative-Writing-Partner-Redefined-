@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Save, Mic2, Quote, Brain, Plus, Trash2 } from 'lucide-react';
-import { VoiceProfile } from '../../types';
+import { VoiceProfile, Gender } from '../../types';
 
 interface VoiceProfileFormProps {
   onClose: () => void;
@@ -10,17 +10,27 @@ interface VoiceProfileFormProps {
 
 export function VoiceProfileForm({ onClose, onSave, initialData }: VoiceProfileFormProps) {
   const [name, setName] = useState(initialData?.name || '');
+  const [gender, setGender] = useState<Gender | 'other'>(initialData?.gender || 'unspecified');
   const [archetype, setArchetype] = useState(initialData?.archetype || '');
   const [soulPattern, setSoulPattern] = useState(initialData?.soulPattern || '');
-  const [patterns, setPatterns] = useState<string[]>(initialData?.patterns || ['']);
+  const [cognitivePatterns, setCognitivePatterns] = useState(initialData?.cognitivePatterns || '');
+  const [speechPatterns, setSpeechPatterns] = useState(initialData?.speechPatterns || '');
+  const [emotionalExpression, setEmotionalExpression] = useState(initialData?.emotionalExpression || '');
+  const [behavioralAnchors, setBehavioralAnchors] = useState(initialData?.behavioralAnchors || '');
+  const [conversationalRole, setConversationalRole] = useState(initialData?.conversationalRole || '');
+  const [signatureTraits, setSignatureTraits] = useState<string[]>(initialData?.signatureTraits || ['']);
   const [idioms, setIdioms] = useState<string[]>(initialData?.idioms || ['']);
+  const [exampleLines, setExampleLines] = useState<string[]>(initialData?.exampleLines || ['']);
+  const [physicalTells, setPhysicalTells] = useState(initialData?.physicalTells || '');
+  const [internalMonologueStyle, setInternalMonologueStyle] = useState(initialData?.internalMonologueStyle || '');
+  const [conflictStyle, setConflictStyle] = useState(initialData?.conflictStyle || '');
 
-  const handleAddPattern = () => setPatterns([...patterns, '']);
-  const handleRemovePattern = (index: number) => setPatterns(patterns.filter((_, i) => i !== index));
-  const handlePatternChange = (index: number, value: string) => {
-    const newPatterns = [...patterns];
-    newPatterns[index] = value;
-    setPatterns(newPatterns);
+  const handleAddSignatureTrait = () => setSignatureTraits([...signatureTraits, '']);
+  const handleRemoveSignatureTrait = (index: number) => setSignatureTraits(signatureTraits.filter((_, i) => i !== index));
+  const handleSignatureTraitChange = (index: number, value: string) => {
+    const newTraits = [...signatureTraits];
+    newTraits[index] = value;
+    setSignatureTraits(newTraits);
   };
 
   const handleAddIdiom = () => setIdioms([...idioms, '']);
@@ -31,6 +41,14 @@ export function VoiceProfileForm({ onClose, onSave, initialData }: VoiceProfileF
     setIdioms(newIdioms);
   };
 
+  const handleAddExampleLine = () => setExampleLines([...exampleLines, '']);
+  const handleRemoveExampleLine = (index: number) => setExampleLines(exampleLines.filter((_, i) => i !== index));
+  const handleExampleLineChange = (index: number, value: string) => {
+    const newLines = [...exampleLines];
+    newLines[index] = value;
+    setExampleLines(newLines);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !archetype.trim()) return;
@@ -38,11 +56,22 @@ export function VoiceProfileForm({ onClose, onSave, initialData }: VoiceProfileF
     onSave({
       id: initialData?.id || Date.now().toString(),
       name,
+      gender: gender as any,
       archetype,
       soulPattern,
-      patterns: patterns.filter(p => p.trim()),
+      cognitivePatterns,
+      speechPatterns,
+      emotionalExpression,
+      behavioralAnchors,
+      conversationalRole,
+      signatureTraits: signatureTraits.filter(t => t.trim()),
       idioms: idioms.filter(i => i.trim()),
+      exampleLines: exampleLines.filter(l => l.trim()),
+      physicalTells,
+      internalMonologueStyle,
+      conflictStyle,
       lastModified: new Date().toISOString(),
+      isActive: true,
     });
   };
 
@@ -72,7 +101,7 @@ export function VoiceProfileForm({ onClose, onSave, initialData }: VoiceProfileF
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
               <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
                 Character Name
@@ -85,6 +114,22 @@ export function VoiceProfileForm({ onClose, onSave, initialData }: VoiceProfileF
                 className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface"
                 required
               />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
+                Gender
+              </label>
+              <select 
+                value={gender}
+                onChange={(e) => setGender(e.target.value as Gender | 'other')}
+                className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface"
+              >
+                <option value="unspecified">Unspecified</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="non-binary">Non-binary</option>
+                <option value="other">Other</option>
+              </select>
             </div>
             <div className="space-y-2">
               <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
@@ -109,41 +154,51 @@ export function VoiceProfileForm({ onClose, onSave, initialData }: VoiceProfileF
               value={soulPattern}
               onChange={(e) => setSoulPattern(e.target.value)}
               placeholder="Describe the core essence of their voice..."
-              rows={3}
+              rows={2}
               className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface resize-none"
             />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">Cognitive Patterns</label>
+              <input type="text" value={cognitivePatterns} onChange={(e) => setCognitivePatterns(e.target.value)} className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface" />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">Speech Patterns</label>
+              <input type="text" value={speechPatterns} onChange={(e) => setSpeechPatterns(e.target.value)} className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface" />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">Emotional Expression</label>
+              <input type="text" value={emotionalExpression} onChange={(e) => setEmotionalExpression(e.target.value)} className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface" />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">Behavioral Anchors</label>
+              <input type="text" value={behavioralAnchors} onChange={(e) => setBehavioralAnchors(e.target.value)} className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface" />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">Conversational Role</label>
+            <input type="text" value={conversationalRole} onChange={(e) => setConversationalRole(e.target.value)} className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface" />
           </div>
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
                 <Brain className="w-3.5 h-3.5" />
-                Linguistic Patterns
+                Signature Traits
               </label>
-              <button 
-                type="button" 
-                onClick={handleAddPattern}
-                className="p-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all"
-              >
+              <button type="button" onClick={handleAddSignatureTrait} className="p-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all">
                 <Plus className="w-4 h-4" />
               </button>
             </div>
             <div className="space-y-3">
-              {patterns.map((pattern, index) => (
+              {signatureTraits.map((trait, index) => (
                 <div key={index} className="flex gap-2">
-                  <input 
-                    type="text"
-                    value={pattern}
-                    onChange={(e) => handlePatternChange(index, e.target.value)}
-                    placeholder="e.g., Uses nautical metaphors"
-                    className="flex-1 bg-surface-container-highest/50 border border-outline-variant/30 rounded-xl p-3 text-sm text-on-surface focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                  />
-                  {patterns.length > 1 && (
-                    <button 
-                      type="button" 
-                      onClick={() => handleRemovePattern(index)}
-                      className="p-3 rounded-xl text-error hover:bg-error/10 transition-all"
-                    >
+                  <input type="text" value={trait} onChange={(e) => handleSignatureTraitChange(index, e.target.value)} placeholder="e.g., Cynical wit" className="flex-1 bg-surface-container-highest/50 border border-outline-variant/30 rounded-xl p-3 text-sm text-on-surface focus:ring-2 focus:ring-primary/20 outline-none transition-all" />
+                  {signatureTraits.length > 1 && (
+                    <button type="button" onClick={() => handleRemoveSignatureTrait(index)} className="p-3 rounded-xl text-error hover:bg-error/10 transition-all">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   )}
@@ -158,35 +213,59 @@ export function VoiceProfileForm({ onClose, onSave, initialData }: VoiceProfileF
                 <Quote className="w-3.5 h-3.5" />
                 Signature Idioms
               </label>
-              <button 
-                type="button" 
-                onClick={handleAddIdiom}
-                className="p-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all"
-              >
+              <button type="button" onClick={handleAddIdiom} className="p-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all">
                 <Plus className="w-4 h-4" />
               </button>
             </div>
             <div className="space-y-3">
               {idioms.map((idiom, index) => (
                 <div key={index} className="flex gap-2">
-                  <input 
-                    type="text"
-                    value={idiom}
-                    onChange={(e) => handleIdiomChange(index, e.target.value)}
-                    placeholder="e.g., 'By the Drowning Deep'"
-                    className="flex-1 bg-surface-container-highest/50 border border-outline-variant/30 rounded-xl p-3 text-sm text-on-surface focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                  />
+                  <input type="text" value={idiom} onChange={(e) => handleIdiomChange(index, e.target.value)} placeholder="e.g., 'By the Drowning Deep'" className="flex-1 bg-surface-container-highest/50 border border-outline-variant/30 rounded-xl p-3 text-sm text-on-surface focus:ring-2 focus:ring-primary/20 outline-none transition-all" />
                   {idioms.length > 1 && (
-                    <button 
-                      type="button" 
-                      onClick={() => handleRemoveIdiom(index)}
-                      className="p-3 rounded-xl text-error hover:bg-error/10 transition-all"
-                    >
+                    <button type="button" onClick={() => handleRemoveIdiom(index)} className="p-3 rounded-xl text-error hover:bg-error/10 transition-all">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   )}
                 </div>
               ))}
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
+                Example Lines
+              </label>
+              <button type="button" onClick={handleAddExampleLine} className="p-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all">
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="space-y-3">
+              {exampleLines.map((line, index) => (
+                <div key={index} className="flex gap-2">
+                  <input type="text" value={line} onChange={(e) => handleExampleLineChange(index, e.target.value)} placeholder="e.g., 'I told you so.'" className="flex-1 bg-surface-container-highest/50 border border-outline-variant/30 rounded-xl p-3 text-sm text-on-surface focus:ring-2 focus:ring-primary/20 outline-none transition-all" />
+                  {exampleLines.length > 1 && (
+                    <button type="button" onClick={() => handleRemoveExampleLine(index)} className="p-3 rounded-xl text-error hover:bg-error/10 transition-all">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2">
+              <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">Physical Tells</label>
+              <input type="text" value={physicalTells} onChange={(e) => setPhysicalTells(e.target.value)} className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface" />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">Internal Monologue</label>
+              <input type="text" value={internalMonologueStyle} onChange={(e) => setInternalMonologueStyle(e.target.value)} className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface" />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">Conflict Style</label>
+              <input type="text" value={conflictStyle} onChange={(e) => setConflictStyle(e.target.value)} className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface" />
             </div>
           </div>
 

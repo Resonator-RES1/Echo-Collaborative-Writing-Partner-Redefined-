@@ -11,6 +11,8 @@ import { ComparisonView } from './editor/ComparisonView';
 import { SuggestionsPopover } from './editor/SuggestionsPopover';
 import { CharacterCreatorModal } from './editor/CharacterCreatorModal';
 import { RefinementPresets } from './editor/RefinementPresets';
+import { DynamicFidelityFeedback } from './editor/DynamicFidelityFeedback';
+import { LoreConflictDetector } from './editor/LoreConflictDetector';
 
 interface EditorProps {
     draft: string;
@@ -225,7 +227,7 @@ const Editor: React.FC<EditorProps> = ({
   const handleAcceptVersion = useCallback((version: string) => dispatchDraft({ type: 'EXTERNAL_UPDATE', payload: version }), []);
 
   return (
-    <div className={`flex flex-col lg:flex-row gap-8 min-h-[800px] flex-1 animate-in fade-in duration-700`}>
+    <div className={`flex flex-col lg:flex-row gap-8 min-h-[900px] flex-1 animate-in fade-in duration-700`}>
       <EditorModals 
         showComparison={showComparison}
         currentVersionText={currentVersion.text}
@@ -280,7 +282,13 @@ const Editor: React.FC<EditorProps> = ({
                 isEditorExpanded={isEditorExpanded}
                 setIsEditorExpanded={setIsEditorExpanded}
             />
-          <FormattingToolbar onFormat={handleFormat} />
+          <div className="flex items-center justify-between pb-3 border-b border-outline-variant/20 mb-4 -mx-6 px-6 lg:-mx-10 lg:px-10">
+            <FormattingToolbar onFormat={handleFormat} />
+            <div className="flex items-center gap-3">
+                <LoreConflictDetector draft={draftState.present} loreEntries={loreEntries} />
+                <DynamicFidelityFeedback draft={draftState.present} voiceProfiles={voiceProfiles} />
+            </div>
+          </div>
           <textarea
             ref={textareaRef}
             value={draftState.present}

@@ -25,31 +25,44 @@ export const ComplianceReportView: React.FC<ComplianceReportViewProps> = React.m
 
     const items = [
         {
-            id: 'mythic',
-            label: 'Mythic Resonance',
-            icon: <Zap className="w-4 h-4" />,
-            data: report.mythicResonance,
-            color: report.mythicResonance.status === 'Pass' ? 'text-emerald-400' : 'text-amber-400',
-            bgColor: report.mythicResonance.status === 'Pass' ? 'bg-emerald-500/5' : 'bg-amber-500/5',
-            borderColor: report.mythicResonance.status === 'Pass' ? 'border-emerald-500/20' : 'border-amber-500/20',
-        },
-        {
-            id: 'voice',
-            label: 'Character Voice',
-            icon: <Mic2 className="w-4 h-4" />,
-            data: report.characterVoice,
-            color: report.characterVoice.status === 'Pass' ? 'text-emerald-400' : 'text-amber-400',
-            bgColor: report.characterVoice.status === 'Pass' ? 'bg-emerald-500/5' : 'bg-amber-500/5',
-            borderColor: report.characterVoice.status === 'Pass' ? 'border-emerald-500/20' : 'border-amber-500/20',
-        },
-        {
             id: 'lore',
             label: 'Lore Consistency',
             icon: <ShieldCheck className="w-4 h-4" />,
-            data: report.loreConsistency,
-            color: report.loreConsistency.status === 'Pass' ? 'text-emerald-400' : 'text-amber-400',
-            bgColor: report.loreConsistency.status === 'Pass' ? 'bg-emerald-500/5' : 'bg-amber-500/5',
-            borderColor: report.loreConsistency.status === 'Pass' ? 'border-emerald-500/20' : 'border-amber-500/20',
+            score: report.metrics?.loreConsistency || 0,
+            audit: report.audit?.lore || [],
+            color: (report.metrics?.loreConsistency || 0) >= 80 ? 'text-emerald-400' : 'text-amber-400',
+            bgColor: (report.metrics?.loreConsistency || 0) >= 80 ? 'bg-emerald-500/5' : 'bg-amber-500/5',
+            borderColor: (report.metrics?.loreConsistency || 0) >= 80 ? 'border-emerald-500/20' : 'border-amber-500/20',
+        },
+        {
+            id: 'voice',
+            label: 'Voice Authenticity',
+            icon: <Mic2 className="w-4 h-4" />,
+            score: report.metrics?.voiceAuthenticity || 0,
+            audit: report.audit?.voice || [],
+            color: (report.metrics?.voiceAuthenticity || 0) >= 80 ? 'text-emerald-400' : 'text-amber-400',
+            bgColor: (report.metrics?.voiceAuthenticity || 0) >= 80 ? 'bg-emerald-500/5' : 'bg-amber-500/5',
+            borderColor: (report.metrics?.voiceAuthenticity || 0) >= 80 ? 'border-emerald-500/20' : 'border-amber-500/20',
+        },
+        {
+            id: 'mythic',
+            label: 'Mythic Resonance',
+            icon: <Zap className="w-4 h-4" />,
+            score: report.metrics?.mythicResonance || 0,
+            audit: report.audit?.thematic || [],
+            color: (report.metrics?.mythicResonance || 0) >= 80 ? 'text-emerald-400' : 'text-amber-400',
+            bgColor: (report.metrics?.mythicResonance || 0) >= 80 ? 'bg-emerald-500/5' : 'bg-amber-500/5',
+            borderColor: (report.metrics?.mythicResonance || 0) >= 80 ? 'border-emerald-500/20' : 'border-amber-500/20',
+        },
+        {
+            id: 'structure',
+            label: 'Structural Compliance',
+            icon: <ShieldCheck className="w-4 h-4" />,
+            score: report.metrics?.structuralCompliance || 0,
+            audit: report.audit?.structure || [],
+            color: (report.metrics?.structuralCompliance || 0) >= 80 ? 'text-emerald-400' : 'text-amber-400',
+            bgColor: (report.metrics?.structuralCompliance || 0) >= 80 ? 'bg-emerald-500/5' : 'bg-amber-500/5',
+            borderColor: (report.metrics?.structuralCompliance || 0) >= 80 ? 'border-emerald-500/20' : 'border-amber-500/20',
         }
     ];
 
@@ -67,18 +80,24 @@ export const ComplianceReportView: React.FC<ComplianceReportViewProps> = React.m
                                 <span className="text-xs font-label uppercase tracking-wider text-on-surface-variant font-medium">{item.label}</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                {item.data.status === 'Pass' ? (
+                                {item.score >= 80 ? (
                                     <CheckCircle className="w-4 h-4 text-emerald-500" />
                                 ) : (
                                     <AlertCircle className="w-4 h-4 text-amber-500" />
                                 )}
-                                <span className={`text-xs font-label uppercase tracking-wider font-medium ${item.data.status === 'Pass' ? 'text-emerald-500' : 'text-amber-500'}`}>
-                                    {item.data.status}
+                                <span className={`text-xs font-label uppercase tracking-wider font-medium ${item.score >= 80 ? 'text-emerald-500' : 'text-amber-500'}`}>
+                                    {item.score}%
                                 </span>
                             </div>
                         </div>
                         <div className="text-sm text-on-surface-variant leading-relaxed pl-7 border-l border-outline-variant/10 prose prose-invert prose-sm max-w-none">
-                            <ReactMarkdown>{item.data.reasoning}</ReactMarkdown>
+                            <ul className="list-disc space-y-1">
+                                {item.audit.map((observation, i) => (
+                                    <li key={i} className="text-on-surface-variant/80">
+                                        <ReactMarkdown>{observation}</ReactMarkdown>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
                     </div>
                 ))}

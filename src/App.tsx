@@ -3,70 +3,63 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import Editor from './components/Editor.tsx';
 import { Toast } from './components/Toast';
 import { TopAppBar } from './components/TopAppBar';
 import { LoreScreen } from './components/LoreScreen';
 import { AnalysisScreen } from './components/AnalysisScreen';
 import { VoicesScreen } from './components/VoicesScreen';
-import { BottomNavBar } from './components/BottomNavBar';
 import { LoreEntry, VoiceProfile, Screen, RefinedVersion } from './types';
+import * as db from './services/dbService';
 
 export default function App() {
   const [draft, setDraft] = useState<string>('');
   const [toast, setToast] = useState<{ message: string, id: number } | null>(null);
   const [isRefining, setIsRefining] = useState<boolean>(false);
   const [versionCount, setVersionCount] = useState<number>(0);
-  const [versionHistory, setVersionHistory] = useState<RefinedVersion[]>(() => {
-    try {
-      const saved = localStorage.getItem('echo-version-history');
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      console.error("Failed to load version history", e);
-      return [];
-    }
-  });
+  const [versionHistory, setVersionHistory] = useState<RefinedVersion[]>([]);
   const [currentScreen, setCurrentScreen] = useState<Screen>('workspace');
   
   // Lore & Voices State
-  const [loreEntries, setLoreEntries] = useState<LoreEntry[]>(() => {
-    try {
-      const saved = localStorage.getItem('echo-lore-entries');
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      console.error("Failed to load lore entries", e);
-      return [];
-    }
-  });
-  const [voiceProfiles, setVoiceProfiles] = useState<VoiceProfile[]>(() => {
-    try {
-      const saved = localStorage.getItem('echo-voice-profiles');
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      console.error("Failed to load voice profiles", e);
-      return [];
-    }
-  });
+  const [loreEntries, setLoreEntries] = useState<LoreEntry[]>([]);
+  const [voiceProfiles, setVoiceProfiles] = useState<VoiceProfile[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  // Persist Lore & Voices & History
-  React.useEffect(() => {
-    localStorage.setItem('echo-lore-entries', JSON.stringify(loreEntries));
-  }, [loreEntries]);
+  // Load from IndexedDB on mount and on sync completion
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [loadedLore, loadedVoices, loadedEchoes] = await Promise.all([
+          db.getLoreEntries(),
+          db.getVoiceProfiles(),
+          db.getEchoes()
+        ]);
+        setLoreEntries(loadedLore);
+        setVoiceProfiles(loadedVoices);
+        setVersionHistory(loadedEchoes);
+      } catch (e) {
+        console.error("Failed to load data from DB", e);
+      } finally {
+        setIsLoaded(true);
+      }
+    };
+    
+    loadData();
 
-  React.useEffect(() => {
-    localStorage.setItem('echo-voice-profiles', JSON.stringify(voiceProfiles));
-  }, [voiceProfiles]);
+    const handleSyncComplete = () => {
+      loadData();
+    };
 
-  React.useEffect(() => {
-    localStorage.setItem('echo-version-history', JSON.stringify(versionHistory));
-  }, [versionHistory]);
+    window.addEventListener('sync-complete', handleSyncComplete);
+    return () => window.removeEventListener('sync-complete', handleSyncComplete);
+  }, []);
 
   const showToast = useCallback((message: string) => {
     setToast({ message, id: Date.now() });
   }, []);
 
-  const upsertLoreEntry = (entry: LoreEntry) => {
+  const upsertLoreEntry = async (entry: LoreEntry) => {
     setLoreEntries(prev => {
       const exists = prev.find(e => e.id === entry.id);
       if (exists) {
@@ -74,10 +67,11 @@ export default function App() {
       }
       return [entry, ...prev];
     });
+    await db.putLoreEntry(entry);
     showToast(`Lore entry "${entry.title}" updated.`);
   };
 
-  const upsertVoiceProfile = (profile: VoiceProfile) => {
+  const upsertVoiceProfile = async (profile: VoiceProfile) => {
     setVoiceProfiles(prev => {
       const exists = prev.find(p => p.id === profile.id);
       if (exists) {
@@ -85,32 +79,54 @@ export default function App() {
       }
       return [profile, ...prev];
     });
+    await db.putVoiceProfile(profile);
     showToast(`Voice profile for "${profile.name}" updated.`);
   };
 
-  const deleteVersion = (id: string) => {
+  const deleteVersion = async (id: string) => {
     setVersionHistory(prev => prev.filter(v => v.id !== id));
+    await db.deleteEcho(id);
     showToast("Echo removed from history.");
   };
 
-  const importEntries = (entries: LoreEntry[]) => {
+  const deleteLoreEntry = async (id: string) => {
+    setLoreEntries(prev => prev.filter(e => e.id !== id));
+    await db.deleteLoreEntry(id);
+    showToast("Lore entry deleted.");
+  };
+
+  const deleteVoiceProfile = async (id: string) => {
+    setVoiceProfiles(prev => prev.filter(p => p.id !== id));
+    await db.deleteVoiceProfile(id);
+    showToast("Voice profile deleted.");
+  };
+
+  const importEntries = async (entries: LoreEntry[]) => {
     setLoreEntries(entries);
+    await db.setAllLoreEntries(entries);
     showToast(`${entries.length} lore entries imported.`);
   };
 
-  const importProfiles = (profiles: VoiceProfile[]) => {
+  const importProfiles = async (profiles: VoiceProfile[]) => {
     setVoiceProfiles(profiles);
+    await db.setAllVoiceProfiles(profiles);
     showToast(`${profiles.length} voice profiles imported.`);
   };
 
-  const addVersion = (version: RefinedVersion) => {
+  const addVersion = async (version: RefinedVersion) => {
     setVersionHistory(prev => [version, ...prev]);
+    await db.putEcho(version);
   };
 
-  const importVersions = (versions: RefinedVersion[]) => {
+  const importVersions = async (versions: RefinedVersion[]) => {
     setVersionHistory(versions);
+    await db.setAllEchoes(versions);
     showToast(`${versions.length} echoes imported.`);
   };
+
+  if (!isLoaded) {
+    return <div className="min-h-screen bg-surface flex items-center justify-center text-on-surface">Loading Echo...</div>;
+  }
 
   const renderScreen = () => {
     switch (currentScreen) {
@@ -120,6 +136,7 @@ export default function App() {
             setCurrentScreen={setCurrentScreen} 
             loreEntries={loreEntries}
             onAddEntry={upsertLoreEntry}
+            onDeleteEntry={deleteLoreEntry}
             onImportEntries={importEntries}
           />
         );
@@ -140,6 +157,7 @@ export default function App() {
             setCurrentScreen={setCurrentScreen} 
             voiceProfiles={voiceProfiles}
             onAddProfile={upsertVoiceProfile}
+            onDeleteProfile={deleteVoiceProfile}
             onImportProfiles={importProfiles}
           />
         );
@@ -169,13 +187,11 @@ export default function App() {
     <div className="min-h-screen bg-surface text-on-surface flex flex-col font-body">
       {toast && <Toast key={toast.id} message={toast.message} onClose={() => setToast(null)} />}
       
-      <TopAppBar currentScreen={currentScreen} setCurrentScreen={setCurrentScreen} versionCount={versionCount} />
+      <TopAppBar currentScreen={currentScreen} setCurrentScreen={setCurrentScreen} versionCount={versionCount} showToast={showToast} />
       
       <main className="pb-12 px-6 max-w-7xl mx-auto w-full flex-grow flex flex-col">
         {renderScreen()}
       </main>
-
-      <BottomNavBar currentScreen={currentScreen} setCurrentScreen={setCurrentScreen} />
     </div>
   );
 }

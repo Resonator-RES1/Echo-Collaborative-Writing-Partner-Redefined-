@@ -39,55 +39,125 @@ export const ComparisonView: React.FC<ComparisonViewProps> = React.memo(({
         const metrics = comparisonData.metrics || {
             wordCountChange: polished.split(/\s+/).length - original.split(/\s+/).length,
             readabilityShift: 'Neutral',
-            toneShift: 'Neutral'
+            toneShift: 'Neutral',
+            loreAlignment: 'N/A',
+            voiceLock: 'N/A'
         };
 
         return (
             <div className="space-y-8">
                 {/* Metrics Dashboard */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                     <div className="bg-surface-container-highest/30 border border-outline-variant/20 p-4 rounded-[0.75rem] flex items-center gap-4 shadow-sm">
                         <div className="bg-blue-500/10 p-3 rounded-[0.5rem]">
                             <BarChart3 className="w-6 h-6 text-blue-400" />
                         </div>
                         <div>
-                            <p className="font-label text-xs uppercase tracking-wider text-on-surface-variant font-medium">Word Count</p>
-                            <p className={`font-headline text-xl font-semibold ${metrics.wordCountChange > 0 ? 'text-green-400' : metrics.wordCountChange < 0 ? 'text-blue-400' : 'text-on-surface'}`}>
-                                {metrics.wordCountChange > 0 ? '+' : ''}{metrics.wordCountChange} words
+                            <p className="font-label text-[10px] uppercase tracking-wider text-on-surface-variant font-medium">Word Count</p>
+                            <p className={`font-headline text-lg font-semibold ${metrics.wordCountChange > 0 ? 'text-green-400' : metrics.wordCountChange < 0 ? 'text-blue-400' : 'text-on-surface'}`}>
+                                {metrics.wordCountChange > 0 ? '+' : ''}{metrics.wordCountChange}
                             </p>
                         </div>
                     </div>
                     <div className="bg-surface-container-highest/30 border border-outline-variant/20 p-4 rounded-[0.75rem] flex items-center gap-4 shadow-sm">
-                        <div className="bg-primary/10 p-3 rounded-[0.5rem]">
+                        <div className="bg-primary/10 p-3 rounded-[0.5rem] shrink-0">
                             <Activity className="w-6 h-6 text-primary" />
                         </div>
-                        <div>
-                            <p className="font-label text-xs uppercase tracking-wider text-on-surface-variant font-medium">Readability</p>
-                            <p className="font-headline text-xl text-on-surface font-semibold">{metrics.readabilityShift}</p>
+                        <div className="min-w-0">
+                            <p className="font-label text-[10px] uppercase tracking-wider text-on-surface-variant font-medium">Readability</p>
+                            <p className="font-headline text-sm text-on-surface font-semibold leading-tight">{metrics.readabilityShift}</p>
                         </div>
                     </div>
                     <div className="bg-surface-container-highest/30 border border-outline-variant/20 p-4 rounded-[0.75rem] flex items-center gap-4 shadow-sm">
-                        <div className="bg-emerald-500/10 p-3 rounded-[0.5rem]">
+                        <div className="bg-emerald-500/10 p-3 rounded-[0.5rem] shrink-0">
                             <Wand2 className="w-6 h-6 text-emerald-400" />
                         </div>
-                        <div>
-                            <p className="font-label text-xs uppercase tracking-wider text-on-surface-variant font-medium">Tone Shift</p>
-                            <p className="font-headline text-xl text-on-surface font-semibold">{metrics.toneShift}</p>
+                        <div className="min-w-0">
+                            <p className="font-label text-[10px] uppercase tracking-wider text-on-surface-variant font-medium">Tone Shift</p>
+                            <p className="font-headline text-sm text-on-surface font-semibold leading-tight">{metrics.toneShift}</p>
+                        </div>
+                    </div>
+                    <div className="bg-surface-container-highest/30 border border-outline-variant/20 p-4 rounded-[0.75rem] flex items-center gap-4 shadow-sm">
+                        <div className="bg-amber-500/10 p-3 rounded-[0.5rem] shrink-0">
+                            <Info className="w-6 h-6 text-amber-400" />
+                        </div>
+                        <div className="min-w-0">
+                            <p className="font-label text-[10px] uppercase tracking-wider text-on-surface-variant font-medium">Lore Alignment</p>
+                            <p className="font-headline text-sm text-on-surface font-semibold leading-tight">{metrics.loreAlignment}</p>
+                        </div>
+                    </div>
+                    <div className="bg-surface-container-highest/30 border border-outline-variant/20 p-4 rounded-[0.75rem] flex items-center gap-4 shadow-sm">
+                        <div className="bg-purple-500/10 p-3 rounded-[0.5rem] shrink-0">
+                            <UserCheck className="w-6 h-6 text-purple-400" />
+                        </div>
+                        <div className="min-w-0">
+                            <p className="font-label text-[10px] uppercase tracking-wider text-on-surface-variant font-medium">Voice Lock</p>
+                            <p className="font-headline text-sm text-on-surface font-semibold leading-tight">{metrics.voiceLock}</p>
                         </div>
                     </div>
                 </div>
 
+                {/* Compliance Status */}
+                {comparisonData.compliance && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className={`p-4 rounded-[0.75rem] border flex items-start gap-3 ${(comparisonData.compliance.metrics?.loreConsistency || 0) >= 80 ? 'bg-emerald-900/10 border-emerald-900/30' : 'bg-red-900/10 border-red-900/30'}`}>
+                            {(comparisonData.compliance.metrics?.loreConsistency || 0) >= 80 ? <CheckCircle2 className="w-5 h-5 text-emerald-400 mt-0.5" /> : <AlertCircle className="w-5 h-5 text-red-400 mt-0.5" />}
+                            <div>
+                                <p className="font-label text-xs uppercase tracking-wider font-bold mb-1">Lore Consistency</p>
+                                <p className="text-xs text-on-surface/70 leading-relaxed">{comparisonData.compliance.audit?.lore?.[0] || 'Lore audit pending.'}</p>
+                            </div>
+                        </div>
+                        <div className={`p-4 rounded-[0.75rem] border flex items-start gap-3 ${(comparisonData.compliance.metrics?.voiceAuthenticity || 0) >= 80 ? 'bg-emerald-900/10 border-emerald-900/30' : 'bg-red-900/10 border-red-900/30'}`}>
+                            {(comparisonData.compliance.metrics?.voiceAuthenticity || 0) >= 80 ? <CheckCircle2 className="w-5 h-5 text-emerald-400 mt-0.5" /> : <AlertCircle className="w-5 h-5 text-red-400 mt-0.5" />}
+                            <div>
+                                <p className="font-label text-xs uppercase tracking-wider font-bold mb-1">Voice Lock</p>
+                                <p className="text-xs text-on-surface/70 leading-relaxed">{comparisonData.compliance.audit?.voice?.[0] || 'Voice audit pending.'}</p>
+                            </div>
+                        </div>
+                        <div className={`p-4 rounded-[0.75rem] border flex items-start gap-3 ${(comparisonData.compliance.metrics?.mythicResonance || 0) >= 80 ? 'bg-emerald-900/10 border-emerald-900/30' : 'bg-red-900/10 border-red-900/30'}`}>
+                            {(comparisonData.compliance.metrics?.mythicResonance || 0) >= 80 ? <CheckCircle2 className="w-5 h-5 text-emerald-400 mt-0.5" /> : <AlertCircle className="w-5 h-5 text-red-400 mt-0.5" />}
+                            <div>
+                                <p className="font-label text-xs uppercase tracking-wider font-bold mb-1">Mythic Resonance</p>
+                                <p className="text-xs text-on-surface/70 leading-relaxed">{comparisonData.compliance.audit?.thematic?.[0] || comparisonData.compliance.audit?.structure?.[0] || 'Resonance analysis complete.'}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Main Summary */}
-                <div className="bg-surface-container-highest/30 border border-outline-variant/20 p-6 rounded-[1rem] relative overflow-hidden shadow-sm">
-                    <div className="absolute top-0 left-0 w-1 h-full bg-primary"></div>
-                    <h3 className="flex items-center gap-2 font-headline text-lg text-primary mb-4 font-semibold">
-                        <FileText className="w-5 h-5" />
-                        Transformation Summary
-                    </h3>
-                    <div className="prose prose-invert max-w-none text-on-surface leading-relaxed whitespace-pre-wrap">
+                <div className="bg-surface-container-highest/30 border border-outline-variant/20 p-8 rounded-[1rem] relative overflow-hidden shadow-sm">
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-primary"></div>
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="flex items-center gap-3 font-headline text-2xl text-primary font-bold">
+                            <FileText className="w-7 h-7" />
+                            Comprehensive Transformation Report
+                        </h3>
+                        <div className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest">
+                            AI Analysis Complete
+                        </div>
+                    </div>
+                    <div className="prose prose-invert max-w-none text-on-surface leading-relaxed text-base">
                         <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>{comparisonData.summary}</ReactMarkdown>
                     </div>
                 </div>
+
+                {/* Key Highlights */}
+                {comparisonData.keyHighlights && comparisonData.keyHighlights.length > 0 && (
+                    <div className="space-y-4">
+                        <h3 className="font-headline text-lg text-on-surface flex items-center gap-2 font-bold">
+                            <Sparkles className="w-5 h-5 text-primary" />
+                            Key Transformation Highlights
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {comparisonData.keyHighlights.map((highlight, i) => (
+                                <div key={i} className="flex items-start gap-3 p-4 bg-surface-container-highest/20 border border-outline-variant/10 rounded-[0.75rem] shadow-sm">
+                                    <div className="mt-1 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                                    <p className="text-sm text-on-surface/90 leading-relaxed font-medium">{highlight}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         );
     };

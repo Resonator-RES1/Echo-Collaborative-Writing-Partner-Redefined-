@@ -105,9 +105,17 @@ export const CharacterVoiceManager: React.FC<CharacterVoiceManagerProps> = React
         const voiceProfile: VoiceProfile = {
             id: profile.id,
             name: profile.name,
+            gender: profile.gender as any,
             archetype: profile.backstory,
-            patterns: profile.voice.split(',').map(s => s.trim()).filter(s => s !== ''),
+            soulPattern: '',
+            cognitivePatterns: '',
+            speechPatterns: profile.voice,
+            emotionalExpression: '',
+            behavioralAnchors: '',
+            conversationalRole: '',
+            signatureTraits: profile.voice.split(',').map(s => s.trim()).filter(s => s !== ''),
             idioms: [],
+            exampleLines: [],
             lastModified: new Date().toISOString(),
             isActive: true
         };
@@ -175,9 +183,17 @@ export const CharacterVoiceManager: React.FC<CharacterVoiceManagerProps> = React
                         const voiceProfile: VoiceProfile = {
                             id: p.id,
                             name: p.name,
+                            gender: p.gender as any,
                             archetype: p.backstory,
-                            patterns: p.voice.split(',').map(s => s.trim()).filter(s => s !== ''),
+                            soulPattern: '',
+                            cognitivePatterns: '',
+                            speechPatterns: p.voice,
+                            emotionalExpression: '',
+                            behavioralAnchors: '',
+                            conversationalRole: '',
+                            signatureTraits: p.voice.split(',').map((s: string) => s.trim()).filter((s: string) => s !== ''),
                             idioms: [],
+                            exampleLines: [],
                             lastModified: new Date().toISOString(),
                             isActive: true
                         };
@@ -257,8 +273,8 @@ export const CharacterVoiceManager: React.FC<CharacterVoiceManagerProps> = React
                                                 return [...profiles, {
                                                     id: v.id,
                                                     name: v.name,
-                                                    voice: v.patterns.join(', '),
-                                                    gender: 'unspecified',
+                                                    voice: v.speechPatterns,
+                                                    gender: v.gender as any,
                                                     backstory: v.archetype,
                                                     motivations: '',
                                                     relationships: '',

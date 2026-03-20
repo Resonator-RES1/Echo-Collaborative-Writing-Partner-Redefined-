@@ -1,6 +1,6 @@
 import React from 'react';
 import { FocusArea, RefineMode } from '../../../types';
-import { MessageSquareQuote, Waves, Smile, Network, Eye, Globe, MessagesSquare, Clock } from 'lucide-react';
+import { MessageSquareQuote, Waves, Smile, Network, Eye, Globe, MessagesSquare, Clock, ShieldCheck } from 'lucide-react';
 
 export const focusAreaOptions: { id: FocusArea, label: string, icon: React.ReactNode, title: string }[] = [
   { id: 'tone', label: 'Tone', icon: <MessageSquareQuote className="w-5 h-5" />, title: 'Adjust Tone (Atmosphere & Mood)' },
@@ -10,6 +10,7 @@ export const focusAreaOptions: { id: FocusArea, label: string, icon: React.React
   { id: 'sensory', label: 'Sensory', icon: <Eye className="w-5 h-5" />, title: 'High-Fidelity Sensory Details' },
   { id: 'thematic', label: 'Mythic Weight', icon: <Globe className="w-5 h-5" />, title: 'Mythic Weight & Themes (Lore Elevation)' },
   { id: 'dialogue', label: 'Dialogue', icon: <MessagesSquare className="w-5 h-5" />, title: 'Dialogue Authenticity & Subtext' },
+  { id: 'voiceIntegrity', label: 'Voice Integrity', icon: <ShieldCheck className="w-5 h-5" />, title: 'Preserve Authorial Voice & Style' },
   { id: 'continuity', label: 'Structural Clock', icon: <Clock className="w-5 h-5" />, title: 'Structural Clock & Continuity' },
 ];
 
@@ -21,6 +22,7 @@ export const reviewFocusAreaOptions: { id: FocusArea, label: string, icon: React
   { id: 'sensory', label: 'Sensory Review', icon: <Eye className="w-5 h-5" />, title: 'Evaluate Sensory Details' },
   { id: 'thematic', label: 'Theme Analysis', icon: <Globe className="w-5 h-5" />, title: 'Analyze Thematic Depth' },
   { id: 'dialogue', label: 'Dialogue Critique', icon: <MessagesSquare className="w-5 h-5" />, title: 'Critique Dialogue Authenticity' },
+  { id: 'voiceIntegrity', label: 'Voice Audit', icon: <ShieldCheck className="w-5 h-5" />, title: 'Audit Stylistic Consistency' },
   { id: 'continuity', label: 'Continuity Check', icon: <Clock className="w-5 h-5" />, title: 'Check Structural Continuity' },
 ];
 
@@ -32,6 +34,7 @@ export const reactionFocusAreaOptions: { id: FocusArea, label: string, icon: Rea
   { id: 'sensory', label: 'Immersion', icon: <Eye className="w-5 h-5" />, title: 'React to Sensory Details' },
   { id: 'thematic', label: 'Deep Thoughts', icon: <Globe className="w-5 h-5" />, title: 'React to Themes & Lore' },
   { id: 'dialogue', label: 'Chatter', icon: <MessagesSquare className="w-5 h-5" />, title: 'React to Dialogue' },
+  { id: 'voiceIntegrity', label: 'Authenticity', icon: <ShieldCheck className="w-5 h-5" />, title: 'React to Voice Authenticity' },
   { id: 'continuity', label: 'Believability', icon: <Clock className="w-5 h-5" />, title: 'React to Continuity' },
 ];
 

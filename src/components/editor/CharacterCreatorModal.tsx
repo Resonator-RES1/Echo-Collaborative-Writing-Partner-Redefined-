@@ -22,7 +22,7 @@ export const CharacterCreatorModal: React.FC<CharacterCreatorModalProps> = React
         relationshipNotes: '',
         voiceNotes: '',
     });
-    const [generatedProfile, setGeneratedProfile] = useState<Omit<CharacterProfile, 'id'> | null>(null);
+    const [generatedProfile, setGeneratedProfile] = useState<Omit<VoiceProfile, 'id' | 'lastModified' | 'isActive'> | null>(null);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -53,9 +53,20 @@ export const CharacterCreatorModal: React.FC<CharacterCreatorModalProps> = React
         const voiceProfile: VoiceProfile = {
             id: profileId,
             name: generatedProfile.name,
-            archetype: generatedProfile.backstory || '',
-            patterns: generatedProfile.voice.split(',').map(s => s.trim()).filter(s => s !== ''),
-            idioms: [],
+            gender: generatedProfile.gender as any,
+            archetype: generatedProfile.archetype || '',
+            soulPattern: generatedProfile.soulPattern || '',
+            cognitivePatterns: generatedProfile.cognitivePatterns || '',
+            speechPatterns: generatedProfile.speechPatterns || '',
+            emotionalExpression: generatedProfile.emotionalExpression || '',
+            behavioralAnchors: generatedProfile.behavioralAnchors || '',
+            conversationalRole: generatedProfile.conversationalRole || '',
+            signatureTraits: generatedProfile.signatureTraits || [],
+            idioms: generatedProfile.idioms || [],
+            exampleLines: generatedProfile.exampleLines || [],
+            physicalTells: generatedProfile.physicalTells || '',
+            internalMonologueStyle: generatedProfile.internalMonologueStyle || '',
+            conflictStyle: generatedProfile.conflictStyle || '',
             lastModified: new Date().toISOString(),
             isActive: true
         };
@@ -98,12 +109,29 @@ export const CharacterCreatorModal: React.FC<CharacterCreatorModalProps> = React
        if (!generatedProfile) return null;
        return (
             <div className="space-y-4">
-                {Object.entries(generatedProfile).map(([key, value]) => (
-                    <div key={key} className="p-4 bg-surface-container-highest/20 border border-outline-variant/10 rounded-[0.75rem]">
-                        <label className="text-xs font-label text-primary uppercase tracking-wider">{key}</label>
-                        <div className="mt-2 text-on-surface/90 font-headline leading-relaxed whitespace-pre-wrap">{String(value)}</div>
+                <div className="p-4 bg-surface-container-highest/20 border border-outline-variant/10 rounded-[0.75rem]">
+                    <label className="text-xs font-label text-primary uppercase tracking-wider">Name</label>
+                    <div className="mt-2 text-on-surface/90 font-headline leading-relaxed">{generatedProfile.name}</div>
+                </div>
+                <div className="p-4 bg-surface-container-highest/20 border border-outline-variant/10 rounded-[0.75rem]">
+                    <label className="text-xs font-label text-primary uppercase tracking-wider">Gender</label>
+                    <div className="mt-2 text-on-surface/90 font-headline leading-relaxed">{generatedProfile.gender}</div>
+                </div>
+                <div className="p-4 bg-surface-container-highest/20 border border-outline-variant/10 rounded-[0.75rem]">
+                    <label className="text-xs font-label text-primary uppercase tracking-wider">Archetype</label>
+                    <div className="mt-2 text-on-surface/90 font-headline leading-relaxed">{generatedProfile.archetype}</div>
+                </div>
+                <div className="p-4 bg-surface-container-highest/20 border border-outline-variant/10 rounded-[0.75rem]">
+                    <label className="text-xs font-label text-primary uppercase tracking-wider">Soul Pattern</label>
+                    <div className="mt-2 text-on-surface/90 font-headline leading-relaxed">{generatedProfile.soulPattern}</div>
+                </div>
+                <div className="p-4 bg-surface-container-highest/20 border border-outline-variant/10 rounded-[0.75rem]">
+                    <label className="text-xs font-label text-primary uppercase tracking-wider">Signature Traits</label>
+                    <div className="mt-2 text-on-surface/90 font-headline leading-relaxed">
+                        {Array.isArray(generatedProfile.signatureTraits) ? generatedProfile.signatureTraits.join(', ') : String(generatedProfile.signatureTraits)}
                     </div>
-                ))}
+                </div>
+                {/* Add more fields as needed for a comprehensive review */}
             </div>
        );
     };

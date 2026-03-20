@@ -18,7 +18,7 @@ export const FormattingToolbar: React.FC<FormattingToolbarProps> = React.memo(({
     ] as const;
 
     return (
-        <div className="flex items-center gap-1 pb-3 border-b border-outline-variant/20 mb-4 -mx-6 px-6 lg:-mx-10 lg:px-10">
+        <div className="flex items-center gap-1">
              {buttons.map(btn => (
                 <button
                     key={btn.type}
