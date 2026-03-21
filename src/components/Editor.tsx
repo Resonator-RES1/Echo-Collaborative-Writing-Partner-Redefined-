@@ -63,13 +63,6 @@ const Editor: React.FC<EditorProps> = ({
 
   const [currentVersionIndex, setCurrentVersionIndex] = useState<number>(0);
   
-  const [showComparison, setShowComparison] = useState(false);
-  const [comparisonCache, setComparisonCache] = useState<{ [key: number]: ComparisonResponse | string }>({});
-  const [isComparing, setIsComparing] = useState(false);
-  
-  const [voiceCheckCache, setVoiceCheckCache] = useState<{ [key: number]: VoiceCheckResponse | string }>({});
-  const [isCheckingVoice, setIsCheckingVoice] = useState(false);
-
   const [selection, setSelection] = useState<{ text: string; start: number; end: number } | null>(null);
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -77,9 +70,6 @@ const Editor: React.FC<EditorProps> = ({
   
   const [isCreatorModalOpen, setIsCreatorModalOpen] = useState(false);
   const [isEditorExpanded, setIsEditorExpanded] = useState(false);
-
-  const currentComparison = useMemo(() => comparisonCache[currentVersionIndex], [comparisonCache, currentVersionIndex]);
-  const currentVoiceCheck = useMemo(() => voiceCheckCache[currentVersionIndex] || '', [voiceCheckCache, currentVersionIndex]);
 
   useEffect(() => {
     const savedDraft = localStorage.getItem('echo-draft');
@@ -112,22 +102,6 @@ const Editor: React.FC<EditorProps> = ({
         return () => clearTimeout(timer);
     }
   }, [saveStatus]);
-
-  const handleCompare = useCallback(async () => {
-      if (currentVersionIndex < 0 || comparisonCache[currentVersionIndex]) return;
-      setIsComparing(true);
-      const result = await getComparison(draftState.present, versionHistory[currentVersionIndex].text);
-      setComparisonCache(prev => ({ ...prev, [currentVersionIndex]: result }));
-      setIsComparing(false);
-  }, [currentVersionIndex, comparisonCache, draftState.present, versionHistory]);
-
-  const handleCheckVoice = useCallback(async () => {
-    if (currentVersionIndex < 0 || voiceCheckCache[currentVersionIndex]) return;
-    setIsCheckingVoice(true);
-    const result = await getAuthorVoiceCheck(draftState.present, versionHistory[currentVersionIndex].text);
-    setVoiceCheckCache(prev => ({ ...prev, [currentVersionIndex]: result }));
-    setIsCheckingVoice(false);
-  }, [currentVersionIndex, voiceCheckCache, draftState.present, versionHistory]);
 
   const handleFormat = useCallback((format: FormatType) => {
       const textarea = textareaRef.current;
@@ -199,7 +173,7 @@ const Editor: React.FC<EditorProps> = ({
     }
   }, [versionHistory, onVersionHistoryChange]);
 
-  const currentVersion = versionHistory[currentVersionIndex] || { id: 'initial', text: '', timestamp: new Date().toISOString(), preset: 'Initial' };
+  const currentVersion = versionHistory[currentVersionIndex] || { id: 'initial', text: '', timestamp: new Date().toISOString(), title: 'Initial Version' };
 
   const wordCount = useMemo(() => {
       const text = draftState.present.trim();
@@ -219,26 +193,11 @@ const Editor: React.FC<EditorProps> = ({
   }, [onAddVersion]);
 
   const handleOpenCreatorModal = useCallback(() => setIsCreatorModalOpen(true), []);
-  const handleShowComparison = useCallback(() => {
-    setShowComparison(true);
-    handleCompare();
-    handleCheckVoice();
-  }, [handleCompare, handleCheckVoice]);
   const handleAcceptVersion = useCallback((version: string) => dispatchDraft({ type: 'EXTERNAL_UPDATE', payload: version }), []);
 
   return (
     <div className={`flex flex-col lg:flex-row gap-8 min-h-[900px] flex-1 animate-in fade-in duration-700`}>
       <EditorModals 
-        showComparison={showComparison}
-        currentVersionText={currentVersion.text}
-        originalDraft={draftState.present}
-        currentComparison={currentComparison}
-        currentVoiceCheck={currentVoiceCheck}
-        setShowComparison={setShowComparison}
-        handleCompare={handleCompare}
-        handleCheckVoice={handleCheckVoice}
-        isComparing={isComparing}
-        isCheckingVoice={isCheckingVoice}
         showSuggestionsPopover={showSuggestionsPopover}
         selection={selection}
         isSuggesting={isSuggesting}
@@ -263,7 +222,6 @@ const Editor: React.FC<EditorProps> = ({
             currentVersionIndex={currentVersionIndex}
             currentVersion={currentVersion}
             setCurrentVersionIndex={setCurrentVersionIndex}
-            onShowComparison={handleShowComparison}
             onAcceptVersion={handleAcceptVersion}
             onUpdateVersion={handleUpdateVersion}
             loreEntries={loreEntries}

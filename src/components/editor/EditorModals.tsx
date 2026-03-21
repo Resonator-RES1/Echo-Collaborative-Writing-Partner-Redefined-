@@ -1,20 +1,9 @@
 import React from 'react';
-import { ComparisonView } from './ComparisonView';
 import { SuggestionsPopover } from './SuggestionsPopover';
 import { CharacterCreatorModal } from './CharacterCreatorModal';
-import { ComparisonResponse, VoiceCheckResponse, VoiceProfile } from '../../types';
+import { VoiceProfile } from '../../types';
 
 interface EditorModalsProps {
-    showComparison: boolean;
-    currentVersionText: string;
-    originalDraft: string;
-    currentComparison: ComparisonResponse | string | undefined;
-    currentVoiceCheck: VoiceCheckResponse | string | undefined;
-    setShowComparison: (show: boolean) => void;
-    handleCompare: () => void;
-    handleCheckVoice: () => void;
-    isComparing: boolean;
-    isCheckingVoice: boolean;
     showSuggestionsPopover: boolean;
     selection: { text: string; start: number; end: number } | null;
     isSuggesting: boolean;
@@ -28,16 +17,6 @@ interface EditorModalsProps {
 }
 
 export const EditorModals: React.FC<EditorModalsProps> = React.memo(({
-    showComparison,
-    currentVersionText,
-    originalDraft,
-    currentComparison,
-    currentVoiceCheck,
-    setShowComparison,
-    handleCompare,
-    handleCheckVoice,
-    isComparing,
-    isCheckingVoice,
     showSuggestionsPopover,
     selection,
     isSuggesting,
@@ -51,19 +30,6 @@ export const EditorModals: React.FC<EditorModalsProps> = React.memo(({
 }) => {
     return (
         <>
-            {showComparison && currentVersionText && (
-                <ComparisonView 
-                    original={originalDraft}
-                    polished={currentVersionText}
-                    comparisonData={currentComparison}
-                    voiceCheckData={currentVoiceCheck}
-                    onClose={() => setShowComparison(false)}
-                    onCompare={handleCompare}
-                    onCheckVoice={handleCheckVoice}
-                    isComparing={isComparing}
-                    isCheckingVoice={isCheckingVoice}
-                />
-            )}
             {showSuggestionsPopover && selection && (
                 <SuggestionsPopover
                     isLoading={isSuggesting}

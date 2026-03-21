@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-    Loader2, Copy, BookOpen, Pencil, Eye, Maximize2, Minimize2, X, 
+    Loader2, Copy, Pencil, Eye, Maximize2, Minimize2, X, 
     ChevronLeft, ChevronRight, CheckCircle, FileText 
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -19,7 +19,6 @@ interface VersionDisplayProps {
     versionHistory: RefinedVersion[];
     setCurrentVersionIndex: (index: number) => void;
     onUpdateVersion: (index: number, content: string) => void;
-    onShowComparison: () => void;
     onAcceptVersion: (version: string) => void;
     showToast: (message: string) => void;
 }
@@ -27,7 +26,7 @@ interface VersionDisplayProps {
 export const VersionDisplay: React.FC<VersionDisplayProps> = React.memo(({
     mode, isRefining, reviewOutput, setReviewOutput, currentVersion, 
     currentVersionIndex, versionHistory, setCurrentVersionIndex, 
-    onUpdateVersion, onShowComparison, onAcceptVersion, showToast
+    onUpdateVersion, onAcceptVersion, showToast
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -95,11 +94,6 @@ export const VersionDisplay: React.FC<VersionDisplayProps> = React.memo(({
                                 <Copy className="w-4 h-4" />
                             </button>
                             {mode === 'collaborative' && (
-                                <button onClick={onShowComparison} title="Compare with Original" className="p-1.5 text-on-surface-variant hover:text-on-surface rounded-[0.5rem] hover:bg-surface-container-highest transition-colors">
-                                    <BookOpen className="w-4 h-4" />
-                                </button>
-                            )}
-                            {mode === 'collaborative' && (
                                 <button onClick={() => setIsEditing(!isEditing)} title={isEditing ? "Preview Changes" : "Edit Text"} className="p-1.5 text-on-surface-variant hover:text-on-surface rounded-[0.5rem] hover:bg-surface-container-highest transition-colors">
                                     {isEditing ? <Eye className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
                                 </button>
@@ -134,7 +128,8 @@ export const VersionDisplay: React.FC<VersionDisplayProps> = React.memo(({
                                         text: e.target.value,
                                         report: '',
                                         timestamp: new Date().toISOString(),
-                                        mode: mode
+                                        mode: mode,
+                                        title: 'Refined Version'
                                     };
                                 });
                             } else {

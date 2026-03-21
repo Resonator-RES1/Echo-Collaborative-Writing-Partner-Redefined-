@@ -23,13 +23,25 @@ export const ComplianceReportView: React.FC<ComplianceReportViewProps> = React.m
         );
     }
 
+    const getAuditMessages = (type: string): string[] => {
+        if (!report.audit) return [];
+        if (Array.isArray(report.audit)) {
+            return report.audit.filter(a => a.type === type).map(a => a.message);
+        }
+        // Handle legacy object structure
+        const legacyAudit = report.audit as any;
+        if (type === 'thematic' && legacyAudit.thematic) return legacyAudit.thematic;
+        if (legacyAudit[type]) return legacyAudit[type];
+        return [];
+    };
+
     const items = [
         {
             id: 'lore',
             label: 'Lore Consistency',
             icon: <ShieldCheck className="w-4 h-4" />,
             score: report.metrics?.loreConsistency || 0,
-            audit: report.audit?.lore || [],
+            audit: getAuditMessages('lore'),
             color: (report.metrics?.loreConsistency || 0) >= 80 ? 'text-emerald-400' : 'text-amber-400',
             bgColor: (report.metrics?.loreConsistency || 0) >= 80 ? 'bg-emerald-500/5' : 'bg-amber-500/5',
             borderColor: (report.metrics?.loreConsistency || 0) >= 80 ? 'border-emerald-500/20' : 'border-amber-500/20',
@@ -39,7 +51,7 @@ export const ComplianceReportView: React.FC<ComplianceReportViewProps> = React.m
             label: 'Voice Authenticity',
             icon: <Mic2 className="w-4 h-4" />,
             score: report.metrics?.voiceAuthenticity || 0,
-            audit: report.audit?.voice || [],
+            audit: getAuditMessages('voice'),
             color: (report.metrics?.voiceAuthenticity || 0) >= 80 ? 'text-emerald-400' : 'text-amber-400',
             bgColor: (report.metrics?.voiceAuthenticity || 0) >= 80 ? 'bg-emerald-500/5' : 'bg-amber-500/5',
             borderColor: (report.metrics?.voiceAuthenticity || 0) >= 80 ? 'border-emerald-500/20' : 'border-amber-500/20',
@@ -49,7 +61,7 @@ export const ComplianceReportView: React.FC<ComplianceReportViewProps> = React.m
             label: 'Mythic Resonance',
             icon: <Zap className="w-4 h-4" />,
             score: report.metrics?.mythicResonance || 0,
-            audit: report.audit?.thematic || [],
+            audit: getAuditMessages('thematic'),
             color: (report.metrics?.mythicResonance || 0) >= 80 ? 'text-emerald-400' : 'text-amber-400',
             bgColor: (report.metrics?.mythicResonance || 0) >= 80 ? 'bg-emerald-500/5' : 'bg-amber-500/5',
             borderColor: (report.metrics?.mythicResonance || 0) >= 80 ? 'border-emerald-500/20' : 'border-amber-500/20',
@@ -59,7 +71,7 @@ export const ComplianceReportView: React.FC<ComplianceReportViewProps> = React.m
             label: 'Structural Compliance',
             icon: <ShieldCheck className="w-4 h-4" />,
             score: report.metrics?.structuralCompliance || 0,
-            audit: report.audit?.structure || [],
+            audit: getAuditMessages('structure'),
             color: (report.metrics?.structuralCompliance || 0) >= 80 ? 'text-emerald-400' : 'text-amber-400',
             bgColor: (report.metrics?.structuralCompliance || 0) >= 80 ? 'bg-emerald-500/5' : 'bg-amber-500/5',
             borderColor: (report.metrics?.structuralCompliance || 0) >= 80 ? 'border-emerald-500/20' : 'border-amber-500/20',

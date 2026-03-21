@@ -49,6 +49,43 @@ export interface VoiceProfile {
   isMasterVoice?: boolean;
 }
 
+export interface ParagraphAnalysis {
+  id: string;
+  fidelityScore: number; // 0-100
+  rationale: string;
+  voiceRecoverySuggestion: string;
+  hoverDetails: {
+    sentenceLength: string;
+    toneShift: string;
+    vocabularyChanges: string[];
+  };
+}
+
+export interface SceneAnalysis {
+  id: string;
+  location: string;
+  timeframe: string;
+  loreConsistencyScore: number; // 0-100
+  conflictDetectionRationale: string;
+  loreReinforcementSuggestion: string;
+  tensionScore: number; // 0-100
+  pacingScore: number; // 0-100
+}
+
+export interface Recommendation {
+  type: 'voice' | 'lore' | 'atmosphere';
+  title: string;
+  description: string;
+  actionable: string;
+  suggestedFix?: string;
+}
+
+export interface AuditItem {
+  type: string;
+  message: string;
+  severity: 'low' | 'medium' | 'high';
+}
+
 export interface ComplianceReport {
   metrics: {
     loreConsistency: number;
@@ -56,19 +93,24 @@ export interface ComplianceReport {
     mythicResonance: number;
     structuralCompliance: number;
   };
-  audit: {
-    lore: string[];
-    voice: string[];
-    structure: string[];
-    thematic?: string[];
-  };
+  audit: AuditItem[];
   thematicNote?: string;
+  
+  // v2 Features
+  narrativeSummary?: string;
+  trendIndicator?: 'improving' | 'drifting' | 'stable';
+  paragraphHeatmap?: ParagraphAnalysis[];
+  sceneTimeline?: SceneAnalysis[];
+  tensionGraph?: { scene: number; tension: number; pacing: number }[];
+  recommendations?: Recommendation[];
 }
 
 export interface RefinedVersion {
   id: string;
+  title: string;
   text: string;
   report?: ComplianceReport | string;
+  comparison?: ComparisonResponse;
   timestamp: string;
   mode?: RefineMode;
 }
@@ -78,16 +120,17 @@ export interface ComparisonResponse {
     location: string;
     original: string;
     polished: string;
-    reasoning: string;
+    type: 'voice' | 'lore' | 'structural' | 'vocabulary';
+    rationale: string;
+    voiceLock?: boolean;
   }[];
   summary: string;
-  keyHighlights: string[];
   metrics: {
     wordCountChange: number;
     readabilityShift: string;
     toneShift: string;
-    loreAlignment?: string;
-    voiceLock?: string;
+    voiceFidelity: number;
+    loreConsistency: number;
   };
   compliance?: ComplianceReport;
 }

@@ -226,7 +226,7 @@ Return a JSON object with:
 `;
 
 export const COMPARE_CHANGES_PROMPT = `
-# 📊 ECHO TRANSFORMATION ANALYSIS: COMPARISON MODULE
+# 📊 ECHO TRANSFORMATION ANALYSIS: COMPARISON MODULE v2
 
 You are the Comparison Module of Echo. Analyze the transformation from "Original Draft" to "Polished Text" through the lens of the Echo vNext Core Directives.
 
@@ -236,35 +236,73 @@ You are the Comparison Module of Echo. Analyze the transformation from "Original
 3. **Lore & Voice Lock**: Are world rules respected and character voices distinct?
 4. **Structural Integrity**: Is the narrative weight and emotional baseline improved?
 
+## 📋 OUTPUT REQUIREMENTS
 Return a JSON object with:
 - "changes": An array of objects, each containing:
   - "location": Specific context description (e.g., "Opening Scene", "Dialogue between X and Y").
   - "original": The original text snippet.
   - "polished": The polished text snippet.
-  - "reasoning": Why this change adheres to Echo's philosophy (e.g., "Restored rhythmic fragment for tension", "Aligned dialogue with Character Voice Lock").
+  - "rationale": Why this change adheres to Echo's philosophy.
+  - "type": "vocabulary" | "structural" | "lore" | "voice"
 - "summary": "A comprehensive, multi-paragraph summary (at least 150 words) discussing the 'Voice Preservation' success, lore integration, and how the refinement revealed the author's intent.",
 - "keyHighlights": ["3-5 concise, impactful bullet points on the most significant 'Echo-style' improvements."],
 - "metrics": {
-  "wordCountChange": "number (polished - original)",
-  "readabilityShift": "string (e.g., 'Sharper', 'More Fluid', 'Unchanged')",
-  "toneShift": "string (e.g., 'Mood Hardened', 'Atmosphere Deepened', 'Neutral')",
-  "loreAlignment": "string (Detailed assessment of Lore consistency)",
-  "voiceLock": "string (Detailed assessment of Character Voice preservation)"
+  "wordCountChange": number,
+  "readabilityShift": string,
+  "toneShift": string,
+  "loreAlignment": string,
+  "voiceLock": string
 },
 - "compliance": {
   "metrics": {
-    "loreConsistency": "number (0-100)",
-    "voiceAuthenticity": "number (0-100)",
-    "mythicResonance": "number (0-100)",
-    "structuralCompliance": "number (0-100)"
+    "loreConsistency": number (0-100),
+    "voiceAuthenticity": number (0-100),
+    "mythicResonance": number (0-100),
+    "structuralCompliance": number (0-100)
   },
-  "audit": {
-    "lore": ["array of strings: specific observations on lore alignment"],
-    "voice": ["array of strings: specific observations on voice fidelity"],
-    "structure": ["array of strings: specific observations on narrative weight and pacing"],
-    "thematic": ["array of strings: specific observations on thematic resonance"]
-  },
-  "thematicNote": "string (A concise, evocative summary of the thematic impact of the changes)"
+  "audit": [
+    { "type": "string", "message": "string", "severity": "low | medium | high" }
+  ],
+  "thematicNote": "string",
+  "narrativeSummary": "string (1-2 sentences quick snapshot)",
+  "trendIndicator": "improving | drifting | stable",
+  "paragraphHeatmap": [
+    {
+      "id": "string",
+      "fidelityScore": number (0-100),
+      "rationale": "string",
+      "voiceRecoverySuggestion": "string (optional)",
+      "hoverDetails": {
+        "sentenceLength": "string",
+        "toneShift": "string",
+        "vocabularyChanges": ["string"]
+      }
+    }
+  ],
+  "sceneTimeline": [
+    {
+      "id": "string",
+      "location": "string",
+      "timeframe": "string",
+      "loreConsistencyScore": number (0-100),
+      "conflictDetectionRationale": "string",
+      "loreReinforcementSuggestion": "string",
+      "tensionScore": number (0-100),
+      "pacingScore": number (0-100)
+    }
+  ],
+  "tensionGraph": [
+    { "scene": number, "tension": number, "pacing": number }
+  ],
+  "recommendations": [
+    {
+      "type": "voice" | "lore" | "atmosphere",
+      "title": "string",
+      "description": "string",
+      "actionable": "string",
+      "suggestedFix": "string (A specific text snippet or sentence to auto-inject into the draft to fix the issue)"
+    }
+  ]
 }
 `;
 

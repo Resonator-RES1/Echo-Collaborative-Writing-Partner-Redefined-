@@ -248,16 +248,85 @@ You must return a JSON object containing two fields:
                             required: ["loreConsistency", "voiceAuthenticity", "mythicResonance", "structuralCompliance"]
                         },
                         audit: {
-                            type: Type.OBJECT,
-                            properties: {
-                                lore: { type: Type.ARRAY, items: { type: Type.STRING } },
-                                voice: { type: Type.ARRAY, items: { type: Type.STRING } },
-                                structure: { type: Type.ARRAY, items: { type: Type.STRING } },
-                                thematic: { type: Type.ARRAY, items: { type: Type.STRING } }
-                            },
-                            required: ["lore", "voice", "structure"]
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    type: { type: Type.STRING },
+                                    message: { type: Type.STRING },
+                                    severity: { type: Type.STRING, enum: ['low', 'medium', 'high'] }
+                                },
+                                required: ["type", "message", "severity"]
+                            }
                         },
-                        thematicNote: { type: Type.STRING }
+                        thematicNote: { type: Type.STRING },
+                        narrativeSummary: { type: Type.STRING },
+                        trendIndicator: { type: Type.STRING },
+                        paragraphHeatmap: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    id: { type: Type.STRING },
+                                    fidelityScore: { type: Type.NUMBER },
+                                    rationale: { type: Type.STRING },
+                                    voiceRecoverySuggestion: { type: Type.STRING },
+                                    hoverDetails: {
+                                        type: Type.OBJECT,
+                                        properties: {
+                                            sentenceLength: { type: Type.STRING },
+                                            toneShift: { type: Type.STRING },
+                                            vocabularyChanges: { type: Type.ARRAY, items: { type: Type.STRING } }
+                                        },
+                                        required: ["sentenceLength", "toneShift", "vocabularyChanges"]
+                                    }
+                                },
+                                required: ["id", "fidelityScore", "rationale", "voiceRecoverySuggestion", "hoverDetails"]
+                            }
+                        },
+                        sceneTimeline: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    id: { type: Type.STRING },
+                                    location: { type: Type.STRING },
+                                    timeframe: { type: Type.STRING },
+                                    loreConsistencyScore: { type: Type.NUMBER },
+                                    conflictDetectionRationale: { type: Type.STRING },
+                                    loreReinforcementSuggestion: { type: Type.STRING },
+                                    tensionScore: { type: Type.NUMBER },
+                                    pacingScore: { type: Type.NUMBER }
+                                },
+                                required: ["id", "location", "timeframe", "loreConsistencyScore", "conflictDetectionRationale", "loreReinforcementSuggestion", "tensionScore", "pacingScore"]
+                            }
+                        },
+                        tensionGraph: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    scene: { type: Type.NUMBER },
+                                    tension: { type: Type.NUMBER },
+                                    pacing: { type: Type.NUMBER }
+                                },
+                                required: ["scene", "tension", "pacing"]
+                            }
+                        },
+                        recommendations: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    type: { type: Type.STRING },
+                                    title: { type: Type.STRING },
+                                    description: { type: Type.STRING },
+                                    actionable: { type: Type.STRING },
+                                    suggestedFix: { type: Type.STRING }
+                                },
+                                required: ["type", "title", "description", "actionable"]
+                            }
+                        }
                     },
                     required: ["metrics", "audit"]
                 }
@@ -281,11 +350,11 @@ You must return a JSON object containing two fields:
                     mythicResonance: 0,
                     structuralCompliance: 0
                 },
-                audit: {
-                    lore: ["No report generated"],
-                    voice: ["No report generated"],
-                    structure: ["No report generated"]
-                },
+                audit: [
+                    { type: 'voice', message: "No report generated", severity: 'low' },
+                    { type: 'lore', message: "No report generated", severity: 'low' },
+                    { type: 'structure', message: "No report generated", severity: 'low' }
+                ],
                 thematicNote: 'No report generated'
             }
         };
@@ -300,11 +369,11 @@ You must return a JSON object containing two fields:
                     mythicResonance: 0,
                     structuralCompliance: 0
                 },
-                audit: {
-                    lore: ["Error: " + error.message],
-                    voice: ["Error: " + error.message],
-                    structure: ["Error: " + error.message]
-                },
+                audit: [
+                    { type: 'voice', message: "Error: " + error.message, severity: 'high' },
+                    { type: 'lore', message: "Error: " + error.message, severity: 'high' },
+                    { type: 'structure', message: "Error: " + error.message, severity: 'high' }
+                ],
                 thematicNote: 'Error during refinement'
             }
         };
@@ -438,9 +507,10 @@ export const getComparison = async (originalDraft: string, polishedText: string)
                   location: { type: Type.STRING },
                   original: { type: Type.STRING },
                   polished: { type: Type.STRING },
-                  reasoning: { type: Type.STRING }
+                  rationale: { type: Type.STRING },
+                  type: { type: Type.STRING }
                 },
-                required: ['location', 'original', 'polished', 'reasoning']
+                required: ['location', 'original', 'polished', 'rationale', 'type']
               }
             },
             summary: { type: Type.STRING },
@@ -470,16 +540,85 @@ export const getComparison = async (originalDraft: string, polishedText: string)
                   required: ["loreConsistency", "voiceAuthenticity", "mythicResonance", "structuralCompliance"]
                 },
                 audit: {
-                  type: Type.OBJECT,
-                  properties: {
-                    lore: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    voice: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    structure: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    thematic: { type: Type.ARRAY, items: { type: Type.STRING } }
-                  },
-                  required: ["lore", "voice", "structure"]
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      type: { type: Type.STRING },
+                      message: { type: Type.STRING },
+                      severity: { type: Type.STRING, enum: ['low', 'medium', 'high'] }
+                    },
+                    required: ["type", "message", "severity"]
+                  }
                 },
-                thematicNote: { type: Type.STRING }
+                thematicNote: { type: Type.STRING },
+                narrativeSummary: { type: Type.STRING },
+                trendIndicator: { type: Type.STRING },
+                paragraphHeatmap: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      id: { type: Type.STRING },
+                      fidelityScore: { type: Type.NUMBER },
+                      rationale: { type: Type.STRING },
+                      voiceRecoverySuggestion: { type: Type.STRING },
+                      hoverDetails: {
+                        type: Type.OBJECT,
+                        properties: {
+                          sentenceLength: { type: Type.STRING },
+                          toneShift: { type: Type.STRING },
+                          vocabularyChanges: { type: Type.ARRAY, items: { type: Type.STRING } }
+                        },
+                        required: ["sentenceLength", "toneShift", "vocabularyChanges"]
+                      }
+                    },
+                    required: ["id", "fidelityScore", "rationale", "voiceRecoverySuggestion", "hoverDetails"]
+                  }
+                },
+                sceneTimeline: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      id: { type: Type.STRING },
+                      location: { type: Type.STRING },
+                      timeframe: { type: Type.STRING },
+                      loreConsistencyScore: { type: Type.NUMBER },
+                      conflictDetectionRationale: { type: Type.STRING },
+                      loreReinforcementSuggestion: { type: Type.STRING },
+                      tensionScore: { type: Type.NUMBER },
+                      pacingScore: { type: Type.NUMBER }
+                    },
+                    required: ["id", "location", "timeframe", "loreConsistencyScore", "conflictDetectionRationale", "loreReinforcementSuggestion", "tensionScore", "pacingScore"]
+                  }
+                },
+                tensionGraph: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      scene: { type: Type.NUMBER },
+                      tension: { type: Type.NUMBER },
+                      pacing: { type: Type.NUMBER }
+                    },
+                    required: ["scene", "tension", "pacing"]
+                  }
+                },
+                recommendations: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      type: { type: Type.STRING },
+                      title: { type: Type.STRING },
+                      description: { type: Type.STRING },
+                      actionable: { type: Type.STRING },
+                      suggestedFix: { type: Type.STRING }
+                    },
+                    required: ["type", "title", "description", "actionable"]
+                  }
+                }
               },
               required: ["metrics", "audit"]
             }

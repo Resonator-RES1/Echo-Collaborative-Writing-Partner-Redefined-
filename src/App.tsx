@@ -118,6 +118,12 @@ export default function App() {
     await db.putEcho(version);
   };
 
+  const applySuggestion = (fix: string) => {
+    setDraft(prev => prev + "\n\n" + fix);
+    setCurrentScreen('workspace');
+    showToast("Suggestion applied to draft.");
+  };
+
   const importVersions = async (versions: RefinedVersion[]) => {
     setVersionHistory(versions);
     await db.setAllEchoes(versions);
@@ -149,6 +155,7 @@ export default function App() {
             versionHistory={versionHistory}
             onDeleteVersion={deleteVersion}
             onImportVersions={importVersions}
+            onApplySuggestion={applySuggestion}
           />
         );
       case 'voices':

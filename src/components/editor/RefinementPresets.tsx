@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import {
-    Sparkles, Loader2, ChevronDown, ChevronUp, BookOpen, CheckCircle, MessageSquareQuote, 
+    Sparkles, Loader2, ChevronDown, ChevronUp, CheckCircle, MessageSquareQuote, 
     Waves, Smile, Network, Eye, Globe, MessagesSquare, Clock, ShieldCheck
 } from 'lucide-react';
 import { ModeSelector } from './presets/ModeSelector';
@@ -9,7 +9,6 @@ import { CharacterVoiceManager } from './presets/CharacterVoiceManager';
 import { PolishDepthSelector, REVIEW_DEPTH_CONFIG, REACTION_DEPTH_CONFIG } from './presets/PolishDepthSelector';
 import { ModelSelector } from './presets/ModelSelector';
 import { VersionDisplay } from './presets/VersionDisplay';
-import { ComplianceReportView } from './ComplianceReportView';
 import { RefineMode, FocusArea, CharacterProfile, ReviewPerspective, FeedbackDepth, RefinedVersion, LoreEntry, VoiceProfile } from '../../types';
 import { refineDraft } from '../../services/geminiService';
 import { LoreContextManager } from './LoreContextManager';
@@ -62,7 +61,6 @@ interface RefinementPresetsProps {
     currentVersionIndex: number;
     currentVersion: RefinedVersion;
     setCurrentVersionIndex: (index: number) => void;
-    onShowComparison: () => void;
     onAcceptVersion: (version: string) => void;
     onUpdateVersion: (index: number, content: string) => void;
     loreEntries: LoreEntry[];
@@ -81,7 +79,7 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
     const {
         getDraft, isRefining, setIsRefining, showToast, onNewVersion, onOpenCreatorModal,
         versionHistory, currentVersionIndex, currentVersion, setCurrentVersionIndex,
-        onShowComparison, onAcceptVersion, onUpdateVersion, loreEntries, voiceProfiles,
+        onAcceptVersion, onUpdateVersion, loreEntries, voiceProfiles,
         onAddLoreEntry, onAddVoiceProfile
     } = props;
 
@@ -152,7 +150,8 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
             ...result,
             id: Date.now().toString(),
             timestamp: new Date().toISOString(),
-            mode: mode
+            mode: mode,
+            title: `Refinement ${new Date().toLocaleTimeString()}`
         };
         
         if (mode === 'review' || mode === 'reaction') {
@@ -231,30 +230,10 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
                     versionHistory={versionHistory}
                     setCurrentVersionIndex={setCurrentVersionIndex}
                     onUpdateVersion={onUpdateVersion}
-                    onShowComparison={onShowComparison}
                     onAcceptVersion={onAcceptVersion}
                     showToast={showToast}
                 />
             </div>
-
-            {mode === 'collaborative' && reportContent && (
-                <div className="bg-surface-container-low rounded-[0.75rem] border border-outline-variant/20 flex flex-col mt-4 shadow-sm overflow-hidden">
-                    <div className="p-3 border-b border-outline-variant/20 flex justify-between items-center bg-surface-container-highest/30">
-                        <div className="flex items-center gap-2">
-                            <ShieldCheck className="w-4 h-4 text-primary" />
-                            <h3 className="text-xs font-label text-on-surface-variant font-medium tracking-wider uppercase">Structural Compliance Report</h3>
-                        </div>
-                        <div className="flex gap-1">
-                            <div className="w-1.5 h-1.5 rounded-full bg-primary/50"></div>
-                            <div className="w-1.5 h-1.5 rounded-full bg-primary/30"></div>
-                            <div className="w-1.5 h-1.5 rounded-full bg-primary/10"></div>
-                        </div>
-                    </div>
-                    <div className="p-4 overflow-y-auto max-h-[400px]">
-                        <ComplianceReportView report={reportContent} />
-                    </div>
-                </div>
-            )}
         </>
     );
 });

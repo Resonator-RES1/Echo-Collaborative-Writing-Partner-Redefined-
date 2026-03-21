@@ -36,12 +36,12 @@ export const ComparisonView: React.FC<ComparisonViewProps> = React.memo(({
         
         if (typeof comparisonData === 'string') return <div className="p-4 bg-red-900/20 border border-red-900/50 rounded-lg text-red-400">{comparisonData}</div>;
 
-        const metrics = comparisonData.metrics || {
+        const metrics = (comparisonData as ComparisonResponse).metrics || {
             wordCountChange: polished.split(/\s+/).length - original.split(/\s+/).length,
             readabilityShift: 'Neutral',
             toneShift: 'Neutral',
-            loreAlignment: 'N/A',
-            voiceLock: 'N/A'
+            loreConsistency: 0,
+            voiceFidelity: 0
         };
 
         return (
@@ -82,8 +82,8 @@ export const ComparisonView: React.FC<ComparisonViewProps> = React.memo(({
                             <Info className="w-6 h-6 text-amber-400" />
                         </div>
                         <div className="min-w-0">
-                            <p className="font-label text-[10px] uppercase tracking-wider text-on-surface-variant font-medium">Lore Alignment</p>
-                            <p className="font-headline text-sm text-on-surface font-semibold leading-tight">{metrics.loreAlignment}</p>
+                            <p className="font-label text-[10px] uppercase tracking-wider text-on-surface-variant font-medium">Lore Consistency</p>
+                            <p className="font-headline text-sm text-on-surface font-semibold leading-tight">{metrics.loreConsistency}%</p>
                         </div>
                     </div>
                     <div className="bg-surface-container-highest/30 border border-outline-variant/20 p-4 rounded-[0.75rem] flex items-center gap-4 shadow-sm">
@@ -91,8 +91,8 @@ export const ComparisonView: React.FC<ComparisonViewProps> = React.memo(({
                             <UserCheck className="w-6 h-6 text-purple-400" />
                         </div>
                         <div className="min-w-0">
-                            <p className="font-label text-[10px] uppercase tracking-wider text-on-surface-variant font-medium">Voice Lock</p>
-                            <p className="font-headline text-sm text-on-surface font-semibold leading-tight">{metrics.voiceLock}</p>
+                            <p className="font-label text-[10px] uppercase tracking-wider text-on-surface-variant font-medium">Voice Fidelity</p>
+                            <p className="font-headline text-sm text-on-surface font-semibold leading-tight">{metrics.voiceFidelity}%</p>
                         </div>
                     </div>
                 </div>
@@ -104,21 +104,21 @@ export const ComparisonView: React.FC<ComparisonViewProps> = React.memo(({
                             {(comparisonData.compliance.metrics?.loreConsistency || 0) >= 80 ? <CheckCircle2 className="w-5 h-5 text-emerald-400 mt-0.5" /> : <AlertCircle className="w-5 h-5 text-red-400 mt-0.5" />}
                             <div>
                                 <p className="font-label text-xs uppercase tracking-wider font-bold mb-1">Lore Consistency</p>
-                                <p className="text-xs text-on-surface/70 leading-relaxed">{comparisonData.compliance.audit?.lore?.[0] || 'Lore audit pending.'}</p>
+                                <p className="text-xs text-on-surface/70 leading-relaxed">{Array.isArray(comparisonData.compliance.audit) ? (comparisonData.compliance.audit.find(a => a.type === 'lore')?.message || 'Lore audit pending.') : 'Lore audit pending.'}</p>
                             </div>
                         </div>
                         <div className={`p-4 rounded-[0.75rem] border flex items-start gap-3 ${(comparisonData.compliance.metrics?.voiceAuthenticity || 0) >= 80 ? 'bg-emerald-900/10 border-emerald-900/30' : 'bg-red-900/10 border-red-900/30'}`}>
                             {(comparisonData.compliance.metrics?.voiceAuthenticity || 0) >= 80 ? <CheckCircle2 className="w-5 h-5 text-emerald-400 mt-0.5" /> : <AlertCircle className="w-5 h-5 text-red-400 mt-0.5" />}
                             <div>
                                 <p className="font-label text-xs uppercase tracking-wider font-bold mb-1">Voice Lock</p>
-                                <p className="text-xs text-on-surface/70 leading-relaxed">{comparisonData.compliance.audit?.voice?.[0] || 'Voice audit pending.'}</p>
+                                <p className="text-xs text-on-surface/70 leading-relaxed">{Array.isArray(comparisonData.compliance.audit) ? (comparisonData.compliance.audit.find(a => a.type === 'voice')?.message || 'Voice audit pending.') : 'Voice audit pending.'}</p>
                             </div>
                         </div>
                         <div className={`p-4 rounded-[0.75rem] border flex items-start gap-3 ${(comparisonData.compliance.metrics?.mythicResonance || 0) >= 80 ? 'bg-emerald-900/10 border-emerald-900/30' : 'bg-red-900/10 border-red-900/30'}`}>
                             {(comparisonData.compliance.metrics?.mythicResonance || 0) >= 80 ? <CheckCircle2 className="w-5 h-5 text-emerald-400 mt-0.5" /> : <AlertCircle className="w-5 h-5 text-red-400 mt-0.5" />}
                             <div>
                                 <p className="font-label text-xs uppercase tracking-wider font-bold mb-1">Mythic Resonance</p>
-                                <p className="text-xs text-on-surface/70 leading-relaxed">{comparisonData.compliance.audit?.thematic?.[0] || comparisonData.compliance.audit?.structure?.[0] || 'Resonance analysis complete.'}</p>
+                                <p className="text-xs text-on-surface/70 leading-relaxed">{Array.isArray(comparisonData.compliance.audit) ? (comparisonData.compliance.audit.find(a => a.type === 'thematic' || a.type === 'structure')?.message || 'Resonance analysis complete.') : 'Resonance analysis complete.'}</p>
                             </div>
                         </div>
                     </div>
@@ -140,24 +140,6 @@ export const ComparisonView: React.FC<ComparisonViewProps> = React.memo(({
                         <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>{comparisonData.summary}</ReactMarkdown>
                     </div>
                 </div>
-
-                {/* Key Highlights */}
-                {comparisonData.keyHighlights && comparisonData.keyHighlights.length > 0 && (
-                    <div className="space-y-4">
-                        <h3 className="font-headline text-lg text-on-surface flex items-center gap-2 font-bold">
-                            <Sparkles className="w-5 h-5 text-primary" />
-                            Key Transformation Highlights
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {comparisonData.keyHighlights.map((highlight, i) => (
-                                <div key={i} className="flex items-start gap-3 p-4 bg-surface-container-highest/20 border border-outline-variant/10 rounded-[0.75rem] shadow-sm">
-                                    <div className="mt-1 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-                                    <p className="text-sm text-on-surface/90 leading-relaxed font-medium">{highlight}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
             </div>
         );
     };
@@ -266,7 +248,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = React.memo(({
                             <div key={index} className="bg-surface-container-highest/30 p-4 rounded-[0.75rem] border border-outline-variant/20 hover:border-primary/50 transition-colors group shadow-sm">
                                 <div className="flex items-center justify-between mb-3">
                                     <span className="font-label text-xs uppercase tracking-wider text-primary font-medium">{change.location}</span>
-                                    <span className="font-label text-xs text-on-surface-variant bg-surface-container-highest px-2 py-0.5 rounded-[0.25rem] uppercase tracking-wider font-medium">{change.reasoning.split(' ')[0]}</span>
+                                    <span className="font-label text-xs text-on-surface-variant bg-surface-container-highest px-2 py-0.5 rounded-[0.25rem] uppercase tracking-wider font-medium">{change.rationale.split(' ')[0]}</span>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-3">
                                     <div className="space-y-1">
@@ -284,7 +266,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = React.memo(({
                                 </div>
                                 <p className="text-xs text-on-surface-variant leading-relaxed group-hover:text-on-surface transition-colors">
                                     <span className="text-primary font-bold mr-1">Rationale:</span>
-                                    {change.reasoning}
+                                    {change.rationale}
                                 </p>
                             </div>
                         ))}
