@@ -1,12 +1,40 @@
-import React from 'react';
-import { Cpu, Zap, Brain } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Cpu, Zap, Brain, Key } from 'lucide-react';
 
 interface ModelSelectorProps {
   selectedModel: string;
   setSelectedModel: (model: any) => void;
 }
 
+declare global {
+  interface Window {
+    aistudio: {
+      hasSelectedApiKey: () => Promise<boolean>;
+      openSelectKey: () => Promise<void>;
+    };
+  }
+}
+
 export const ModelSelector: React.FC<ModelSelectorProps> = ({ selectedModel, setSelectedModel }) => {
+  const [hasCustomKey, setHasCustomKey] = useState(false);
+
+  useEffect(() => {
+    const checkKey = async () => {
+      if (window.aistudio?.hasSelectedApiKey) {
+        const hasKey = await window.aistudio.hasSelectedApiKey();
+        setHasCustomKey(hasKey);
+      }
+    };
+    checkKey();
+  }, []);
+
+  const handleConnectKey = async () => {
+    if (window.aistudio?.openSelectKey) {
+      await window.aistudio.openSelectKey();
+      setHasCustomKey(true);
+    }
+  };
+
   const modelOptions = [
     { 
       id: 'gemini-3.1-flash-lite-preview', 
@@ -30,9 +58,22 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ selectedModel, set
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2 font-label text-xs uppercase tracking-wider text-on-surface-variant font-medium">
-        <Cpu className="w-3.5 h-3.5" />
-        <span>Intelligence Model</span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 font-label text-xs uppercase tracking-wider text-on-surface-variant font-medium">
+          <Cpu className="w-3.5 h-3.5" />
+          <span>Intelligence Model</span>
+        </div>
+        <button 
+          onClick={handleConnectKey}
+          className={`flex items-center gap-1.5 px-2 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider transition-all ${
+            hasCustomKey 
+              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
+              : 'bg-primary/5 border-primary/20 text-primary hover:bg-primary/10'
+          }`}
+        >
+          <Key className="w-3 h-3" />
+          {hasCustomKey ? 'AI Pro Connected' : 'Connect AI Pro'}
+        </button>
       </div>
       <div className="grid grid-cols-3 gap-2">
         {modelOptions.map((opt) => (
@@ -56,6 +97,11 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ selectedModel, set
           </button>
         ))}
       </div>
+      {hasCustomKey && (
+        <p className="text-[10px] text-emerald-400/70 italic text-center">
+          Using your personal Gemini API quota for higher limits.
+        </p>
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
-import { LoreEntry, VoiceProfile, RefinedVersion } from '../types';
+import { LoreEntry, VoiceProfile, RefinedVersion, AuthorVoice } from '../types';
 
 interface EchoDB extends DBSchema {
   lore: {
@@ -10,6 +10,10 @@ interface EchoDB extends DBSchema {
     key: string;
     value: VoiceProfile;
   };
+  authorVoices: {
+    key: string;
+    value: AuthorVoice;
+  };
   echoes: {
     key: string;
     value: RefinedVersion;
@@ -18,31 +22,25 @@ interface EchoDB extends DBSchema {
     key: string;
     value: any;
   };
-  syncMetadata: {
-    key: string;
-    value: {
-      fileId?: string; // Google Drive file ID
-      revisionId?: string;
-      lastSynced: number;
-      isDirty: boolean;
-    };
-  };
 }
 
 const DB_NAME = 'echo-cloud-db';
-const DB_VERSION = 1;
+const DB_VERSION = 3; // Bump version to remove syncMetadata
 
 let dbPromise: Promise<IDBPDatabase<EchoDB>> | null = null;
 
 export const getDB = () => {
   if (!dbPromise) {
     dbPromise = openDB<EchoDB>(DB_NAME, DB_VERSION, {
-      upgrade(db) {
+      upgrade(db, oldVersion) {
         if (!db.objectStoreNames.contains('lore')) {
           db.createObjectStore('lore', { keyPath: 'id' });
         }
         if (!db.objectStoreNames.contains('voices')) {
           db.createObjectStore('voices', { keyPath: 'id' });
+        }
+        if (!db.objectStoreNames.contains('authorVoices')) {
+          db.createObjectStore('authorVoices', { keyPath: 'id' });
         }
         if (!db.objectStoreNames.contains('echoes')) {
           db.createObjectStore('echoes', { keyPath: 'id' });
@@ -50,8 +48,9 @@ export const getDB = () => {
         if (!db.objectStoreNames.contains('settings')) {
           db.createObjectStore('settings');
         }
-        if (!db.objectStoreNames.contains('syncMetadata')) {
-          db.createObjectStore('syncMetadata');
+        // Remove syncMetadata if it exists from previous versions
+        if (db.objectStoreNames.contains('syncMetadata' as any)) {
+          db.deleteObjectStore('syncMetadata' as any);
         }
       },
     });
@@ -68,13 +67,11 @@ export const getLoreEntries = async (): Promise<LoreEntry[]> => {
 export const putLoreEntry = async (entry: LoreEntry): Promise<void> => {
   const db = await getDB();
   await db.put('lore', entry);
-  await markDirty('lore.json');
 };
 
 export const deleteLoreEntry = async (id: string): Promise<void> => {
   const db = await getDB();
   await db.delete('lore', id);
-  await markDirty('lore.json');
 };
 
 export const setAllLoreEntries = async (entries: LoreEntry[]): Promise<void> => {
@@ -85,7 +82,6 @@ export const setAllLoreEntries = async (entries: LoreEntry[]): Promise<void> => 
     await tx.store.put(entry);
   }
   await tx.done;
-  await markDirty('lore.json');
 };
 
 // --- VOICES ---
@@ -97,13 +93,11 @@ export const getVoiceProfiles = async (): Promise<VoiceProfile[]> => {
 export const putVoiceProfile = async (profile: VoiceProfile): Promise<void> => {
   const db = await getDB();
   await db.put('voices', profile);
-  await markDirty('voice_profiles.json');
 };
 
 export const deleteVoiceProfile = async (id: string): Promise<void> => {
   const db = await getDB();
   await db.delete('voices', id);
-  await markDirty('voice_profiles.json');
 };
 
 export const setAllVoiceProfiles = async (profiles: VoiceProfile[]): Promise<void> => {
@@ -114,7 +108,32 @@ export const setAllVoiceProfiles = async (profiles: VoiceProfile[]): Promise<voi
     await tx.store.put(profile);
   }
   await tx.done;
-  await markDirty('voice_profiles.json');
+};
+
+// --- AUTHOR VOICES ---
+export const getAuthorVoices = async (): Promise<AuthorVoice[]> => {
+  const db = await getDB();
+  return db.getAll('authorVoices');
+};
+
+export const putAuthorVoice = async (voice: AuthorVoice): Promise<void> => {
+  const db = await getDB();
+  await db.put('authorVoices', voice);
+};
+
+export const deleteAuthorVoice = async (id: string): Promise<void> => {
+  const db = await getDB();
+  await db.delete('authorVoices', id);
+};
+
+export const setAllAuthorVoices = async (voices: AuthorVoice[]): Promise<void> => {
+  const db = await getDB();
+  const tx = db.transaction('authorVoices', 'readwrite');
+  await tx.store.clear();
+  for (const voice of voices) {
+    await tx.store.put(voice);
+  }
+  await tx.done;
 };
 
 // --- ECHOES ---
@@ -128,13 +147,11 @@ export const getEchoes = async (): Promise<RefinedVersion[]> => {
 export const putEcho = async (echo: RefinedVersion): Promise<void> => {
   const db = await getDB();
   await db.put('echoes', echo);
-  await markDirty('echoes'); // We can optimize this later to track individual chapter files
 };
 
 export const deleteEcho = async (id: string): Promise<void> => {
   const db = await getDB();
   await db.delete('echoes', id);
-  await markDirty('echoes');
 };
 
 export const setAllEchoes = async (echoes: RefinedVersion[]): Promise<void> => {
@@ -145,7 +162,6 @@ export const setAllEchoes = async (echoes: RefinedVersion[]): Promise<void> => {
     await tx.store.put(echo);
   }
   await tx.done;
-  await markDirty('echoes');
 };
 
 // --- SETTINGS ---
@@ -157,7 +173,6 @@ export const getSetting = async (key: string): Promise<any> => {
 export const putSetting = async (key: string, value: any): Promise<void> => {
   const db = await getDB();
   await db.put('settings', value, key);
-  await markDirty('settings.json');
 };
 
 export const getAllSettings = async (): Promise<Record<string, any>> => {
@@ -184,16 +199,15 @@ export const setAllSettings = async (settings: Record<string, any>): Promise<voi
     }
   }
   await tx.done;
-  await markDirty('settings.json');
 };
 
 export const clearProjectData = async (): Promise<void> => {
   const db = await getDB();
-  const tx = db.transaction(['lore', 'voices', 'echoes', 'syncMetadata'], 'readwrite');
+  const tx = db.transaction(['lore', 'voices', 'authorVoices', 'echoes'], 'readwrite');
   await tx.objectStore('lore').clear();
   await tx.objectStore('voices').clear();
+  await tx.objectStore('authorVoices').clear();
   await tx.objectStore('echoes').clear();
-  await tx.objectStore('syncMetadata').clear();
   await tx.done;
   
   // Also clear project-specific settings but keep auth/project info
@@ -205,33 +219,4 @@ export const clearProjectData = async (): Promise<void> => {
     }
   }
   await settingsTx.done;
-};
-
-// --- SYNC METADATA ---
-export const getSyncMetadata = async (key: string) => {
-  const db = await getDB();
-  return db.get('syncMetadata', key);
-};
-
-export const putSyncMetadata = async (key: string, metadata: any) => {
-  const db = await getDB();
-  await db.put('syncMetadata', metadata, key);
-};
-
-export const getAllSyncMetadata = async (): Promise<Record<string, any>> => {
-  const db = await getDB();
-  const keys = await db.getAllKeys('syncMetadata');
-  const values = await db.getAll('syncMetadata');
-  const metadata: Record<string, any> = {};
-  keys.forEach((key, i) => {
-    metadata[key as string] = values[i];
-  });
-  return metadata;
-};
-
-const markDirty = async (key: string) => {
-  const db = await getDB();
-  const meta = await db.get('syncMetadata', key) || { lastSynced: 0, isDirty: false };
-  meta.isDirty = true;
-  await db.put('syncMetadata', meta, key);
 };

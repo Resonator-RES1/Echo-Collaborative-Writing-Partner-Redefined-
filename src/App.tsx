@@ -8,9 +8,9 @@ import Editor from './components/Editor.tsx';
 import { Toast } from './components/Toast';
 import { TopAppBar } from './components/TopAppBar';
 import { LoreScreen } from './components/LoreScreen';
-import { AnalysisScreen } from './components/AnalysisScreen';
 import { VoicesScreen } from './components/VoicesScreen';
-import { LoreEntry, VoiceProfile, Screen, RefinedVersion } from './types';
+import { WelcomeScreen } from './components/WelcomeScreen';
+import { LoreEntry, VoiceProfile, Screen, RefinedVersion, AuthorVoice } from './types';
 import * as db from './services/dbService';
 
 export default function App() {
@@ -19,24 +19,27 @@ export default function App() {
   const [isRefining, setIsRefining] = useState<boolean>(false);
   const [versionCount, setVersionCount] = useState<number>(0);
   const [versionHistory, setVersionHistory] = useState<RefinedVersion[]>([]);
-  const [currentScreen, setCurrentScreen] = useState<Screen>('workspace');
+  const [currentScreen, setCurrentScreen] = useState<Screen>('welcome');
   
   // Lore & Voices State
   const [loreEntries, setLoreEntries] = useState<LoreEntry[]>([]);
   const [voiceProfiles, setVoiceProfiles] = useState<VoiceProfile[]>([]);
+  const [authorVoices, setAuthorVoices] = useState<AuthorVoice[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Load from IndexedDB on mount and on sync completion
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [loadedLore, loadedVoices, loadedEchoes] = await Promise.all([
+        const [loadedLore, loadedVoices, loadedAuthorVoices, loadedEchoes] = await Promise.all([
           db.getLoreEntries(),
           db.getVoiceProfiles(),
+          db.getAuthorVoices(),
           db.getEchoes()
         ]);
         setLoreEntries(loadedLore);
         setVoiceProfiles(loadedVoices);
+        setAuthorVoices(loadedAuthorVoices);
         setVersionHistory(loadedEchoes);
       } catch (e) {
         console.error("Failed to load data from DB", e);
@@ -79,6 +82,7 @@ export default function App() {
       }
       return [profile, ...prev];
     });
+    
     await db.putVoiceProfile(profile);
     showToast(`Voice profile for "${profile.name}" updated.`);
   };
@@ -87,6 +91,12 @@ export default function App() {
     setVersionHistory(prev => prev.filter(v => v.id !== id));
     await db.deleteEcho(id);
     showToast("Echo removed from history.");
+  };
+
+  const clearVersionHistory = async () => {
+    setVersionHistory([]);
+    await db.setAllEchoes([]);
+    showToast("Echo archive cleared.");
   };
 
   const deleteLoreEntry = async (id: string) => {
@@ -99,6 +109,44 @@ export default function App() {
     setVoiceProfiles(prev => prev.filter(p => p.id !== id));
     await db.deleteVoiceProfile(id);
     showToast("Voice profile deleted.");
+  };
+
+  const upsertAuthorVoice = async (voice: AuthorVoice) => {
+    setAuthorVoices(prev => {
+      let updated = prev;
+      if (voice.isActive) {
+        updated = prev.map(v => ({ ...v, isActive: false }));
+      }
+      const exists = updated.find(v => v.id === voice.id);
+      if (exists) {
+        return updated.map(v => v.id === voice.id ? voice : v);
+      }
+      return [voice, ...updated];
+    });
+
+    if (voice.isActive) {
+      const allVoices = await db.getAuthorVoices();
+      const updatedVoices = allVoices.map(v => ({
+        ...v,
+        isActive: v.id === voice.id ? true : false
+      }));
+      await db.setAllAuthorVoices(updatedVoices);
+    } else {
+      await db.putAuthorVoice(voice);
+    }
+    showToast(`Author voice "${voice.name}" updated.`);
+  };
+
+  const deleteAuthorVoice = async (id: string) => {
+    setAuthorVoices(prev => prev.filter(v => v.id !== id));
+    await db.deleteAuthorVoice(id);
+    showToast("Author voice deleted.");
+  };
+
+  const importAuthorVoices = async (voices: AuthorVoice[]) => {
+    setAuthorVoices(voices);
+    await db.setAllAuthorVoices(voices);
+    showToast(`${voices.length} author voices imported.`);
   };
 
   const importEntries = async (entries: LoreEntry[]) => {
@@ -118,12 +166,6 @@ export default function App() {
     await db.putEcho(version);
   };
 
-  const applySuggestion = (fix: string) => {
-    setDraft(prev => prev + "\n\n" + fix);
-    setCurrentScreen('workspace');
-    showToast("Suggestion applied to draft.");
-  };
-
   const importVersions = async (versions: RefinedVersion[]) => {
     setVersionHistory(versions);
     await db.setAllEchoes(versions);
@@ -136,6 +178,8 @@ export default function App() {
 
   const renderScreen = () => {
     switch (currentScreen) {
+      case 'welcome':
+        return <WelcomeScreen onStart={() => setCurrentScreen('workspace')} />;
       case 'lore':
         return (
           <LoreScreen 
@@ -146,26 +190,18 @@ export default function App() {
             onImportEntries={importEntries}
           />
         );
-      case 'analysis':
-        return (
-          <AnalysisScreen 
-            setCurrentScreen={setCurrentScreen} 
-            loreEntries={loreEntries}
-            voiceProfiles={voiceProfiles}
-            versionHistory={versionHistory}
-            onDeleteVersion={deleteVersion}
-            onImportVersions={importVersions}
-            onApplySuggestion={applySuggestion}
-          />
-        );
       case 'voices':
         return (
           <VoicesScreen 
             setCurrentScreen={setCurrentScreen} 
             voiceProfiles={voiceProfiles}
+            authorVoices={authorVoices}
             onAddProfile={upsertVoiceProfile}
             onDeleteProfile={deleteVoiceProfile}
+            onAddAuthorVoice={upsertAuthorVoice}
+            onDeleteAuthorVoice={deleteAuthorVoice}
             onImportProfiles={importProfiles}
+            onImportAuthorVoices={importAuthorVoices}
           />
         );
       case 'workspace':
@@ -181,10 +217,13 @@ export default function App() {
               onVersionHistoryChange={setVersionHistory}
               loreEntries={loreEntries}
               voiceProfiles={voiceProfiles}
+              authorVoices={authorVoices}
               versionHistory={versionHistory}
               onAddLoreEntry={upsertLoreEntry}
               onAddVoiceProfile={upsertVoiceProfile}
+              onAddAuthorVoice={upsertAuthorVoice}
               onAddVersion={addVersion}
+              onClearVersionHistory={clearVersionHistory}
           />
         );
     }
@@ -194,9 +233,11 @@ export default function App() {
     <div className="min-h-screen bg-surface text-on-surface flex flex-col font-body">
       {toast && <Toast key={toast.id} message={toast.message} onClose={() => setToast(null)} />}
       
-      <TopAppBar currentScreen={currentScreen} setCurrentScreen={setCurrentScreen} versionCount={versionCount} showToast={showToast} />
+      {currentScreen !== 'welcome' && (
+        <TopAppBar currentScreen={currentScreen} setCurrentScreen={setCurrentScreen} versionCount={versionCount} showToast={showToast} />
+      )}
       
-      <main className="pb-12 px-6 max-w-7xl mx-auto w-full flex-grow flex flex-col">
+      <main className={`${currentScreen === 'welcome' ? '' : 'pb-12 px-6 max-w-7xl mx-auto w-full flex-grow flex flex-col'}`}>
         {renderScreen()}
       </main>
     </div>

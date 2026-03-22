@@ -1,49 +1,42 @@
 import React from 'react';
-import { SuggestionsPopover } from './SuggestionsPopover';
-import { CharacterCreatorModal } from './CharacterCreatorModal';
-import { VoiceProfile } from '../../types';
+import { ComparisonView } from './ComparisonView';
+import { ConflictModal } from './ConflictModal';
+import { LoreConflict } from '../../types';
 
 interface EditorModalsProps {
-    showSuggestionsPopover: boolean;
-    selection: { text: string; start: number; end: number } | null;
-    isSuggesting: boolean;
-    suggestions: string[];
-    handleApplySuggestion: (suggestion: string) => void;
-    setShowSuggestionsPopover: (show: boolean) => void;
-    isCreatorModalOpen: boolean;
-    setIsCreatorModalOpen: (show: boolean) => void;
-    showToast: (message: string) => void;
-    onAddVoiceProfile: (profile: VoiceProfile) => void;
+    showComparison: boolean;
+    showConflicts: boolean;
+    currentVersionText: string;
+    originalDraft: string;
+    conflicts: LoreConflict[];
+    setShowComparison: (show: boolean) => void;
+    setShowConflicts: (show: boolean) => void;
 }
 
 export const EditorModals: React.FC<EditorModalsProps> = React.memo(({
-    showSuggestionsPopover,
-    selection,
-    isSuggesting,
-    suggestions,
-    handleApplySuggestion,
-    setShowSuggestionsPopover,
-    isCreatorModalOpen,
-    setIsCreatorModalOpen,
-    showToast,
-    onAddVoiceProfile
+    showComparison,
+    showConflicts,
+    currentVersionText,
+    originalDraft,
+    conflicts,
+    setShowComparison,
+    setShowConflicts
 }) => {
     return (
         <>
-            {showSuggestionsPopover && selection && (
-                <SuggestionsPopover
-                    isLoading={isSuggesting}
-                    suggestions={suggestions}
-                    originalText={selection.text}
-                    onSelect={handleApplySuggestion}
-                    onClose={() => setShowSuggestionsPopover(false)}
+            {showComparison && (
+                <ComparisonView 
+                    isOpen={showComparison}
+                    onClose={() => setShowComparison(false)}
+                    original={originalDraft}
+                    polished={currentVersionText}
                 />
             )}
-            {isCreatorModalOpen && (
-                <CharacterCreatorModal
-                    onClose={() => setIsCreatorModalOpen(false)}
-                    showToast={showToast}
-                    onAddVoiceProfile={onAddVoiceProfile}
+            {showConflicts && (
+                <ConflictModal
+                    isOpen={showConflicts}
+                    onClose={() => setShowConflicts(false)}
+                    conflicts={conflicts}
                 />
             )}
         </>

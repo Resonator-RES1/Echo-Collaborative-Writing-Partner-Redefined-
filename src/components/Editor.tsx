@@ -1,18 +1,12 @@
 import React, { useState, useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
-import { getAuthorVoiceCheck, getComparison, getPhrasingSuggestions } from '../services/geminiService';
 import { Wand2, ChevronDown, Maximize2, Minimize2 } from 'lucide-react';
-import { ComparisonResponse, RefinedVersion, VoiceCheckResponse, LoreEntry, VoiceProfile } from '../types';
+import { RefinedVersion, LoreEntry, VoiceProfile, AuthorVoice } from '../types';
 import { draftReducer, initialDraftState } from './editor/draftReducer';
 import { FormattingToolbar, FormatType } from './editor/FormattingToolbar';
 import { EditorHeader } from './editor/EditorHeader';
 import { EditorFooter } from './editor/EditorFooter';
 import { EditorModals } from './editor/EditorModals';
-import { ComparisonView } from './editor/ComparisonView';
-import { SuggestionsPopover } from './editor/SuggestionsPopover';
-import { CharacterCreatorModal } from './editor/CharacterCreatorModal';
 import { RefinementPresets } from './editor/RefinementPresets';
-import { DynamicFidelityFeedback } from './editor/DynamicFidelityFeedback';
-import { LoreConflictDetector } from './editor/LoreConflictDetector';
 
 interface EditorProps {
     draft: string;
@@ -24,10 +18,13 @@ interface EditorProps {
     onVersionHistoryChange?: (history: RefinedVersion[]) => void;
     loreEntries: LoreEntry[];
     voiceProfiles: VoiceProfile[];
+    authorVoices: AuthorVoice[];
     versionHistory: RefinedVersion[];
     onAddLoreEntry: (entry: LoreEntry) => void;
     onAddVoiceProfile: (profile: VoiceProfile) => void;
+    onAddAuthorVoice: (voice: AuthorVoice) => void;
     onAddVersion: (version: RefinedVersion) => void;
+    onClearVersionHistory: () => void;
 }
 
 const Editor: React.FC<EditorProps> = ({ 
@@ -40,10 +37,13 @@ const Editor: React.FC<EditorProps> = ({
     onVersionHistoryChange, 
     loreEntries, 
     voiceProfiles,
+    authorVoices,
     versionHistory: initialVersionHistory,
     onAddLoreEntry,
     onAddVoiceProfile,
-    onAddVersion
+    onAddAuthorVoice,
+    onAddVersion,
+    onClearVersionHistory
 }) => {
   const [draftState, dispatchDraft] = useReducer(draftReducer, { ...initialDraftState, present: draft });
   const draftRef = useRef(draftState.present);
@@ -63,12 +63,11 @@ const Editor: React.FC<EditorProps> = ({
 
   const [currentVersionIndex, setCurrentVersionIndex] = useState<number>(0);
   
+  const [showComparison, setShowComparison] = useState(false);
+  const [showConflicts, setShowConflicts] = useState(false);
+
   const [selection, setSelection] = useState<{ text: string; start: number; end: number } | null>(null);
-  const [isSuggesting, setIsSuggesting] = useState(false);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [showSuggestionsPopover, setShowSuggestionsPopover] = useState(false);
   
-  const [isCreatorModalOpen, setIsCreatorModalOpen] = useState(false);
   const [isEditorExpanded, setIsEditorExpanded] = useState(false);
 
   useEffect(() => {
@@ -141,30 +140,6 @@ const Editor: React.FC<EditorProps> = ({
     }
   }, []);
 
-  const handleRefineSelection = useCallback(async (instruction: string) => {
-    if (!selection || !selection.text.trim()) return;
-    setIsSuggesting(true);
-    setShowSuggestionsPopover(true);
-    setSuggestions([]);
-    const result = await getPhrasingSuggestions(selection.text, instruction);
-    setSuggestions(result);
-    setIsSuggesting(false);
-  }, [selection]);
-
-  const handleApplySuggestion = useCallback((suggestion: string) => {
-    if (!selection) return;
-    const { start, end } = selection;
-    const newDraft = draftState.present.substring(0, start) + suggestion + draftState.present.substring(end);
-    dispatchDraft({ type: 'SET', payload: newDraft });
-    setShowSuggestionsPopover(false);
-    setSelection(null);
-    if (textareaRef.current) {
-        const newCursorPos = start + suggestion.length;
-        textareaRef.current.focus();
-        setTimeout(() => textareaRef.current?.setSelectionRange(newCursorPos, newCursorPos), 0);
-    }
-  }, [selection, draftState.present]);
-
   const handleUpdateVersion = useCallback((index: number, content: string) => {
     const newHistory = [...versionHistory];
     if (index >= 0 && index < newHistory.length) {
@@ -173,7 +148,7 @@ const Editor: React.FC<EditorProps> = ({
     }
   }, [versionHistory, onVersionHistoryChange]);
 
-  const currentVersion = versionHistory[currentVersionIndex] || { id: 'initial', text: '', timestamp: new Date().toISOString(), title: 'Initial Version' };
+  const currentVersion: RefinedVersion = versionHistory[currentVersionIndex] || { id: 'initial', text: '', timestamp: new Date().toISOString(), conflicts: [] };
 
   const wordCount = useMemo(() => {
       const text = draftState.present.trim();
@@ -192,60 +167,34 @@ const Editor: React.FC<EditorProps> = ({
       setCurrentVersionIndex(0);
   }, [onAddVersion]);
 
-  const handleOpenCreatorModal = useCallback(() => setIsCreatorModalOpen(true), []);
+  const handleShowComparison = useCallback(() => {
+    setShowComparison(true);
+  }, []);
   const handleAcceptVersion = useCallback((version: string) => dispatchDraft({ type: 'EXTERNAL_UPDATE', payload: version }), []);
 
   return (
     <div className={`flex flex-col lg:flex-row gap-8 min-h-[900px] flex-1 animate-in fade-in duration-700`}>
       <EditorModals 
-        showSuggestionsPopover={showSuggestionsPopover}
-        selection={selection}
-        isSuggesting={isSuggesting}
-        suggestions={suggestions}
-        handleApplySuggestion={handleApplySuggestion}
-        setShowSuggestionsPopover={setShowSuggestionsPopover}
-        isCreatorModalOpen={isCreatorModalOpen}
-        setIsCreatorModalOpen={setIsCreatorModalOpen}
-        showToast={showToast}
-        onAddVoiceProfile={onAddVoiceProfile}
+        showComparison={showComparison}
+        showConflicts={showConflicts}
+        currentVersionText={currentVersion.text}
+        originalDraft={draftState.present}
+        conflicts={currentVersion.conflicts || []}
+        setShowComparison={setShowComparison}
+        setShowConflicts={setShowConflicts}
       />
       
-      <aside className={`lg:w-80 flex-shrink-0 flex flex-col gap-4 h-full ${isEditorExpanded ? 'hidden' : ''}`}>
-        <RefinementPresets
-            getDraft={getDraft}
-            isRefining={isRefining}
-            setIsRefining={setIsRefining}
-            showToast={showToast}
-            onNewVersion={handleNewVersion}
-            onOpenCreatorModal={handleOpenCreatorModal}
-            versionHistory={versionHistory}
-            currentVersionIndex={currentVersionIndex}
-            currentVersion={currentVersion}
-            setCurrentVersionIndex={setCurrentVersionIndex}
-            onAcceptVersion={handleAcceptVersion}
-            onUpdateVersion={handleUpdateVersion}
-            loreEntries={loreEntries}
-            voiceProfiles={voiceProfiles}
-            onAddLoreEntry={onAddLoreEntry}
-            onAddVoiceProfile={onAddVoiceProfile}
-        />
-      </aside>
-
       <section className={`${isEditorExpanded ? 'fixed inset-4 z-[60]' : 'flex-grow flex flex-col h-full'}`}>
         <div className="bg-surface-container-low/50 backdrop-blur-sm rounded-[0.75rem] shadow-2xl ghost-border flex flex-col flex-grow relative p-6 lg:p-10 min-h-full">
             <EditorHeader 
-                selection={selection}
-                showSuggestionsPopover={showSuggestionsPopover}
-                handleRefineSelection={handleRefineSelection}
                 isEditorExpanded={isEditorExpanded}
                 setIsEditorExpanded={setIsEditorExpanded}
             />
           <div className="flex items-center justify-between pb-3 border-b border-outline-variant/20 mb-4 -mx-6 px-6 lg:-mx-10 lg:px-10">
-            <FormattingToolbar onFormat={handleFormat} />
-            <div className="flex items-center gap-3">
-                <LoreConflictDetector draft={draftState.present} loreEntries={loreEntries} />
-                <DynamicFidelityFeedback draft={draftState.present} voiceProfiles={voiceProfiles} />
+            <div className="flex-1">
+              <FormattingToolbar onFormat={handleFormat} />
             </div>
+            <div className="flex-1"></div>
           </div>
           <textarea
             ref={textareaRef}
@@ -262,6 +211,30 @@ const Editor: React.FC<EditorProps> = ({
           />
         </div>
       </section>
+
+      <aside className={`lg:w-80 flex-shrink-0 flex flex-col gap-4 h-full ${isEditorExpanded ? 'hidden' : ''}`}>
+        <RefinementPresets
+            getDraft={getDraft}
+            isRefining={isRefining}
+            setIsRefining={setIsRefining}
+            showToast={showToast}
+            onNewVersion={handleNewVersion}
+            versionHistory={versionHistory}
+            currentVersionIndex={currentVersionIndex}
+            currentVersion={currentVersion}
+            setCurrentVersionIndex={setCurrentVersionIndex}
+            onShowComparison={handleShowComparison}
+            onAcceptVersion={handleAcceptVersion}
+            onUpdateVersion={handleUpdateVersion}
+            loreEntries={loreEntries}
+            voiceProfiles={voiceProfiles}
+            authorVoices={authorVoices}
+            onAddLoreEntry={onAddLoreEntry}
+            onAddVoiceProfile={onAddVoiceProfile}
+            onAddAuthorVoice={onAddAuthorVoice}
+            onClearVersionHistory={onClearVersionHistory}
+        />
+      </aside>
     </div>
   );
 };

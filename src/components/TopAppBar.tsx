@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Screen } from '../types';
-import { CloudSyncManager } from './CloudSyncManager';
+import { ProjectManager } from './ProjectManager';
 
 interface TopAppBarProps {
   currentScreen: Screen;
@@ -34,22 +34,22 @@ export function TopAppBar({ currentScreen, setCurrentScreen, versionCount = 0, s
             Workspace
           </button>
           <button 
-            onClick={() => setCurrentScreen('analysis')}
-            className={`hover:text-primary transition-all duration-500 whitespace-nowrap ${currentScreen === 'analysis' ? 'text-primary drop-shadow-[0_0_8_rgba(208,192,255,0.5)]' : ''}`}
-          >
-            Analysis
-          </button>
-          <button 
             onClick={() => setCurrentScreen('voices')}
             className={`hover:text-primary transition-all duration-500 whitespace-nowrap ${currentScreen === 'voices' ? 'text-primary drop-shadow-[0_0_8px_rgba(208,192,255,0.5)]' : ''}`}
           >
             Voices
           </button>
+          <button 
+            onClick={() => setCurrentScreen('welcome')}
+            className={`hover:text-primary transition-all duration-500 whitespace-nowrap ${currentScreen === 'welcome' ? 'text-primary drop-shadow-[0_0_8px_rgba(208,192,255,0.5)]' : ''}`}
+          >
+            Home
+          </button>
         </nav>
       </div>
 
       <div className="flex items-center gap-3 md:gap-4 flex-wrap overflow-visible">
-        <CloudSyncManager showToast={showToast} />
+        <ProjectManager showToast={showToast} />
         {currentScreen === 'workspace' && (
           <button className="flex items-center gap-2 px-3 md:px-4 py-1.5 rounded-full bg-surface-container-highest ghost-border hover:bg-surface-container-high transition-colors shrink-0">
             <span className="material-symbols-outlined text-sm">history</span>

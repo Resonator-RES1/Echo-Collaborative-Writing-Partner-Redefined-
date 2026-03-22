@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import { Search, Filter, BookOpen, Plus, Download, Upload, Trash2 } from 'lucide-react';
 import { LoreEntry, Screen } from '../types';
 import { LoreEntryForm } from './forms/LoreEntryForm';
-import { BulkLoreExtractorModal } from './BulkExtractorModals';
 import { Sparkles } from 'lucide-react';
 
 interface LoreScreenProps {
@@ -16,7 +15,6 @@ interface LoreScreenProps {
 export function LoreScreen({ setCurrentScreen, loreEntries, onAddEntry, onDeleteEntry, onImportEntries }: LoreScreenProps) {
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [showForm, setShowForm] = useState(false);
-  const [showBulkModal, setShowBulkModal] = useState(false);
   const [editingEntry, setEditingEntry] = useState<LoreEntry | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -34,10 +32,6 @@ export function LoreScreen({ setCurrentScreen, loreEntries, onAddEntry, onDelete
   const handleAddNew = () => {
     setEditingEntry(undefined);
     setShowForm(true);
-  };
-
-  const handleAddBulk = (newEntries: LoreEntry[]) => {
-    newEntries.forEach(entry => onAddEntry(entry));
   };
 
   const handleExport = () => {
@@ -84,13 +78,6 @@ export function LoreScreen({ setCurrentScreen, loreEntries, onAddEntry, onDelete
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <button 
-                onClick={() => setShowBulkModal(true)}
-                className="p-3 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-on-primary transition-all"
-                title="Bulk AI Extract"
-              >
-                <Sparkles className="w-5 h-5" />
-              </button>
               <button 
                 onClick={handleExport}
                 className="p-3 rounded-full bg-surface-container-highest text-on-surface-variant hover:text-primary transition-all"
@@ -215,13 +202,6 @@ export function LoreScreen({ setCurrentScreen, loreEntries, onAddEntry, onDelete
           onClose={() => setShowForm(false)} 
           onSave={handleSaveEntry}
           initialData={editingEntry}
-        />
-      )}
-
-      {showBulkModal && (
-        <BulkLoreExtractorModal
-          onClose={() => setShowBulkModal(false)}
-          onAddEntries={handleAddBulk}
         />
       )}
     </div>

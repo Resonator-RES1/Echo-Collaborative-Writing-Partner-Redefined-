@@ -17,6 +17,7 @@
     "idb": "^8.0.3",
     "lucide-react": "^0.548.0",
     "marked": "^17.0.4",
+    "motion": "^12.38.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",

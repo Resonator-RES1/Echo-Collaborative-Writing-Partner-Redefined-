@@ -1,22 +1,30 @@
-export type RefineMode = 'collaborative' | 'review' | 'reaction';
-
 export type FocusArea = 'tone' | 'rhythm' | 'emotion' | 'plot' | 'sensory' | 'thematic' | 'dialogue' | 'continuity' | 'voiceIntegrity';
-
-export type ReviewPerspective = 'reader' | 'editor' | 'publisher';
-
-export type FeedbackDepth = 'casual' | 'balanced' | 'in-depth';
 
 export type Gender = 'male' | 'female' | 'non-binary' | 'unspecified';
 
-export interface CharacterProfile {
+export interface AuthorVoice {
   id: string;
   name: string;
-  voice: string;
-  gender: Gender;
-  backstory: string;
-  motivations: string;
-  relationships: string;
+  narrativeStyle: string;
+  proseStructure: string;
+  pacingAndRhythm: string;
+  vocabularyAndDiction: string;
+  thematicAnchors: string;
+  lastModified: string;
   isActive?: boolean;
+}
+
+export interface MasterVoice {
+  id: string;
+  name: string;
+  narrativeStyle: string;
+  tone: string;
+  vocabularyLevel: string;
+  pacingPreference: string;
+  description: string;
+  signaturePhrases: string[];
+  lastModified: string;
+  isActive: boolean;
 }
 
 export interface LoreEntry {
@@ -24,7 +32,9 @@ export interface LoreEntry {
   title: string;
   category: 'World Mechanics' | 'Geography & Ecology' | 'Societal Strata' | 'Historical Context' | 'Current State';
   content: string;
+  aliases?: string[];
   lastModified: string;
+  isActive?: boolean;
 }
 
 export interface VoiceProfile {
@@ -44,103 +54,52 @@ export interface VoiceProfile {
   physicalTells?: string;
   internalMonologueStyle?: string;
   conflictStyle?: string;
+  aliases?: string[];
   lastModified: string;
   isActive?: boolean;
-  isMasterVoice?: boolean;
 }
 
-export interface ParagraphAnalysis {
-  id: string;
-  fidelityScore: number; // 0-100
-  rationale: string;
-  voiceRecoverySuggestion: string;
-  hoverDetails: {
-    sentenceLength: string;
-    toneShift: string;
-    vocabularyChanges: string[];
-  };
+export interface LoreConflict {
+  sentence: string;
+  reason: string;
 }
 
-export interface SceneAnalysis {
-  id: string;
-  location: string;
-  timeframe: string;
-  loreConsistencyScore: number; // 0-100
-  conflictDetectionRationale: string;
-  loreReinforcementSuggestion: string;
-  tensionScore: number; // 0-100
-  pacingScore: number; // 0-100
+export interface ProseMetrics {
+  sensory_vividness: number;
+  pacing_rhythm: number;
+  dialogue_authenticity: number;
+  voice_consistency: number;
 }
 
-export interface Recommendation {
-  type: 'voice' | 'lore' | 'atmosphere';
-  title: string;
-  description: string;
-  actionable: string;
-  suggestedFix?: string;
-}
-
-export interface AuditItem {
-  type: string;
-  message: string;
-  severity: 'low' | 'medium' | 'high';
-}
-
-export interface ComplianceReport {
-  metrics: {
-    loreConsistency: number;
-    voiceAuthenticity: number;
-    mythicResonance: number;
-    structuralCompliance: number;
-  };
-  audit: AuditItem[];
-  thematicNote?: string;
-  
-  // v2 Features
-  narrativeSummary?: string;
-  trendIndicator?: 'improving' | 'drifting' | 'stable';
-  paragraphHeatmap?: ParagraphAnalysis[];
-  sceneTimeline?: SceneAnalysis[];
-  tensionGraph?: { scene: number; tension: number; pacing: number }[];
-  recommendations?: Recommendation[];
+export interface RefinementAudit {
+  loreCompliance: number;
+  voiceAdherence: number;
+  focusAreaImprovement: number;
 }
 
 export interface RefinedVersion {
   id: string;
-  title: string;
   text: string;
-  report?: ComplianceReport | string;
-  comparison?: ComparisonResponse;
   timestamp: string;
-  mode?: RefineMode;
+  title?: string;
+  summary?: string;
+  voiceAdherence?: string;
+  structuralCompliance?: string;
+  conflicts?: LoreConflict[];
+  metrics?: ProseMetrics;
+  audit?: RefinementAudit;
 }
 
-export interface ComparisonResponse {
-  changes: {
-    location: string;
-    original: string;
-    polished: string;
-    type: 'voice' | 'lore' | 'structural' | 'vocabulary';
-    rationale: string;
-    voiceLock?: boolean;
-  }[];
-  summary: string;
-  metrics: {
-    wordCountChange: number;
-    readabilityShift: string;
-    toneShift: string;
-    voiceFidelity: number;
-    loreConsistency: number;
-  };
-  compliance?: ComplianceReport;
-}
+export type Screen = 'welcome' | 'workspace' | 'lore' | 'voices';
 
-export interface VoiceCheckResponse {
-  consistencyScore: number;
-  analysis: string;
-  strengths: string[];
-  concerns: string[];
-  verdict: string;
-}
+export type RefineMode = 'collaborative' | 'review' | 'reaction';
+export type ReviewPerspective = 'editor' | 'reader' | 'critic';
+export type FeedbackDepth = 'casual' | 'balanced' | 'in-depth';
 
-export type Screen = 'workspace' | 'lore' | 'voices' | 'analysis';
+export interface GuideSection {
+  id: string;
+  title: string;
+  icon: string;
+  description: string;
+  features: string[];
+}
