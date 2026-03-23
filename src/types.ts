@@ -1,4 +1,4 @@
-export type FocusArea = 'tone' | 'rhythm' | 'emotion' | 'plot' | 'sensory' | 'thematic' | 'dialogue' | 'continuity' | 'voiceIntegrity';
+export type FocusArea = 'tone' | 'rhythm' | 'emotion' | 'plot' | 'sensory' | 'mythic' | 'dialogue' | 'structural' | 'voiceIntegrity';
 
 export type Gender = 'male' | 'female' | 'non-binary' | 'unspecified';
 
@@ -64,17 +64,34 @@ export interface LoreConflict {
   reason: string;
 }
 
+export interface ProseMetric {
+  score: number;
+  note: string;
+  qualifier: 'By Design' | 'Opportunity';
+}
+
 export interface ProseMetrics {
-  sensory_vividness: number;
-  pacing_rhythm: number;
-  dialogue_authenticity: number;
-  voice_consistency: number;
+  sensory_vividness: ProseMetric;
+  pacing_rhythm: ProseMetric;
+  dialogue_authenticity: ProseMetric;
+  voice_consistency: Omit<ProseMetric, 'qualifier'> & { qualifier: 'By Design' };
 }
 
 export interface RefinementAudit {
+  voiceFidelityScore: number;
+  voiceFidelityReasoning: string;
   loreCompliance: number;
+  loreComplianceReasoning: string;
   voiceAdherence: number;
-  focusAreaImprovement: number;
+  voiceAdherenceReasoning: string;
+  focusAreaAlignment: number;
+  focusAreaAlignmentReasoning: string;
+}
+
+export interface LoreCorrection {
+  original: string;
+  refined: string;
+  reason: string;
 }
 
 export interface RefinedVersion {
@@ -83,18 +100,62 @@ export interface RefinedVersion {
   timestamp: string;
   title?: string;
   summary?: string;
-  voiceAdherence?: string;
-  structuralCompliance?: string;
+  analysis?: string;
+  justification?: string;
+  evidenceBasedClaims?: string;
+  whyBehindChange?: string;
+  loreLineage?: string;
+  mirrorEditorCritique?: string;
   conflicts?: LoreConflict[];
   metrics?: ProseMetrics;
+  loreCorrections?: LoreCorrection[];
   audit?: RefinementAudit;
+  restraintLog?: { original?: string; reason: string }[];
+  sceneId?: string;
+  isAccepted?: boolean;
+  usedProfiles?: {
+    authorVoice?: string;
+    characterVoices?: string[];
+    loreEntries?: string[];
+    focusAreas?: FocusArea[];
+  };
 }
 
-export type Screen = 'welcome' | 'workspace' | 'lore' | 'voices';
+export interface WritingGoal {
+  targetWords: number;
+  deadline?: string;
+  dailyTarget?: number;
+}
+
+export interface Scene {
+  id: string;
+  title: string;
+  content: string;
+  order: number;
+  lastModified: string;
+}
+
+export type Screen = 'welcome' | 'workspace' | 'lore' | 'voices' | 'manuscript' | 'settings';
 
 export type RefineMode = 'collaborative' | 'review' | 'reaction';
 export type ReviewPerspective = 'editor' | 'reader' | 'critic';
 export type FeedbackDepth = 'casual' | 'balanced' | 'in-depth';
+
+export interface GuideExample {
+  before: string;
+  after: string;
+}
+
+export interface GuideItem {
+  title: string;
+  description: string;
+  example?: GuideExample;
+}
+
+export interface GuideCategory {
+  title: string;
+  items: GuideItem[];
+}
 
 export interface GuideSection {
   id: string;
@@ -102,4 +163,5 @@ export interface GuideSection {
   icon: string;
   description: string;
   features: string[];
+  categories?: GuideCategory[];
 }

@@ -57,49 +57,38 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ selectedModel, set
   ];
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 font-label text-xs uppercase tracking-wider text-on-surface-variant font-medium">
+        <div className="flex items-center gap-2 font-label text-[10px] uppercase tracking-[0.2em] text-on-surface/50 font-black">
           <Cpu className="w-3.5 h-3.5" />
           <span>Intelligence Model</span>
         </div>
-        <button 
-          onClick={handleConnectKey}
-          className={`flex items-center gap-1.5 px-2 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider transition-all ${
-            hasCustomKey 
-              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
-              : 'bg-primary/5 border-primary/20 text-primary hover:bg-primary/10'
-          }`}
-        >
-          <Key className="w-3 h-3" />
-          {hasCustomKey ? 'AI Pro Connected' : 'Connect AI Pro'}
-        </button>
       </div>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-3">
         {modelOptions.map((opt) => (
           <button
             key={opt.id}
             onClick={() => setSelectedModel(opt.id)}
             className={`
-              flex flex-col items-center gap-2 p-3 rounded-[0.75rem] border transition-all text-center
+              flex flex-col items-center gap-3 p-4 rounded-2xl border transition-all text-center group relative overflow-hidden
               ${selectedModel === opt.id 
-                ? 'bg-primary/10 border-primary text-primary shadow-sm' 
-                : 'bg-surface-container-highest/30 border-outline-variant/20 text-on-surface-variant hover:border-outline-variant/40 hover:bg-surface-container-highest/50'}
+                ? 'bg-primary text-on-primary-fixed border-primary shadow-lg scale-[1.02] z-10' 
+                : 'bg-surface-container-highest/20 border-outline-variant/10 text-on-surface-variant hover:border-outline-variant/30 hover:bg-surface-container-highest/40'}
             `}
             title={opt.description}
           >
-            <div className={`${selectedModel === opt.id ? 'text-primary' : 'text-on-surface-variant/70'}`}>
+            <div className={`transition-transform duration-300 group-hover:scale-110 ${selectedModel === opt.id ? 'text-on-primary-fixed' : 'text-primary'}`}>
               {opt.icon}
             </div>
-            <span className="font-label text-[10px] uppercase tracking-wider leading-none font-bold">
+            <span className="font-label text-[9px] uppercase tracking-[0.15em] leading-none font-black relative z-10">
               {opt.label}
             </span>
           </button>
         ))}
       </div>
       {hasCustomKey && (
-        <p className="text-[10px] text-emerald-400/70 italic text-center">
-          Using your personal Gemini API quota for higher limits.
+        <p className="text-[9px] text-accent-emerald/60 font-black uppercase tracking-widest text-center">
+          Using personal Gemini API quota
         </p>
       )}
     </div>

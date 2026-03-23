@@ -16,6 +16,14 @@
   --color-tertiary: #d9cc4d;
   --color-tertiary-container: #bdb033;
   --color-on-surface-variant: #cac4d3;
+  
+  /* New Accent Colors - Punchy & High Contrast */
+  --color-accent-emerald: #059669; /* Slightly darker for better contrast */
+  --color-accent-amber: #d97706;   /* Slightly darker */
+  --color-accent-rose: #e11d48;    /* Slightly darker */
+  --color-accent-sky: #0284c7;     /* Slightly darker */
+  --color-primary-saturated: #9d7aff;
+  --color-on-primary-saturated: #ffffff;
 
   --font-headline: "Newsreader", serif;
   --font-body: "Manrope", sans-serif;
@@ -23,6 +31,30 @@
 }
 
 @layer utilities {
+  .text-shadow-dark {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+  
+  .text-shadow-lavender {
+    text-shadow: 0 2px 8px rgba(157, 122, 255, 0.6);
+  }
+
+  .shadow-primary-glow {
+    box-shadow: 0 0 20px rgba(183, 159, 255, 0.4);
+  }
+  
+  .punchy-button {
+    @apply relative overflow-hidden transition-all duration-300 active:scale-95 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .punchy-button::after {
+    @apply content-[''] absolute inset-0 bg-white/10 opacity-0 transition-opacity duration-300;
+  }
+  
+  .punchy-button:hover::after {
+    @apply opacity-100;
+  }
+
   .lore-gradient {
     background: linear-gradient(45deg, var(--color-primary), var(--color-primary-container));
   }

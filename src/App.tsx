@@ -3,23 +3,29 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import Editor from './components/Editor.tsx';
 import { Toast } from './components/Toast';
 import { TopAppBar } from './components/TopAppBar';
 import { LoreScreen } from './components/LoreScreen';
 import { VoicesScreen } from './components/VoicesScreen';
 import { WelcomeScreen } from './components/WelcomeScreen';
-import { LoreEntry, VoiceProfile, Screen, RefinedVersion, AuthorVoice } from './types';
+import { ManuscriptPanel } from './components/ManuscriptPanel';
+import { SettingsScreen } from './components/SettingsScreen';
+import { GlobalSearchModal } from './components/GlobalSearchModal';
+import { LoreEntry, VoiceProfile, Screen, RefinedVersion, AuthorVoice, Scene } from './types';
 import * as db from './services/dbService';
 
 export default function App() {
+  const [scenes, setScenes] = useState<Scene[]>([]);
+  const [currentSceneId, setCurrentSceneId] = useState<string | null>(null);
   const [draft, setDraft] = useState<string>('');
   const [toast, setToast] = useState<{ message: string, id: number } | null>(null);
   const [isRefining, setIsRefining] = useState<boolean>(false);
   const [versionCount, setVersionCount] = useState<number>(0);
   const [versionHistory, setVersionHistory] = useState<RefinedVersion[]>([]);
-  const [currentScreen, setCurrentScreen] = useState<Screen>('welcome');
+  const [currentScreen, setCurrentScreen] = useState<Screen>('workspace');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   
   // Lore & Voices State
   const [loreEntries, setLoreEntries] = useState<LoreEntry[]>([]);
@@ -31,16 +37,55 @@ export default function App() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [loadedLore, loadedVoices, loadedAuthorVoices, loadedEchoes] = await Promise.all([
+        const [loadedLore, loadedVoices, loadedAuthorVoices, loadedEchoes, loadedScenes] = await Promise.all([
           db.getLoreEntries(),
           db.getVoiceProfiles(),
           db.getAuthorVoices(),
-          db.getEchoes()
+          db.getEchoes(),
+          db.getScenes()
         ]);
         setLoreEntries(loadedLore);
         setVoiceProfiles(loadedVoices);
         setAuthorVoices(loadedAuthorVoices);
-        setVersionHistory(loadedEchoes);
+        
+        let firstSceneId = loadedScenes.length > 0 ? loadedScenes[0].id : null;
+        let needsEchoUpdate = false;
+        const migratedEchoes = loadedEchoes.map(e => {
+            if (!e.sceneId && firstSceneId) {
+                needsEchoUpdate = true;
+                return { ...e, sceneId: firstSceneId };
+            }
+            return e;
+        });
+        
+        if (needsEchoUpdate) {
+            await db.setAllEchoes(migratedEchoes);
+        }
+        setVersionHistory(migratedEchoes);
+        
+        if (loadedScenes.length > 0) {
+            setScenes(loadedScenes);
+            setCurrentSceneId(loadedScenes[0].id);
+            setDraft(loadedScenes[0].content);
+        } else {
+            // Create a default scene
+            const defaultScene: Scene = {
+                id: Date.now().toString(),
+                title: 'Chapter 1',
+                content: '',
+                order: 0,
+                lastModified: new Date().toISOString()
+            };
+            setScenes([defaultScene]);
+            setCurrentSceneId(defaultScene.id);
+            await db.putScene(defaultScene);
+            
+            // Try to load legacy draft
+            const legacyDraft = localStorage.getItem('echo-draft');
+            if (legacyDraft) {
+                setDraft(legacyDraft);
+            }
+        }
       } catch (e) {
         console.error("Failed to load data from DB", e);
       } finally {
@@ -58,11 +103,28 @@ export default function App() {
     return () => window.removeEventListener('sync-complete', handleSyncComplete);
   }, []);
 
+  // Sync draft changes to current scene
+  useEffect(() => {
+      if (!isLoaded || !currentSceneId) return;
+      
+      const timer = setTimeout(() => {
+          setScenes(prev => {
+              const updated = prev.map(s => s.id === currentSceneId ? { ...s, content: draft, lastModified: new Date().toISOString() } : s);
+              const activeScene = updated.find(s => s.id === currentSceneId);
+              if (activeScene) {
+                  db.putScene(activeScene);
+              }
+              return updated;
+          });
+      }, 1000);
+      return () => clearTimeout(timer);
+  }, [draft, currentSceneId, isLoaded]);
+
   const showToast = useCallback((message: string) => {
     setToast({ message, id: Date.now() });
   }, []);
 
-  const upsertLoreEntry = async (entry: LoreEntry) => {
+  const upsertLoreEntry = useCallback(async (entry: LoreEntry) => {
     setLoreEntries(prev => {
       const exists = prev.find(e => e.id === entry.id);
       if (exists) {
@@ -72,9 +134,9 @@ export default function App() {
     });
     await db.putLoreEntry(entry);
     showToast(`Lore entry "${entry.title}" updated.`);
-  };
+  }, [showToast]);
 
-  const upsertVoiceProfile = async (profile: VoiceProfile) => {
+  const upsertVoiceProfile = useCallback(async (profile: VoiceProfile) => {
     setVoiceProfiles(prev => {
       const exists = prev.find(p => p.id === profile.id);
       if (exists) {
@@ -85,95 +147,196 @@ export default function App() {
     
     await db.putVoiceProfile(profile);
     showToast(`Voice profile for "${profile.name}" updated.`);
-  };
+  }, [showToast]);
 
-  const deleteVersion = async (id: string) => {
+  const acceptVersion = useCallback(async (version: RefinedVersion) => {
+    setDraft(version.text);
+    setVersionHistory(prev => {
+      const updated = prev.map(v => v.id === version.id ? { ...v, isAccepted: true } : v);
+      db.setAllEchoes(updated);
+      return updated;
+    });
+    showToast("Version accepted and stored in Manuscript.");
+  }, [showToast]);
+
+  const deleteVersion = useCallback(async (id: string) => {
     setVersionHistory(prev => prev.filter(v => v.id !== id));
     await db.deleteEcho(id);
     showToast("Echo removed from history.");
-  };
+  }, [showToast]);
 
-  const clearVersionHistory = async () => {
-    setVersionHistory([]);
-    await db.setAllEchoes([]);
-    showToast("Echo archive cleared.");
-  };
+  const filteredVersionHistory = useMemo(() => {
+      return versionHistory.filter(v => !v.sceneId || v.sceneId === currentSceneId);
+  }, [versionHistory, currentSceneId]);
 
-  const deleteLoreEntry = async (id: string) => {
+  const handleVersionHistoryChange = useCallback(async (newFilteredHistory: RefinedVersion[]) => {
+      setVersionHistory(prev => {
+          const otherVersions = prev.filter(v => v.sceneId && v.sceneId !== currentSceneId);
+          const merged = [...newFilteredHistory, ...otherVersions];
+          db.setAllEchoes(merged);
+          return merged;
+      });
+  }, [currentSceneId]);
+
+  const clearVersionHistory = useCallback(async () => {
+    setVersionHistory(prev => {
+        const otherVersions = prev.filter(v => v.sceneId && v.sceneId !== currentSceneId);
+        db.setAllEchoes(otherVersions);
+        return otherVersions;
+    });
+    showToast("Scene echo archive cleared.");
+  }, [currentSceneId, showToast]);
+
+  const deleteLoreEntry = useCallback(async (id: string) => {
     setLoreEntries(prev => prev.filter(e => e.id !== id));
     await db.deleteLoreEntry(id);
     showToast("Lore entry deleted.");
-  };
+  }, [showToast]);
 
-  const deleteVoiceProfile = async (id: string) => {
+  const deleteVoiceProfile = useCallback(async (id: string) => {
     setVoiceProfiles(prev => prev.filter(p => p.id !== id));
     await db.deleteVoiceProfile(id);
     showToast("Voice profile deleted.");
-  };
+  }, [showToast]);
 
-  const upsertAuthorVoice = async (voice: AuthorVoice) => {
+  const upsertAuthorVoice = useCallback(async (voice: AuthorVoice) => {
+    let updatedVoices: AuthorVoice[] = [];
+    
     setAuthorVoices(prev => {
-      let updated = prev;
+      let base = prev;
       if (voice.isActive) {
-        updated = prev.map(v => ({ ...v, isActive: false }));
+        base = prev.map(v => ({ ...v, isActive: false }));
       }
-      const exists = updated.find(v => v.id === voice.id);
+      
+      const exists = base.find(v => v.id === voice.id);
       if (exists) {
-        return updated.map(v => v.id === voice.id ? voice : v);
+        updatedVoices = base.map(v => v.id === voice.id ? voice : v);
+      } else {
+        updatedVoices = [voice, ...base];
       }
-      return [voice, ...updated];
+      return updatedVoices;
     });
 
+    const currentVoices = await db.getAuthorVoices();
+    let dbVoices: AuthorVoice[] = [];
+    
     if (voice.isActive) {
-      const allVoices = await db.getAuthorVoices();
-      const updatedVoices = allVoices.map(v => ({
+      dbVoices = currentVoices.map(v => ({
         ...v,
         isActive: v.id === voice.id ? true : false
       }));
-      await db.setAllAuthorVoices(updatedVoices);
+      if (!dbVoices.find(v => v.id === voice.id)) {
+        dbVoices.unshift(voice);
+      }
     } else {
-      await db.putAuthorVoice(voice);
+      const exists = currentVoices.find(v => v.id === voice.id);
+      if (exists) {
+        dbVoices = currentVoices.map(v => v.id === voice.id ? voice : v);
+      } else {
+        dbVoices = [voice, ...currentVoices];
+      }
     }
+    
+    await db.setAllAuthorVoices(dbVoices);
     showToast(`Author voice "${voice.name}" updated.`);
-  };
+  }, [showToast]);
 
-  const deleteAuthorVoice = async (id: string) => {
+  const deleteAuthorVoice = useCallback(async (id: string) => {
     setAuthorVoices(prev => prev.filter(v => v.id !== id));
     await db.deleteAuthorVoice(id);
     showToast("Author voice deleted.");
-  };
+  }, [showToast]);
 
-  const importAuthorVoices = async (voices: AuthorVoice[]) => {
+  const importAuthorVoices = useCallback(async (voices: AuthorVoice[]) => {
     setAuthorVoices(voices);
     await db.setAllAuthorVoices(voices);
     showToast(`${voices.length} author voices imported.`);
-  };
+  }, [showToast]);
 
-  const importEntries = async (entries: LoreEntry[]) => {
+  const importEntries = useCallback(async (entries: LoreEntry[]) => {
     setLoreEntries(entries);
     await db.setAllLoreEntries(entries);
     showToast(`${entries.length} lore entries imported.`);
-  };
+  }, [showToast]);
 
-  const importProfiles = async (profiles: VoiceProfile[]) => {
+  const importProfiles = useCallback(async (profiles: VoiceProfile[]) => {
     setVoiceProfiles(profiles);
     await db.setAllVoiceProfiles(profiles);
     showToast(`${profiles.length} voice profiles imported.`);
-  };
+  }, [showToast]);
 
-  const addVersion = async (version: RefinedVersion) => {
+  const addVersion = useCallback(async (version: RefinedVersion) => {
     setVersionHistory(prev => [version, ...prev]);
     await db.putEcho(version);
-  };
+  }, []);
 
-  const importVersions = async (versions: RefinedVersion[]) => {
+  const importVersions = useCallback(async (versions: RefinedVersion[]) => {
     setVersionHistory(versions);
     await db.setAllEchoes(versions);
     showToast(`${versions.length} echoes imported.`);
-  };
+  }, [showToast]);
+
+  const handleUpdateScene = useCallback(async (scene: Scene) => {
+    setScenes(prev => prev.map(s => s.id === scene.id ? scene : s));
+    await db.putScene(scene);
+  }, []);
+
+  const handleUpdateLoreEntry = useCallback(async (entry: LoreEntry) => {
+    setLoreEntries(prev => prev.map(e => e.id === entry.id ? entry : e));
+    await db.putLoreEntry(entry);
+  }, []);
+
+  const handleUpdateVoiceProfile = useCallback(async (profile: VoiceProfile) => {
+    setVoiceProfiles(prev => prev.map(p => p.id === profile.id ? profile : p));
+    await db.putVoiceProfile(profile);
+  }, []);
+
+  const handleUpdateAuthorVoice = useCallback(async (voice: AuthorVoice) => {
+    setAuthorVoices(prev => prev.map(v => v.id === voice.id ? voice : v));
+    await db.setAllAuthorVoices(authorVoices.map(v => v.id === voice.id ? voice : v));
+  }, [authorVoices]);
+
+  const handleExport = useCallback(() => {
+    if (scenes.length === 0) {
+      showToast("No scenes to compile.");
+      return;
+    }
+
+    const sortedScenes = [...scenes].sort((a, b) => a.order - b.order);
+    let manuscript = `# Manuscript\n\n`;
+    
+    sortedScenes.forEach(scene => {
+      manuscript += `## ${scene.title}\n\n`;
+      manuscript += `${scene.content}\n\n`;
+    });
+
+    const blob = new Blob([manuscript], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Manuscript_${new Date().toISOString().split('T')[0]}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showToast("Manuscript compiled and downloaded.");
+  }, [scenes, showToast]);
+
+  const totalWordCount = useMemo(() => {
+    return scenes.reduce((total, scene) => {
+      const text = scene.content.trim();
+      return total + (text === '' ? 0 : text.split(/\s+/).length);
+    }, 0);
+  }, [scenes]);
 
   if (!isLoaded) {
-    return <div className="min-h-screen bg-surface flex items-center justify-center text-on-surface">Loading Echo...</div>;
+    return (
+      <div className="min-h-screen bg-surface flex flex-col items-center justify-center text-on-surface gap-4">
+        <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+        <p className="font-label text-xs uppercase tracking-widest animate-pulse">Initializing Echo Engine...</p>
+      </div>
+    );
   }
 
   const renderScreen = () => {
@@ -204,26 +367,46 @@ export default function App() {
             onImportAuthorVoices={importAuthorVoices}
           />
         );
+      case 'manuscript':
+        return (
+          <ManuscriptPanel 
+            scenes={scenes}
+            currentSceneId={currentSceneId}
+            setCurrentSceneId={setCurrentSceneId}
+            setScenes={setScenes}
+            setDraft={setDraft}
+            showToast={showToast}
+            versionHistory={versionHistory.filter(v => v.isAccepted)}
+            onDeleteVersion={deleteVersion}
+          />
+        );
+      case 'settings':
+        return <SettingsScreen showToast={showToast} />;
       case 'workspace':
       default:
         return (
           <Editor 
               draft={draft}
               setDraft={setDraft}
+              scenes={scenes}
+              currentSceneId={currentSceneId}
+              setCurrentSceneId={setCurrentSceneId}
+              setScenes={setScenes}
               isRefining={isRefining}
               setIsRefining={setIsRefining}
               showToast={showToast}
               onVersionCountChange={setVersionCount}
-              onVersionHistoryChange={setVersionHistory}
+              onVersionHistoryChange={handleVersionHistoryChange}
               loreEntries={loreEntries}
               voiceProfiles={voiceProfiles}
               authorVoices={authorVoices}
-              versionHistory={versionHistory}
+              versionHistory={filteredVersionHistory}
               onAddLoreEntry={upsertLoreEntry}
               onAddVoiceProfile={upsertVoiceProfile}
               onAddAuthorVoice={upsertAuthorVoice}
               onAddVersion={addVersion}
               onClearVersionHistory={clearVersionHistory}
+              onAcceptVersion={acceptVersion}
           />
         );
     }
@@ -234,8 +417,28 @@ export default function App() {
       {toast && <Toast key={toast.id} message={toast.message} onClose={() => setToast(null)} />}
       
       {currentScreen !== 'welcome' && (
-        <TopAppBar currentScreen={currentScreen} setCurrentScreen={setCurrentScreen} versionCount={versionCount} showToast={showToast} />
+        <TopAppBar 
+          currentScreen={currentScreen} 
+          setCurrentScreen={setCurrentScreen} 
+          versionCount={versionCount} 
+          showToast={showToast} 
+          wordCount={totalWordCount}
+        />
       )}
+      
+      <GlobalSearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        scenes={scenes}
+        loreEntries={loreEntries}
+        voiceProfiles={voiceProfiles}
+        authorVoices={authorVoices}
+        onUpdateScene={handleUpdateScene}
+        onUpdateLore={handleUpdateLoreEntry}
+        onUpdateVoiceProfile={handleUpdateVoiceProfile}
+        onUpdateAuthorVoice={handleUpdateAuthorVoice}
+        showToast={showToast}
+      />
       
       <main className={`${currentScreen === 'welcome' ? '' : 'pb-12 px-6 max-w-7xl mx-auto w-full flex-grow flex flex-col'}`}>
         {renderScreen()}

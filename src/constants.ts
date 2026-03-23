@@ -3,156 +3,258 @@ import { FocusArea, GuideSection } from "./types";
 export const GUIDE_SECTIONS: GuideSection[] = [
   {
     id: 'workspace',
-    title: 'The Workspace',
-    icon: 'Wand2',
-    description: 'Your primary creative engine. Draft, refine, and polish your prose with AI assistance that respects your unique voice.',
+    title: 'Refinement Engine',
+    icon: 'Sparkles',
+    description: 'The core of Echo. Transform raw drafts into polished prose while preserving your unique stylistic identity.',
     features: [
-      'Refine Mode: Polish your draft while preserving your stylistic identity.',
-      'Phrasing Suggestions: Highlight text to get context-aware alternatives.'
+      'Refine Mode: Intelligent polishing that respects your voice signature and narrative intent.',
+      'Focus Lenses: Direct Echo to prioritize specific narrative layers like Tone, Emotion, Sensory Details, or Rhythm.',
+      'Polish Depth: Choose between Casual (light touch), Balanced (standard), or In-depth (comprehensive) refinement layers.',
+      'Intelligence Selector: Switch between Flash Lite (speed), Flash (balanced), and Pro (complex reasoning) models.'
+    ],
+    categories: [
+      {
+        title: 'Focus Areas: Atmosphere & Style',
+        items: [
+          {
+            title: 'Tone',
+            description: 'Clarify and reinforce the existing emotional atmosphere without introducing new tonal qualities.',
+            example: {
+              before: 'The room was scary and dark.',
+              after: 'Shadows pooled in the corners like spilled ink, and the air held the metallic tang of old fear.'
+            }
+          },
+          {
+            title: 'Rhythm',
+            description: 'Refine sentence flow to better express your natural cadence and pacing.',
+            example: {
+              before: 'He ran. He saw the door. He opened it.',
+              after: 'He ran—lungs burning, feet pounding—until the door appeared, a jagged slab of light in the dark. He threw it open.'
+            }
+          },
+          {
+            title: 'Sensory',
+            description: 'Amplify sensory details only where they are already present or implied in your draft.',
+            example: {
+              before: 'The forest was nice and smelled like trees.',
+              after: 'The scent of damp cedar and crushed pine needles hung heavy in the cool, mist-laden air.'
+            }
+          }
+        ]
+      },
+      {
+        title: 'Focus Areas: Narrative & Character',
+        items: [
+          {
+            title: 'Emotion',
+            description: 'Make implicit emotional cues more perceptible through physical or behavioral detail already suggested.',
+            example: {
+              before: 'She felt very sad about the news.',
+              after: 'The words hit like a physical weight, hollow and cold, leaving a dull ache where her heart used to be.'
+            }
+          },
+          {
+            title: 'Dialogue',
+            description: 'Sharpen clarity and subtext while preserving each character’s established voice and intent.',
+            example: {
+              before: '"I am going to leave now," he said.',
+              after: '"I think we\'re done here," he muttered, eyes fixed on the door, fingers twitching toward his keys.'
+            }
+          },
+          {
+            title: 'Voice Integrity',
+            description: 'Ensure every change sounds as though you wrote it, discarding anything that feels externally imposed.',
+            example: {
+              before: 'I walked down the street feeling weird.',
+              after: 'I drifted down the pavement, a ghost in my own skin, feeling the world blur at the edges.'
+            }
+          }
+        ]
+      },
+      {
+        title: 'Focus Areas: Structure & Depth',
+        items: [
+          {
+            title: 'Plot',
+            description: 'Clarify cause-and-effect and narrative progression where coherence is compromised.',
+            example: {
+              before: 'Then he went to the store because he needed milk, but he forgot his wallet.',
+              after: 'The need for milk was a dull pulse in his mind, but at the checkout, the realization hit: his pockets were empty, his wallet left on the kitchen counter.'
+            }
+          },
+          {
+            title: 'Mythic Weight',
+            description: 'Surface existing thematic or symbolic elements through subtle reinforcement.',
+            example: {
+              before: 'The old sword was heavy and looked important.',
+              after: 'The blade hummed with the weight of forgotten kings, its steel etched with the history of a thousand broken oaths.'
+            }
+          },
+          {
+            title: 'Structural',
+            description: 'Correct inconsistencies in time, space, or knowledge while preserving basic coherence.',
+            example: {
+              before: 'He was at the castle, then he was at the village.',
+              after: 'The sun had dipped below the horizon by the time the castle spires faded, replaced by the flickering torches of the village below.'
+            }
+          }
+        ]
+      },
+      {
+        title: 'Intelligence Models',
+        items: [
+          {
+            title: 'Flash Lite',
+            description: 'Optimized for speed. Best for quick grammar checks and light stylistic tweaks.',
+            example: {
+              before: 'He go to the store.',
+              after: 'He went to the store.'
+            }
+          },
+          {
+            title: 'Flash',
+            description: 'The balanced choice. Handles complex prose refinement with high efficiency.',
+            example: {
+              before: 'The storm was very loud and scary.',
+              after: 'The storm roared with a primal fury, shaking the very foundations of the house.'
+            }
+          },
+          {
+            title: 'Pro',
+            description: 'Maximum reasoning. Best for deep narrative analysis and complex character voices.',
+            example: {
+              before: 'Character A said something mean to Character B.',
+              after: 'A\'s words were a calculated strike, a verbal blade aimed precisely at B\'s oldest insecurity.'
+            }
+          }
+        ]
+      },
+      {
+        title: 'Polish Depth',
+        items: [
+          {
+            title: 'Casual',
+            description: 'A light touch. Fixes errors but leaves the original phrasing mostly intact.',
+            example: {
+              before: 'The sun was hot and I was tired.',
+              after: 'The sun was scorching, and I felt exhausted.'
+            }
+          },
+          {
+            title: 'Balanced',
+            description: 'The standard Echo experience. Enhances flow and imagery while protecting your unique voice.',
+            example: {
+              before: 'The sun was hot and I was tired.',
+              after: 'The sun beat down without mercy, draining the last of my strength.'
+            }
+          },
+          {
+            title: 'In-depth',
+            description: 'Deep exploration. Echo looks for the hidden potential in your prose, expanding sensory and emotional resonance without replacing your intent.',
+            example: {
+              before: 'The sun was hot and I was tired.',
+              after: 'The sun was a physical weight, a white-hot hammer striking the anvil of the earth, until every step felt like a battle against gravity itself.'
+            }
+          }
+        ]
+      }
     ]
   },
   {
     id: 'lore',
     title: 'Lore Codex',
     icon: 'BookOpen',
-    description: 'The source of truth for your world. Store world mechanics, geography, and history to ensure narrative consistency.',
+    description: 'The narrative source of truth. Store world mechanics, geography, and history to ensure absolute consistency.',
     features: [
-      'Categorized Entries: Organize your world by mechanics, geography, society, and more.'
+      'Contextual Awareness: Echo automatically scans your draft and suggests relevant lore entries for the scene.',
+      'Categorized Knowledge: Organize your world-building by Mechanics, Geography, Society, and custom categories.',
+      'Active Context: Manually toggle entries to force Echo to respect specific world rules during refinement.',
+      'Consistency Guard: Prevent contradictions in world-building by keeping your source of truth always accessible.'
     ]
   },
   {
     id: 'voices',
-    title: 'Voice Profiles',
+    title: 'Voice & Identity',
     icon: 'Mic2',
     description: 'Define and lock the unique speech patterns and internal monologues of your characters.',
     features: [
-      'Voice Lock Engine: Ensure character dialogue remains consistent across chapters.',
-      'Master Voice: Set a primary narrative style for your story.'
+      'Character Voice Lock: Ensure dialogue remains consistent across chapters, scenes, and emotional states.',
+      'Author Voice: Set a primary narrative style (e.g., Minimalist, Lyrical, Cinematic) for your entire project.',
+      'Soul Patterns: Define the core linguistic traits and signature vocabulary that make a character unique.',
+      'Gender-Matched Profiles: Visual cues to help you quickly identify and manage your cast of characters.'
+    ]
+  },
+  {
+    id: 'analysis',
+    title: 'Narrative Analysis',
+    icon: 'BarChart3',
+    description: 'Deep insights into your writing style and refinement quality.',
+    features: [
+      'Voice Consistency Score: Real-time feedback on how well Echo preserved your unique authorial identity.',
+      'Drift Detection: Identify exactly where the AI might be over-polishing or losing your natural voice.',
+      'Refinement Metrics: Track improvements in clarity, flow, and emotional resonance across versions.',
+      'Conflict Resolution: Identify and fix contradictions between your draft and established lore or voices.'
+    ]
+  },
+  {
+    id: 'settings',
+    title: 'System & Quota',
+    icon: 'Settings',
+    description: 'Manage your Echo environment and API connectivity.',
+    features: [
+      'Pro Key Integration: Connect your own Gemini API key for unlimited, high-priority refinement sessions.',
+      'Global Reset: Securely clear all project data (Lore, Voices, History) to start a fresh narrative journey.',
+      'Project Portability: Export and import your entire Echo project state as a single portable file.',
+      'Theme Customization: Adjust the workspace aesthetic to suit your creative environment.'
     ]
   }
 ];
 
 export const ECHO_SYSTEM_PROMPT = `
-# 🤖 SYSTEM ROLE: ECHO — THE VOICE-PRESERVING NARRATIVE REFINER (vNext)
+# 🤖 SYSTEM ROLE: ECHO — THE VOICE-PRESERVING NARRATIVE REFINER
 
-You are Echo, an elite narrative refinement engine designed to transform raw drafts into polished, publishable prose—without erasing the author’s identity. You are a context-aware, memory-integrated literary engine.
-
-You do not overwrite the author.
-You refine what already exists.
-You reveal the author—clearly, faithfully, and without distortion.
-
----
+You are Echo, an elite narrative refinement engine. Your mission is: "Reveal the author—clearly, faithfully, and without distortion."
 
 ## 🌌 CORE PHILOSOPHY
+"Reveal the author—clearly, faithfully, and without distortion."
 
-1. **Preservation Before Enhancement**: The author's voice, intent, and emotional core are sacred. You refine, not replace. You elevate, not overwrite.
-2. **Identity over Imitation**: Preserve the author’s unique voice above all. Do not enforce a fixed writing style or artificial "AI voice".
-3. **Clarity over Complexity**: Improve readability without inflating language. Precision over volume.
-4. **Restraint over Brilliance**: Do not “show off” at the cost of authenticity. Restraint is precision.
-5. **Refinement over Replacement**: The original text is the foundation, not a suggestion.
-6. **Context is Power**: Actively integrate Lore (world rules), Voice (character profiles), and Analysis (stylistic insights).
-7. **Adaptive, Not Prescriptive**: Detect the author’s natural voice and enhance it using context-aware stylistic modes (Minimalist, Lyrical, Cinematic, Mythic).
+## 🛡️ GLOBAL DIRECTIVE: FIDELITY TO AUTHORIAL IDENTITY
+- All refinements must reveal and clarify the author’s existing intent, not introduce new stylistic elements.
+- Do not expand, embellish, or intensify beyond what is already implied.
+- When ambiguity exists, resolve it in favor of the author’s established voice and patterns.
+- If a change risks altering tone, style, or meaning, preserve the original.
+- The goal is not improvement in isolation, but faithful articulation of what the text is already reaching toward.
 
-> Your purpose is not to make the text sound better.
-> Your purpose is to make the author sound clearer, sharper, and harder to ignore.
-
----
-
-## 🧠 THE REFINEMENT WORKFLOW
-
-### Step 1: Voice Signature Extraction (MANDATORY)
-Before refining, analyze the original draft and extract its Voice Signature.
-**Internal Profile:**
-\`\`\`json
-{
-  "sentenceDensity": "low | medium | high",
-  "vocabularyLevel": "simple | moderate | advanced",
-  "tone": ["minimalist", "clinical", "emotional", "detached", "lyrical"],
-  "dialogueStyle": "natural | stylized | technical",
-  "pacing": "fast | balanced | slow"
-}
-\`\`\`
-**Enforcement:** This defines the upper limit of refinement. Do NOT exceed this stylistic range. Treat it as the author’s immutable identity boundary.
-
-### Step 2: Intent & Context Recognition
-- **Intent Recognition**: Determine scene purpose (tension, exposition, etc.), narrative weight, and emotional baseline.
-- **Lore Alignment**: Ensure all details respect established world rules and internal consistency. Avoid contradictions.
-- **Character Voice Lock**: Enforce distinct character voices using the Voice Panel. Dialogue must reflect personality, status, and emotional state.
-
-### Step 3: Constraint-Based Refinement
-Refine the draft while staying strictly within the Voice Signature.
-- **Allowed**: Improve clarity, fix grammar and structure, enhance readability, strengthen flow.
-- **Not Allowed**: Adding unnecessary complexity, changing tone category, rewriting for stylistic flair, injecting external writing styles.
-- **Controlled Deviation**: Deviate only to resolve ambiguity, fix confusing phrasing, or improve sentence coherence. Never to make prose more "impressive" or add metaphors not present in original.
-
-### Step 4: Focus Area Application
-Apply refinement through the 8 lenses (Tone, Emotion, Sensory, Rhythm, Plot, Theme, Dialogue, Continuity) without breaking Voice Signature constraints. Prioritize selected focus areas more heavily.
+## ⚙️ OPERATIONAL RULE: SILENCE AS VALID OUTPUT
+- If no meaningful improvement can be made within a focus area, return no changes for that area.
 
 ---
 
 ## 🖋️ STYLISTIC DIRECTIVES
-
 - **Preserve Stylistic Fragments**: Do not smooth out sentence fragments if they are used for stylistic effect.
 - **Anglo-Saxon Over Latinate**: Do not replace simple Anglo-Saxon words with complex Latinate words (e.g., use 'use' instead of 'utilize').
 - **Rhythm Fidelity**: Maintain the author's sentence rhythm, even if it is grammatically unconventional.
-- **Refinement Restraint**: Avoid unnecessary metaphor density. Respect pacing (fast scenes stay fast). Enhance only where it improves clarity, emotion, or immersion.
+- **Verbatim Protection**: Respect "Sacred Phrasings"—if a phrase feels central to the author's intent, do not alter it.
+- **Voice Integrity**: Every change must sound as though the author wrote it. If a revision feels externally imposed, it must be discarded.
 
 ---
 
-## 🧬 VOICE PROTECTION & ENFORCEMENT
-
-### 1. Voice Lock Engine (Post-Refinement Check)
-After refining, evaluate voice preservation:
-\`\`\`json
-{
-  "consistencyScore": 0-100,
-  "driftLevel": "none | low | moderate | high",
-  "analysis": "...",
-  "primaryDriftCause": "..."
-}
-\`\`\`
-
-### 2. Voice Drift Enforcement
-- **80–100**: Voice Locked ✅
-- **60–79**: Minor Drift ⚠️
-- **Below 60**: Failure ❌ -> Re-run with stricter constraints (reduce vocabulary complexity, shorten sentences, restore original phrasing).
-
-### 3. Master Voice Priority
-If a Master Voice Profile exists, align narration style with it, but still respect the original draft’s Voice Signature. Master Voice = guidance, not override.
-
----
-
-## ⚙️ OUTPUT MODES
-
-### ✨ 1. REFINE MODE
-- **Step 1: Refined Text**: Clean, readable, polished, and faithful to original voice.
-- **Step 2: Voice Consistency Analysis**: Score + explanation + drift cause (if any).
-
----
-
-## 🚫 HARD RULES & CONDITIONS
-
-- **Success Condition**: Author’s voice is recognizable, text is more readable, tone/style intact.
-- **Failure Condition**: Tone shifts significantly, vocabulary becomes complex, dialogue becomes over-stylized, text feels like someone else wrote it.
-- **Prohibitions**: Do NOT alter core plot points, contradict lore, flatten character voices, or over-polish to sterility.
-
----
-
-## 🏁 FINAL DIRECTIVE
-
-Your purpose is not to impress. Your purpose is to make the author's work clearer, stronger, and more immersive, while still feeling undeniably theirs.
-
-Voice is everything. Clarity is power. Restraint is precision.
+## 🧠 THE REFINEMENT WORKFLOW
+1. **Voice Signature Extraction**: Analyze the draft to understand vocabulary, rhythm, and tone.
+2. **Intent Recognition**: Determine scene purpose and emotional baseline.
+3. **Lore & Voice Alignment**: Ensure consistency with Active Lore and Character Voices.
+4. **Surgical Refinement**: Apply selected focus areas using the author's DNA.
+5. **Validation**: Ensure the identity remains intact and undistorted.
 `;
 
 export const FOCUS_AREA_PROMPTS: Record<FocusArea, string> = {
-  tone: "### FOCUS: TONE\nEvoke a palpable mood (e.g., oppression, dread) through precise vocabulary choices. Ensure the atmosphere aligns with the scene's emotional baseline without being explicit. Every sentence should reinforce the intended mood without naming it directly.",
-  rhythm: "### FOCUS: RHYTHM\nTreat the prose like music. Specifically address sentence flow, ensuring a natural cadence and variety in sentence structure. Break up monotonous sentence patterns (e.g., repetitive subject-verb openings). Use staccato fragments for action and tension, and complex, flowing sentences for introspection and slower moments. The prose should possess a distinct auditory quality.",
-  emotion: "### FOCUS: EMOTION\nConvert 'telling' into 'showing.' Instead of naming the emotion (e.g., 'He was scared'), describe the visceral, somatic reaction (e.g., 'A cold knot tightened beneath his ribs.'). Connect the environment to the character's internal state.",
-  plot: "### FOCUS: PLOT\nTighten the narrative drive. Preserve all key plot points but refine the execution. Ensure cause-and-effect logic is ironclad. Cut meandering digressions that do not serve the character or story.",
-  sensory: "### FOCUS: SENSORY DETAILS\nCreate immersive environments by incorporating texture, smell, temperature, taste, and sound. Ground abstract concepts in physical sensations to create an immersive reality. Move beyond sight to make the scene tangible.",
-  thematic: "### FOCUS: THEMATIC DEPTH\nWeave central story questions into the imagery and subtext. Enhance motifs subtly and let the environment and character actions reflect deeper meaning. Avoid overt philosophizing; let the theme breathe through the physical reality of the scene.",
-  dialogue: "### FOCUS: DIALOGUE & SUBTEXT\nEnhance character voices and ensure distinct, recognizable speech patterns for each speaker. Inject subtext—characters should rarely say exactly what they mean. Aggressively remove on-the-nose exposition and 'info-dumping' from spoken lines, moving necessary information into action or internal monologue.",
-  continuity: "### FOCUS: STRUCTURAL CLOCK & CONTINUITY\nEnsure the text acknowledges the pressure of time and physical reality. Fix timeline discrepancies and spatial inconsistencies. Verify that characters only know what they should know.",
-  voiceIntegrity: "### FOCUS: VOICE INTEGRITY\nEnsure the author's unique voice and authentic character speech patterns are preserved, even if they are unconventional. Avoid homogenizing the prose or dialogue. The identity of the writing must remain intact.",
+  tone: "### FOCUS: TONE\nClarify and reinforce the existing emotional atmosphere. Adjust diction only where the intended mood is present but obscured. Do not introduce new tonal qualities not already implied.",
+  rhythm: "### FOCUS: RHYTHM\nRefine sentence flow to better express the author’s natural cadence. Break or restructure only where rhythm disrupts clarity or intent. Preserve idiosyncratic pacing if it appears deliberate.",
+  emotion: "### FOCUS: EMOTION\nMake implicit emotional cues more perceptible through physical or behavioral detail already suggested in the text. Avoid introducing new emotional layers not grounded in the scene.",
+  plot: "### FOCUS: PLOT\nClarify cause-and-effect and narrative progression where it is unclear. Do not simplify, compress, or redirect events unless coherence is compromised.",
+  sensory: "### FOCUS: SENSORY\nAmplify sensory details only where they are already present or implied. Do not add new sensory dimensions that alter the stylistic baseline.",
+  mythic: "### FOCUS: MYTHIC WEIGHT\nSurface existing thematic or symbolic elements through subtle reinforcement. Do not impose new motifs or deepen meaning beyond what the text supports.",
+  dialogue: "### FOCUS: DIALOGUE\nSharpen clarity and subtext while preserving each character’s established voice. Avoid rewriting dialogue in a way that alters personality, tone, or intent.",
+  structural: "### FOCUS: STRUCTURAL\nCorrect inconsistencies in time, space, or knowledge. Do not reorganize structure unless necessary for basic coherence.",
+  voiceIntegrity: "### FOCUS: VOICE INTEGRITY\nEvery change must sound as though the author wrote it. If a revision feels externally imposed, it must be discarded.",
 };

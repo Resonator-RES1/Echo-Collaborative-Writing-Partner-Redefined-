@@ -1,5 +1,5 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
-import { LoreEntry, VoiceProfile, RefinedVersion, AuthorVoice } from '../types';
+import { LoreEntry, VoiceProfile, RefinedVersion, AuthorVoice, Scene } from '../types';
 
 interface EchoDB extends DBSchema {
   lore: {
@@ -18,6 +18,10 @@ interface EchoDB extends DBSchema {
     key: string;
     value: RefinedVersion;
   };
+  scenes: {
+    key: string;
+    value: Scene;
+  };
   settings: {
     key: string;
     value: any;
@@ -25,7 +29,7 @@ interface EchoDB extends DBSchema {
 }
 
 const DB_NAME = 'echo-cloud-db';
-const DB_VERSION = 3; // Bump version to remove syncMetadata
+const DB_VERSION = 4; // Bump version to add scenes
 
 let dbPromise: Promise<IDBPDatabase<EchoDB>> | null = null;
 
@@ -44,6 +48,9 @@ export const getDB = () => {
         }
         if (!db.objectStoreNames.contains('echoes')) {
           db.createObjectStore('echoes', { keyPath: 'id' });
+        }
+        if (!db.objectStoreNames.contains('scenes')) {
+          db.createObjectStore('scenes', { keyPath: 'id' });
         }
         if (!db.objectStoreNames.contains('settings')) {
           db.createObjectStore('settings');
@@ -160,6 +167,33 @@ export const setAllEchoes = async (echoes: RefinedVersion[]): Promise<void> => {
   await tx.store.clear();
   for (const echo of echoes) {
     await tx.store.put(echo);
+  }
+  await tx.done;
+};
+
+// --- SCENES ---
+export const getScenes = async (): Promise<Scene[]> => {
+  const db = await getDB();
+  const scenes = await db.getAll('scenes');
+  return scenes.sort((a, b) => a.order - b.order);
+};
+
+export const putScene = async (scene: Scene): Promise<void> => {
+  const db = await getDB();
+  await db.put('scenes', scene);
+};
+
+export const deleteScene = async (id: string): Promise<void> => {
+  const db = await getDB();
+  await db.delete('scenes', id);
+};
+
+export const setAllScenes = async (scenes: Scene[]): Promise<void> => {
+  const db = await getDB();
+  const tx = db.transaction('scenes', 'readwrite');
+  await tx.store.clear();
+  for (const scene of scenes) {
+    await tx.store.put(scene);
   }
   await tx.done;
 };

@@ -1,26 +1,37 @@
 import React from 'react';
 import { ComparisonView } from './ComparisonView';
 import { ConflictModal } from './ConflictModal';
-import { LoreConflict } from '../../types';
+import { LoreRevertModal } from './LoreRevertModal';
+import { LoreConflict, LoreCorrection } from '../../types';
 
 interface EditorModalsProps {
     showComparison: boolean;
     showConflicts: boolean;
+    showLoreRevert: boolean;
     currentVersionText: string;
     originalDraft: string;
     conflicts: LoreConflict[];
+    loreCorrections: LoreCorrection[];
     setShowComparison: (show: boolean) => void;
     setShowConflicts: (show: boolean) => void;
+    setShowLoreRevert: (show: boolean) => void;
+    onRevertLore: () => void;
+    onRevertSpecificLore: (correction: LoreCorrection) => void;
 }
 
 export const EditorModals: React.FC<EditorModalsProps> = React.memo(({
     showComparison,
     showConflicts,
+    showLoreRevert,
     currentVersionText,
     originalDraft,
     conflicts,
+    loreCorrections,
     setShowComparison,
-    setShowConflicts
+    setShowConflicts,
+    setShowLoreRevert,
+    onRevertLore,
+    onRevertSpecificLore
 }) => {
     return (
         <>
@@ -30,6 +41,7 @@ export const EditorModals: React.FC<EditorModalsProps> = React.memo(({
                     onClose={() => setShowComparison(false)}
                     original={originalDraft}
                     polished={currentVersionText}
+                    onRevertLore={onRevertLore}
                 />
             )}
             {showConflicts && (
@@ -37,6 +49,14 @@ export const EditorModals: React.FC<EditorModalsProps> = React.memo(({
                     isOpen={showConflicts}
                     onClose={() => setShowConflicts(false)}
                     conflicts={conflicts}
+                />
+            )}
+            {showLoreRevert && (
+                <LoreRevertModal 
+                    isOpen={showLoreRevert}
+                    onClose={() => setShowLoreRevert(false)}
+                    corrections={loreCorrections}
+                    onRevert={onRevertSpecificLore}
                 />
             )}
         </>

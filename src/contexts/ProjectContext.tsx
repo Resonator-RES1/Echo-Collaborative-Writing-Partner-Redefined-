@@ -12,6 +12,7 @@ interface ProjectContextType {
   setProjectName: (name: string) => void;
   exportProject: () => Promise<void>;
   importProject: (file: File) => Promise<void>;
+  resetProject: () => Promise<void>;
   isImporting: boolean;
   importError: string | null;
 }
@@ -71,12 +72,23 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  const resetProject = async () => {
+    try {
+      await projectService.resetProject();
+      setProjectNameState('Untitled Project');
+      window.dispatchEvent(new CustomEvent('sync-complete'));
+    } catch (error: any) {
+      console.error('Reset Error:', error);
+    }
+  };
+
   return (
     <ProjectContext.Provider value={{ 
       projectName,
       setProjectName,
       exportProject,
       importProject,
+      resetProject,
       isImporting,
       importError
     }}>

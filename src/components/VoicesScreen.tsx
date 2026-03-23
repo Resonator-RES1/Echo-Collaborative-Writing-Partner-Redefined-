@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { User, UserPlus, Mic2, Quote, Brain, Plus, Download, Upload, Trash2, PenTool, Sparkles } from 'lucide-react';
-import { VoiceProfile, Screen, AuthorVoice } from '../types';
+import { User, UserPlus, Mic2, Quote, Brain, Plus, Download, Upload, Trash2, PenTool, Sparkles, UserRound, UserCircle, Square, Circle, Hexagon } from 'lucide-react';
+import { VoiceProfile, Screen, AuthorVoice, Gender } from '../types';
+import { GenderIcon } from './GenderIcon';
 import { VoiceProfileForm } from './forms/VoiceProfileForm';
 import { AuthorVoiceForm } from './forms/AuthorVoiceForm';
 
@@ -272,33 +273,35 @@ export function VoicesScreen({
               <div 
                 key={profile.id} 
                 onClick={() => handleEditProfile(profile)}
-                className="glass-slab p-8 rounded-[0.75rem] border border-outline-variant/10 hover:border-primary/30 transition-all duration-500 group cursor-pointer"
+                className="glass-slab p-8 rounded-[0.75rem] border border-outline-variant/10 hover:border-primary/30 transition-all duration-500 group cursor-pointer relative overflow-hidden"
               >
                 <div className="flex justify-between items-start mb-6">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <User className="text-primary w-6 h-6" />
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all shadow-inner">
+                      <GenderIcon gender={profile.gender} size="lg" />
+                    </div>
+                    <div>
+                      <h4 className="font-headline text-2xl group-hover:text-primary transition-colors">{profile.name}</h4>
+                      <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/50">{profile.archetype}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/50">{profile.archetype}</span>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); onDeleteProfile(profile.id); }}
-                      className="text-on-surface-variant/30 hover:text-error transition-colors"
-                      title="Delete Profile"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  </div>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); onDeleteProfile(profile.id); }}
+                    className="text-on-surface-variant/30 hover:text-error transition-colors p-2 rounded-full hover:bg-error/10"
+                    title="Delete Profile"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
-                <h4 className="font-headline text-2xl mb-4 group-hover:text-primary transition-colors">{profile.name}</h4>
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <span className="font-label text-[9px] uppercase tracking-widest text-on-surface-variant">Signature Traits</span>
+                    <span className="font-label text-[9px] uppercase tracking-widest text-on-surface-variant font-black">Signature Traits</span>
                     <div className="flex flex-wrap gap-2">
                       {profile.signatureTraits?.slice(0, 3).map((t, i) => (
-                        <span key={i} className="px-2 py-1 bg-surface-container rounded text-[10px] text-on-surface-variant">{t}</span>
+                        <span key={i} className="px-2 py-1 bg-surface-container rounded text-[10px] text-on-surface-variant font-medium">{t}</span>
                       ))}
                       {profile.signatureTraits && profile.signatureTraits.length > 3 && (
-                        <span className="px-2 py-1 bg-surface-container rounded text-[10px] text-on-surface-variant">+{profile.signatureTraits.length - 3} more</span>
+                        <span className="px-2 py-1 bg-surface-container rounded text-[10px] text-on-surface-variant font-medium">+{profile.signatureTraits.length - 3} more</span>
                       )}
                     </div>
                   </div>

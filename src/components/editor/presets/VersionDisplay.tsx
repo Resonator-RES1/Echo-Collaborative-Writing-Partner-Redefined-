@@ -2,13 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { 
     Loader2, Copy, Pencil, Eye, Maximize2, Minimize2, X, 
     ChevronLeft, ChevronRight, CheckCircle, FileText, Activity,
-    AlertTriangle, Zap, ShieldCheck, Target, BarChart3
+    AlertTriangle, Zap
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import { marked } from 'marked';
-import { RefinedVersion } from '../../../types';
+import { RefinedVersion, FocusArea } from '../../../types';
+import { copyReportToClipboard } from './report/utils';
+import { ReportContext } from './report/ReportContext';
+import { ReportAudit } from './report/ReportAudit';
+import { ReportRestraintLog } from './report/ReportRestraintLog';
+import { ReportAnalysis } from './report/ReportAnalysis';
+import { ReportMetrics } from './report/ReportMetrics';
 
 interface VersionDisplayProps {
     mode: string;
@@ -20,49 +26,18 @@ interface VersionDisplayProps {
     versionHistory: RefinedVersion[];
     setCurrentVersionIndex: (index: number) => void;
     onUpdateVersion: (index: number, content: string) => void;
-    onAcceptVersion: (version: string) => void;
+    onAcceptVersion: (version: RefinedVersion) => void;
     onShowComparison: () => void;
     setShowConflicts: (show: boolean) => void;
     onClearVersionHistory: () => void;
     showToast: (message: string) => void;
+    setFocusAreas: (areas: FocusArea[]) => void;
 }
-
-const ProgressBar: React.FC<{ label: string, value: number, color: string }> = ({ label, value, color }) => (
-    <div className="space-y-1">
-        <div className="flex justify-between text-[10px] uppercase tracking-wider font-bold text-on-surface/60">
-            <span>{label}</span>
-            <span>{value}%</span>
-        </div>
-        <div className="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
-            <div 
-                className={`h-full ${color} transition-all duration-1000 ease-out`} 
-                style={{ width: `${value}%` }}
-            />
-        </div>
-    </div>
-);
-
-const MetricBar: React.FC<{ label: string, value: number }> = ({ label, value }) => (
-    <div className="flex flex-col gap-1">
-        <div className="flex justify-between text-[10px] uppercase tracking-wider font-bold text-on-surface/60">
-            <span>{label}</span>
-            <span>{value}/10</span>
-        </div>
-        <div className="flex gap-0.5">
-            {[...Array(10)].map((_, i) => (
-                <div 
-                    key={i} 
-                    className={`h-1.5 flex-grow rounded-full transition-all duration-500 ${i < value ? 'bg-primary' : 'bg-surface-container-highest'}`}
-                />
-            ))}
-        </div>
-    </div>
-);
 
 export const VersionDisplay: React.FC<VersionDisplayProps> = React.memo(({
     mode, isRefining, reviewOutput, setReviewOutput, currentVersion, 
     currentVersionIndex, versionHistory, setCurrentVersionIndex, 
-    onUpdateVersion, onAcceptVersion, onShowComparison, setShowConflicts, onClearVersionHistory, showToast
+    onUpdateVersion, onAcceptVersion, onShowComparison, setShowConflicts, onClearVersionHistory, showToast, setFocusAreas
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -103,6 +78,11 @@ export const VersionDisplay: React.FC<VersionDisplayProps> = React.memo(({
                 showToast("Failed to copy text.");
             });
         }
+    };
+
+    const handleCopyReport = async () => {
+        if (!currentVersion) return;
+        await copyReportToClipboard(currentVersion, showToast);
     };
 
     const containerClasses = `
@@ -187,48 +167,48 @@ export const VersionDisplay: React.FC<VersionDisplayProps> = React.memo(({
                             )}
                         </div>
                         
-                        {(currentVersion.summary || currentVersion.metrics || currentVersion.audit) && (
-                            <div className="bg-surface-container-highest/20 rounded-xl border border-outline-variant/20 p-6 space-y-6">
-                                <div className="flex items-center justify-between">
-                                    <h4 className="font-headline text-lg text-primary font-semibold tracking-tight">Refinement Report</h4>
-                                    <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full border border-primary/20">
-                                        <Zap className="w-3 h-3 text-primary" />
-                                        <span className="text-[10px] font-bold text-primary uppercase tracking-widest">AI Audit Active</span>
+                        {(currentVersion.summary || currentVersion.metrics || currentVersion.analysis || currentVersion.audit) && (
+                            <div className="bg-surface-container-highest/20 rounded-2xl border border-outline-variant/30 p-8 space-y-10">
+                                <div className="flex items-center justify-between border-b border-outline-variant/20 pb-4">
+                                    <div className="flex items-center gap-4">
+                                        <h4 className="font-headline text-2xl text-primary font-bold tracking-tight">Refinement Report</h4>
+                                        <button 
+                                            onClick={handleCopyReport}
+                                            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container-highest text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-all border border-outline-variant/10 hover:border-primary/30 group"
+                                            title="Copy full report to clipboard"
+                                        >
+                                            <Copy className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                                            <span className="text-[10px] font-black uppercase tracking-widest">Copy Report</span>
+                                        </button>
+                                    </div>
+                                    <div className="flex items-center gap-2 px-4 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+                                        <Zap className="w-4 h-4 text-primary" />
+                                        <span className="text-xs font-bold text-primary uppercase tracking-widest">AI Audit Active</span>
                                     </div>
                                 </div>
 
-                                {/* Audit Scores */}
-                                {currentVersion.audit && (
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-4 bg-surface-container-highest/30 rounded-xl border border-outline-variant/10">
-                                        <ProgressBar label="Lore Compliance" value={currentVersion.audit.loreCompliance} color="bg-emerald-500" />
-                                        <ProgressBar label="Voice Adherence" value={currentVersion.audit.voiceAdherence} color="bg-blue-500" />
-                                        <ProgressBar label="Focus Improvement" value={currentVersion.audit.focusAreaImprovement} color="bg-amber-500" />
-                                    </div>
-                                )}
+                                {/* Active Context used for this refinement */}
+                                <ReportContext usedProfiles={currentVersion.usedProfiles} />
 
-                                {/* Vibe Radar / Metrics */}
-                                {currentVersion.metrics && (
-                                    <div className="space-y-4">
-                                        <div className="flex items-center gap-2 text-on-surface/60">
-                                            <BarChart3 className="w-4 h-4" />
-                                            <span className="text-xs font-bold uppercase tracking-widest">Vibe Radar (Prose Analytics)</span>
-                                        </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <MetricBar label="Sensory Vividness" value={currentVersion.metrics.sensory_vividness} />
-                                            <MetricBar label="Pacing Rhythm" value={currentVersion.metrics.pacing_rhythm} />
-                                            <MetricBar label="Dialogue Authenticity" value={currentVersion.metrics.dialogue_authenticity} />
-                                            <MetricBar label="Voice Consistency" value={currentVersion.metrics.voice_consistency} />
-                                        </div>
-                                    </div>
-                                )}
+                                {/* Refinement Audit - NOW AT TOP */}
+                                {currentVersion.audit && <ReportAudit audit={currentVersion.audit} />}
+
+                                {/* Restraint Log */}
+                                {currentVersion.restraintLog && <ReportRestraintLog restraintLog={currentVersion.restraintLog} />}
+
+                                {/* Analysis */}
+                                {currentVersion.analysis && <ReportAnalysis analysis={currentVersion.analysis} />}
+
+                                {/* Expression Profile / Metrics */}
+                                {currentVersion.metrics && <ReportMetrics metrics={currentVersion.metrics} setFocusAreas={setFocusAreas} />}
 
                                 {currentVersion.summary && (
-                                    <div className="pt-4 border-t border-outline-variant/10">
-                                        <h5 className="font-label text-xs uppercase tracking-wider text-on-surface/60 mb-2 flex items-center gap-2">
-                                            <CheckCircle className="w-3 h-3" />
+                                    <div className="pt-6 border-t border-outline-variant/20">
+                                        <h5 className="font-label text-xs uppercase tracking-widest text-on-surface/60 mb-3 flex items-center gap-2">
+                                            <CheckCircle className="w-4 h-4" />
                                             Editor's Summary
                                         </h5>
-                                        <p className="text-sm text-on-surface/80 leading-relaxed">{currentVersion.summary}</p>
+                                        <p className="text-base text-on-surface/80 leading-relaxed font-medium">{currentVersion.summary}</p>
                                     </div>
                                 )}
                             </div>
@@ -240,7 +220,16 @@ export const VersionDisplay: React.FC<VersionDisplayProps> = React.memo(({
             </div>
             {textToShow && (
                 <div className="p-3 border-t border-outline-variant/20 flex items-center justify-center bg-surface-container-highest/10 rounded-b-[0.75rem]">
-                    <button onClick={() => { onAcceptVersion(textToShow); showToast("Version restored to main editor."); }} className="flex items-center gap-2 text-xs font-label uppercase tracking-wider px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary-fixed rounded-full font-bold shadow-sm transition-all"><CheckCircle className="w-4 h-4" /> Accept Version</button>
+                    <button 
+                        onClick={() => { 
+                            onAcceptVersion(currentVersion); 
+                            showToast("Version accepted and stored in Manuscript."); 
+                        }} 
+                        className="flex items-center gap-2 text-xs font-label uppercase tracking-wider px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary-fixed rounded-full font-bold shadow-sm transition-all"
+                    >
+                        <CheckCircle className="w-4 h-4" /> 
+                        Accept Version
+                    </button>
                 </div>
             )}
         </div>

@@ -72,5 +72,10 @@ export const projectService = {
       reader.onerror = () => reject(new Error('Failed to read file'));
       reader.readAsText(file);
     });
+  },
+
+  resetProject: async (): Promise<void> => {
+    await db.clearProjectData();
+    await db.putSetting('project_name', 'Untitled Project');
   }
 };

@@ -7,10 +7,11 @@ interface ComparisonViewProps {
     original: string;
     polished: string;
     onClose: () => void;
+    onRevertLore: () => void;
 }
 
 export const ComparisonView: React.FC<ComparisonViewProps> = React.memo(({ 
-    isOpen, original, polished, onClose 
+    isOpen, original, polished, onClose, onRevertLore
 }) => {
     if (!isOpen) return null;
 
@@ -50,7 +51,13 @@ export const ComparisonView: React.FC<ComparisonViewProps> = React.memo(({
                     </div>
                 </main>
 
-                <footer className="px-6 py-4 border-t border-outline-variant/20 bg-surface-container-highest/30 flex justify-end gap-3">
+                <footer className="px-6 py-4 border-t border-outline-variant/20 bg-surface-container-highest/30 flex justify-between items-center gap-3">
+                    <button 
+                        onClick={onRevertLore}
+                        className="px-4 py-2 text-xs font-bold text-amber-500 hover:text-amber-600 hover:bg-amber-500/10 rounded-[0.5rem] transition-colors"
+                    >
+                        Revert Lore Corrections
+                    </button>
                     <button 
                         onClick={onClose}
                         className="px-6 py-2 text-sm font-bold text-on-surface-variant hover:text-on-surface transition-colors"
