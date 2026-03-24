@@ -23,13 +23,13 @@ export const SideBySideDiff: React.FC<{ original: string; polished: string }> = 
     });
 
     return (
-        <div className="flex w-full bg-surface-container-low border border-outline-variant/20 rounded-[0.75rem] max-h-[50vh] overflow-y-auto custom-scrollbar">
-            <div className="w-1/2 p-6 whitespace-pre-wrap font-headline text-sm leading-relaxed border-r border-outline-variant/20 text-on-surface/80">
-                <h4 className="text-xs font-label uppercase tracking-wider text-on-surface-variant mb-4 sticky top-0 bg-surface-container-low pb-2 -mt-6 pt-6 z-10">Original Draft</h4>
+        <div className="flex w-full bg-surface-container-low border border-outline-variant/20 rounded-[0.75rem] overflow-hidden">
+            <div className="w-1/2 p-6 whitespace-pre-wrap font-headline text-sm leading-relaxed border-r border-outline-variant/20 text-on-surface/80 overflow-y-auto max-h-[40vh]">
+                <h4 className="text-xs font-label uppercase tracking-wider text-on-surface-variant mb-4 sticky top-0 bg-surface-container-low pb-2 z-10">Original Draft</h4>
                 <p>{leftPane}</p>
             </div>
-            <div className="w-1/2 p-6 whitespace-pre-wrap font-headline text-sm leading-relaxed text-on-surface/80">
-                <h4 className="text-xs font-label uppercase tracking-wider text-on-surface-variant mb-4 sticky top-0 bg-surface-container-low pb-2 -mt-6 pt-6 z-10">Polished Version</h4>
+            <div className="w-1/2 p-6 whitespace-pre-wrap font-headline text-sm leading-relaxed text-on-surface/80 overflow-y-auto max-h-[40vh]">
+                <h4 className="text-xs font-label uppercase tracking-wider text-on-surface-variant mb-4 sticky top-0 bg-surface-container-low pb-2 z-10">Polished Version</h4>
                 <p>{rightPane}</p>
             </div>
         </div>

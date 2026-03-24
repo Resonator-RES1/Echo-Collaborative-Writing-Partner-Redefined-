@@ -22,6 +22,7 @@ export default function App() {
   const [draft, setDraft] = useState<string>('');
   const [toast, setToast] = useState<{ message: string, id: number } | null>(null);
   const [isRefining, setIsRefining] = useState<boolean>(false);
+  const [isFocusMode, setIsFocusMode] = useState<boolean>(false);
   const [versionCount, setVersionCount] = useState<number>(0);
   const [versionHistory, setVersionHistory] = useState<RefinedVersion[]>([]);
   const [currentScreen, setCurrentScreen] = useState<Screen>('workspace');
@@ -186,6 +187,15 @@ export default function App() {
     });
     showToast("Scene echo archive cleared.");
   }, [currentSceneId, showToast]);
+
+  const clearAcceptedVersions = useCallback(async () => {
+    setVersionHistory(prev => {
+        const updated = prev.filter(v => !v.isAccepted);
+        db.setAllEchoes(updated);
+        return updated;
+    });
+    showToast("Accepted versions history cleared.");
+  }, [showToast]);
 
   const deleteLoreEntry = useCallback(async (id: string) => {
     setLoreEntries(prev => prev.filter(e => e.id !== id));
@@ -378,6 +388,7 @@ export default function App() {
             showToast={showToast}
             versionHistory={versionHistory.filter(v => v.isAccepted)}
             onDeleteVersion={deleteVersion}
+            onClearAcceptedVersions={clearAcceptedVersions}
           />
         );
       case 'settings':
@@ -404,19 +415,25 @@ export default function App() {
               onAddLoreEntry={upsertLoreEntry}
               onAddVoiceProfile={upsertVoiceProfile}
               onAddAuthorVoice={upsertAuthorVoice}
+              onDeleteLoreEntry={deleteLoreEntry}
+              onDeleteVoiceProfile={deleteVoiceProfile}
+              onDeleteAuthorVoice={deleteAuthorVoice}
               onAddVersion={addVersion}
               onClearVersionHistory={clearVersionHistory}
+              onDeleteVersion={deleteVersion}
               onAcceptVersion={acceptVersion}
+              isFocusMode={isFocusMode}
+              setIsFocusMode={setIsFocusMode}
           />
         );
     }
   };
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface flex flex-col font-body">
+    <div className="h-[100dvh] bg-surface text-on-surface flex flex-col font-body overflow-hidden">
       {toast && <Toast key={toast.id} message={toast.message} onClose={() => setToast(null)} />}
       
-      {currentScreen !== 'welcome' && (
+      {currentScreen !== 'welcome' && !isFocusMode && (
         <TopAppBar 
           currentScreen={currentScreen} 
           setCurrentScreen={setCurrentScreen} 
@@ -440,7 +457,7 @@ export default function App() {
         showToast={showToast}
       />
       
-      <main className={`${currentScreen === 'welcome' ? '' : 'pb-12 px-6 max-w-7xl mx-auto w-full flex-grow flex flex-col'}`}>
+      <main className={`${currentScreen === 'welcome' ? 'h-full' : `px-2 sm:px-4 md:px-6 pb-2 sm:pb-4 max-w-7xl mx-auto w-full flex-1 min-h-0 flex flex-col overflow-hidden ${isFocusMode ? 'pt-12' : ''}`}`}>
         {renderScreen()}
       </main>
     </div>

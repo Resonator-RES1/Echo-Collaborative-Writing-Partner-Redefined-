@@ -57,25 +57,28 @@ export const detectPotentialInconsistencies = (text: string, activeLore: LoreEnt
         const isMentioned = terms.some(term => term.trim() && lowerText.includes(term));
 
         if (isMentioned) {
-            // Very basic heuristic: if name is present, check for common pronoun mismatches
+            // Use regex with word boundaries for more robust pronoun detection
+            const checkPronoun = (pronoun: string, replacement: string, idSuffix: string) => {
+                const regex = new RegExp(`\\b${pronoun}\\b`, 'gi');
+                if (regex.test(text)) {
+                    warnings.push({ 
+                        id: `pronoun-${idSuffix}-${voice.id}`, 
+                        type: 'voice', 
+                        severity: 'low', 
+                        message: `Possible pronoun mismatch for ${voice.name} (Profile: ${voice.gender}, but found '${pronoun}').`, 
+                        actionable: { original: pronoun, replacement: replacement } 
+                    });
+                }
+            };
+
             if (voice.gender === 'male') {
-                if (lowerText.includes(' she ')) {
-                    warnings.push({ id: `pronoun-she-${voice.id}`, type: 'voice', severity: 'low', message: `Possible pronoun mismatch for ${voice.name} (Profile: Male, but found 'she').`, actionable: { original: 'she', replacement: 'he' } });
-                }
-                if (lowerText.includes(' her ')) {
-                    warnings.push({ id: `pronoun-her-${voice.id}`, type: 'voice', severity: 'low', message: `Possible pronoun mismatch for ${voice.name} (Profile: Male, but found 'her').`, actionable: { original: 'her', replacement: 'his' } });
-                }
+                checkPronoun('she', 'he', 'she');
+                checkPronoun('her', 'his', 'her');
             }
             if (voice.gender === 'female') {
-                if (lowerText.includes(' he ')) {
-                    warnings.push({ id: `pronoun-he-${voice.id}`, type: 'voice', severity: 'low', message: `Possible pronoun mismatch for ${voice.name} (Profile: Female, but found 'he').`, actionable: { original: 'he', replacement: 'she' } });
-                }
-                if (lowerText.includes(' him ')) {
-                    warnings.push({ id: `pronoun-him-${voice.id}`, type: 'voice', severity: 'low', message: `Possible pronoun mismatch for ${voice.name} (Profile: Female, but found 'him').`, actionable: { original: 'him', replacement: 'her' } });
-                }
-                if (lowerText.includes(' his ')) {
-                    warnings.push({ id: `pronoun-his-${voice.id}`, type: 'voice', severity: 'low', message: `Possible pronoun mismatch for ${voice.name} (Profile: Female, but found 'his').`, actionable: { original: 'his', replacement: 'hers' } });
-                }
+                checkPronoun('he', 'she', 'he');
+                checkPronoun('him', 'her', 'him');
+                checkPronoun('his', 'hers', 'his');
             }
 
             // Check if an alias is used instead of the main name

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { ShieldCheck, AlertTriangle, CheckCircle, Info, Zap, Search, Undo2, Check } from 'lucide-react';
 import { LoreEntry, VoiceProfile } from '../../types';
 import { scanForContext, detectPotentialInconsistencies, ContinuityIssue } from '../../utils/contextScanner';
@@ -11,6 +11,7 @@ interface ContinuityGuardProps {
     onActivateVoice: (id: string) => void;
     onFix: (original: string, replacement: string) => void;
     showToast: (message: string) => void;
+    onIssuesUpdate?: (count: number) => void;
 }
 
 export const ContinuityGuard: React.FC<ContinuityGuardProps> = ({
@@ -20,13 +21,24 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = ({
     onActivateLore,
     onActivateVoice,
     onFix,
-    showToast
+    showToast,
+    onIssuesUpdate
 }) => {
     const [resolvedFixes, setResolvedFixes] = useState<{ id: string, original: string, replacement: string }[]>([]);
+    const [debouncedDraft, setDebouncedDraft] = useState(draft);
+
+    // Debounce the draft text to reduce scan frequency
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedDraft(draft);
+        }, 1000); // 1 second delay
+
+        return () => clearTimeout(handler);
+    }, [draft]);
 
     // 1. Detect Mentions
-    const detectedLoreIds = useMemo(() => scanForContext(draft, loreEntries), [draft, loreEntries]);
-    const detectedVoiceIds = useMemo(() => scanForContext(draft, voiceProfiles), [draft, voiceProfiles]);
+    const detectedLoreIds = useMemo(() => scanForContext(debouncedDraft, loreEntries), [debouncedDraft, loreEntries]);
+    const detectedVoiceIds = useMemo(() => scanForContext(debouncedDraft, voiceProfiles), [debouncedDraft, voiceProfiles]);
 
     const detectedLore = useMemo(() => 
         loreEntries.filter(e => detectedLoreIds.includes(e.id)), 
@@ -42,8 +54,8 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = ({
     const localWarnings = useMemo(() => {
         const activeLore = loreEntries.filter(e => e.isActive);
         const activeVoices = voiceProfiles.filter(v => v.isActive);
-        return detectPotentialInconsistencies(draft, activeLore, activeVoices);
-    }, [draft, loreEntries, voiceProfiles]);
+        return detectPotentialInconsistencies(debouncedDraft, activeLore, activeVoices);
+    }, [debouncedDraft, loreEntries, voiceProfiles]);
 
     // Filter out warnings that have been resolved
     const activeWarnings = useMemo(() => {
@@ -58,6 +70,17 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = ({
     }, [detectedLore, detectedVoices]);
 
     const totalIssues = activeWarnings.length + inactiveMentions.lore.length + inactiveMentions.voices.length;
+
+    useEffect(() => {
+        onIssuesUpdate?.(totalIssues);
+    }, [totalIssues, onIssuesUpdate]);
+
+    useEffect(() => {
+        setResolvedFixes(prev => prev.filter(fix => {
+            const warningStillExists = localWarnings.some(w => w.id === fix.id);
+            return !warningStillExists;
+        }));
+    }, [localWarnings]);
 
     const handleApplyFix = (issue: ContinuityIssue) => {
         if (!issue.actionable) return;
@@ -80,13 +103,30 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = ({
             <div className="p-4 border-b border-outline-variant/10 bg-surface-container-highest/30 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <ShieldCheck className={`w-4 h-4 ${totalIssues > 0 ? 'text-amber-500' : 'text-primary'}`} />
-                    <h3 className="font-label text-[10px] uppercase tracking-[0.2em] font-black text-on-surface/80">Continuity Guard</h3>
+                    <div className="flex flex-col">
+                        <h3 className="font-label text-[10px] uppercase tracking-[0.2em] font-black text-on-surface/80">Continuity Guard</h3>
+                        <p className="text-[8px] text-on-surface-variant/60 uppercase tracking-wider">Scanning: Lore, Voices, Pronouns, Aliases</p>
+                    </div>
                 </div>
-                {totalIssues > 0 && (
-                    <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-[9px] font-black uppercase tracking-tighter">
-                        {totalIssues} Alerts
-                    </span>
-                )}
+                <div className="flex items-center gap-2">
+                    {(inactiveMentions.lore.length > 0 || inactiveMentions.voices.length > 0) && (
+                        <button 
+                            onClick={() => {
+                                inactiveMentions.lore.forEach(l => onActivateLore(l.id));
+                                inactiveMentions.voices.forEach(v => onActivateVoice(v.id));
+                                showToast(`Activated ${inactiveMentions.lore.length + inactiveMentions.voices.length} profiles`);
+                            }}
+                            className="px-2 py-1 rounded-full bg-primary/10 text-primary text-[9px] font-black uppercase tracking-tighter hover:bg-primary/20 transition-all"
+                        >
+                            Sync All
+                        </button>
+                    )}
+                    {totalIssues > 0 && (
+                        <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-[9px] font-black uppercase tracking-tighter">
+                            {totalIssues} Alerts
+                        </span>
+                    )}
+                </div>
             </div>
 
             <div className="p-4 space-y-6 max-h-[300px] overflow-y-auto scrollbar-thin">

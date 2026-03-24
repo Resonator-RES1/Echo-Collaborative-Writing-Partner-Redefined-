@@ -73,7 +73,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ showToast }) => 
               </div>
               <div className="pt-4 border-t border-outline-variant/5">
                 <p className="text-xs text-on-surface-variant leading-relaxed">
-                  Echo is a collaborative writing partner designed to help authors maintain consistency, enhance sensory depth, and refine their narrative voice through advanced AI analysis.
+                  Echo is a narrative intelligence suite designed to help authors maintain consistency, enhance sensory depth, and refine their narrative voice through advanced AI analysis.
                 </p>
               </div>
             </div>

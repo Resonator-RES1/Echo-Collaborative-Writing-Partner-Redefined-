@@ -32,6 +32,7 @@ export interface RefineDraftResult {
     dialogue_authenticity: { score: number; note: string; qualifier: 'By Design' | 'Opportunity' };
     voice_consistency: { score: number; note: string; qualifier: 'By Design' };
   };
+  expressionProfile: { vibe: string; score: number; qualifier: 'By Design' | 'Opportunity'; note: string }[];
   loreCorrections: { original: string; refined: string; reason: string }[];
   audit: {
     voiceFidelityScore: number;
@@ -43,12 +44,12 @@ export interface RefineDraftResult {
     focusAreaAlignment: number;
     focusAreaAlignmentReasoning: string;
   };
-  restraintLog: { original?: string; reason: string }[];
-  usedProfiles?: {
+  restraintLog: { category: string; target: string; justification: string }[];
+  activeContext: {
     authorVoice?: string;
-    characterVoices?: string[];
-    loreEntries?: string[];
-    focusAreas?: FocusArea[];
+    characterVoices: string[];
+    loreProfiles: string[];
+    focusAreas: string[];
   };
 }
 
@@ -140,12 +141,9 @@ Return the following structure:
   "why_behind_change": "The trade-offs and stylistic reasoning.",
   "lore_lineage": "List of specific facts verified against the Lore.",
   "mirror_editor_critique": "Neutral, observational interpretation of what the text is doing.",
-  "expression_profile": {
-    "sensory_vividness": { "score": 1-10, "note": "string", "qualifier": "By Design | Opportunity" },
-    "pacing_rhythm": { "score": 1-10, "note": "string", "qualifier": "By Design | Opportunity" },
-    "dialogue_authenticity": { "score": 1-10, "note": "string", "qualifier": "By Design | Opportunity" },
-    "voice_consistency": { "score": 1-10, "note": "string", "qualifier": "By Design" }
-  },
+  "expression_profile_vibe": [
+    { "vibe": "Atmospheric", "score": 1-10, "qualifier": "By Design | Opportunity", "note": "string" }
+  ],
   "analysis": "Specific notes on Lore compliance and why certain voice choices were made.",
   "audit": {
     "voiceFidelityScore": 1-10,
@@ -158,7 +156,7 @@ Return the following structure:
     "focusAreaAlignmentReasoning": "string"
   },
   "restraint_log": [
-    { "original": "Original phrase or structure preserved", "reason": "Justification for preservation" }
+    { "category": "string", "target": "string", "justification": "string" }
   ],
   "conflicts": [
     { "sentence": "Original sentence with conflict", "reason": "Why it conflicts with lore" }
@@ -188,6 +186,19 @@ Return the following structure:
                 why_behind_change: { type: Type.STRING },
                 lore_lineage: { type: Type.STRING },
                 mirror_editor_critique: { type: Type.STRING },
+                expression_profile_vibe: {
+                    type: Type.ARRAY,
+                    items: {
+                        type: Type.OBJECT,
+                        properties: {
+                            vibe: { type: Type.STRING },
+                            score: { type: Type.NUMBER },
+                            qualifier: { type: Type.STRING },
+                            note: { type: Type.STRING }
+                        },
+                        required: ["vibe", "score", "qualifier", "note"]
+                    }
+                },
                 expression_profile: {
                     type: Type.OBJECT,
                     properties: {
@@ -255,10 +266,11 @@ Return the following structure:
                     items: {
                         type: Type.OBJECT,
                         properties: {
-                            original: { type: Type.STRING },
-                            reason: { type: Type.STRING }
+                            category: { type: Type.STRING },
+                            target: { type: Type.STRING },
+                            justification: { type: Type.STRING }
                         },
-                        required: ["reason"]
+                        required: ["category", "target", "justification"]
                     }
                 },
                 conflicts: {
@@ -288,7 +300,8 @@ Return the following structure:
             required: [
                 "refined_text", "editor_summary", "expression_profile", "analysis", "audit", 
                 "conflicts", "lore_corrections", "justification", "evidence_based_claims",
-                "why_behind_change", "lore_lineage", "mirror_editor_critique", "restraint_log"
+                "why_behind_change", "lore_lineage", "mirror_editor_critique", "restraint_log",
+                "expression_profile_vibe"
             ]
         }
     });
@@ -315,13 +328,14 @@ Return the following structure:
             dialogue_authenticity: { score: 5, note: "", qualifier: "Opportunity" },
             voice_consistency: { score: 5, note: "", qualifier: "By Design" }
         },
+        expressionProfile: parsed.expression_profile_vibe || [],
         loreCorrections: parsed.lore_corrections || [],
         audit: parsed.audit,
         restraintLog: parsed.restraint_log || [],
-        usedProfiles: {
+        activeContext: {
             authorVoice: activeAuthorVoice?.name,
             characterVoices: activeVoices.map(v => v.name),
-            loreEntries: activeLore.map(l => l.title),
+            loreProfiles: activeLore.map(l => l.title),
             focusAreas: focusAreas
         }
     };
@@ -338,6 +352,7 @@ Return the following structure:
               dialogue_authenticity: { score: 0, note: "Error", qualifier: "Opportunity" },
               voice_consistency: { score: 0, note: "Error", qualifier: "By Design" }
           },
+          expressionProfile: [],
           loreCorrections: [],
           audit: {
               voiceFidelityScore: 0,
@@ -349,7 +364,12 @@ Return the following structure:
               focusAreaAlignment: 0,
               focusAreaAlignmentReasoning: "Error"
           },
-          restraintLog: []
+          restraintLog: [],
+          activeContext: {
+              characterVoices: [],
+              loreProfiles: [],
+              focusAreas: []
+          }
       };
   }
 };

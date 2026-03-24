@@ -1,0 +1,84 @@
+import React, { useEffect } from 'react';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Placeholder from '@tiptap/extension-placeholder';
+import { Markdown } from 'tiptap-markdown';
+
+interface RichTextEditorProps {
+  content: string;
+  onChange: (markdown: string) => void;
+  onSelectionChange?: (selection: { text: string; start: number; end: number } | null) => void;
+  placeholder?: string;
+  className?: string;
+  editorRef?: React.MutableRefObject<any>;
+}
+
+export const RichTextEditor: React.FC<RichTextEditorProps> = ({
+  content,
+  onChange,
+  onSelectionChange,
+  placeholder = 'The canvas is yours. Begin your narrative...',
+  className = '',
+  editorRef,
+}) => {
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        // We can disable things we don't want from starter kit if needed
+        codeBlock: false, // We'll use simple code if needed, or keep it
+      }),
+      Placeholder.configure({
+        placeholder,
+      }),
+      Markdown.configure({
+        html: false,
+        tightLists: true,
+        tightListClass: 'tight',
+        bulletListMarker: '-',
+        linkify: false,
+        breaks: true,
+      }),
+    ],
+    content,
+    onUpdate: ({ editor }) => {
+      const markdown = (editor.storage as any).markdown.getMarkdown();
+      onChange(markdown);
+    },
+    onSelectionUpdate: ({ editor }) => {
+      if (!onSelectionChange) return;
+      
+      const { from, to } = editor.state.selection;
+      if (from === to) {
+        onSelectionChange(null);
+      } else {
+        const text = editor.state.doc.textBetween(from, to, ' ');
+        onSelectionChange({ text, start: from, end: to });
+      }
+    },
+    editorProps: {
+      attributes: {
+        class: `prose prose-invert max-w-none focus:outline-none min-h-full ${className}`,
+      },
+    },
+  });
+
+  // Sync external content changes (e.g. from Echo Archive or Scene switching)
+  useEffect(() => {
+    if (editor && content !== (editor.storage as any).markdown.getMarkdown()) {
+      editor.commands.setContent(content, { emitUpdate: false });
+    }
+  }, [content, editor]);
+
+  // Expose editor instance to parent if needed (for toolbar)
+  useEffect(() => {
+    if (editorRef && editor) {
+      editorRef.current = editor;
+    }
+  }, [editor, editorRef]);
+
+  return (
+    <div className="w-full flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+      <EditorContent editor={editor} className="min-h-full" />
+    </div>
+  );
+};

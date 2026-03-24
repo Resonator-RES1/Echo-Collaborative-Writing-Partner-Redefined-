@@ -2,8 +2,9 @@ import React from 'react';
 import { ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 interface RestraintLogEntry {
-    original?: string;
-    reason: string;
+    category: string;
+    target: string;
+    justification: string;
 }
 
 interface ReportRestraintLogProps {
@@ -27,8 +28,11 @@ export const ReportRestraintLog: React.FC<ReportRestraintLogProps> = ({ restrain
                                 <CheckCircle2 className="w-3 h-3 text-accent-emerald" />
                             </div>
                             <div className="space-y-1">
-                                <p className="text-sm font-bold text-on-surface italic">"{log.original || 'Element preserved'}"</p>
-                                <p className="text-xs text-on-surface-variant leading-relaxed">{log.reason}</p>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-accent-emerald/70">{log.category}</span>
+                                    <span className="text-sm font-bold text-on-surface italic">"{log.target}"</span>
+                                </div>
+                                <p className="text-xs text-on-surface-variant leading-relaxed">{log.justification}</p>
                             </div>
                         </div>
                     </div>

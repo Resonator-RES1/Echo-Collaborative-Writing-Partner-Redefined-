@@ -5,11 +5,11 @@ import { Library, PlusCircle, CheckCircle2 } from 'lucide-react';
 interface AuthorVoiceManagerProps {
     authorVoices: AuthorVoice[];
     onAddAuthorVoice: (voice: AuthorVoice) => void;
-    showToast: (message: string) => void;
+    onDeleteAuthorVoice: (id: string) => void;
 }
 
 export const AuthorVoiceManager: React.FC<AuthorVoiceManagerProps> = React.memo(({ 
-    authorVoices, onAddAuthorVoice, showToast
+    authorVoices, onAddAuthorVoice, onDeleteAuthorVoice
 }) => {
     const [selectedLibraryId, setSelectedLibraryId] = useState<string>('');
     const activeVoice = authorVoices.find(v => v.isActive);
@@ -18,7 +18,6 @@ export const AuthorVoiceManager: React.FC<AuthorVoiceManagerProps> = React.memo(
         const voice = authorVoices.find(v => v.id === id);
         if (voice) {
             onAddAuthorVoice({ ...voice, isActive: true });
-            showToast(`"${voice.name}" set as active author voice.`);
             setSelectedLibraryId('');
         }
     };

@@ -6,9 +6,10 @@ import { LoreEntryForm } from '../forms/LoreEntryForm';
 interface LoreContextManagerProps {
   loreEntries: LoreEntry[];
   onAddLoreEntry: (entry: LoreEntry) => void;
+  onDeleteLoreEntry: (id: string) => void;
 }
 
-export const LoreContextManager: React.FC<LoreContextManagerProps> = ({ loreEntries, onAddLoreEntry }) => {
+export const LoreContextManager: React.FC<LoreContextManagerProps> = ({ loreEntries, onAddLoreEntry, onDeleteLoreEntry }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedLoreId, setSelectedLoreId] = useState<string>('');
   const activeEntries = loreEntries.filter(e => e.isActive);

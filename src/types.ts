@@ -110,7 +110,14 @@ export interface RefinedVersion {
   metrics?: ProseMetrics;
   loreCorrections?: LoreCorrection[];
   audit?: RefinementAudit;
-  restraintLog?: { original?: string; reason: string }[];
+  restraintLog?: { category: string; target: string; justification: string }[];
+  expressionProfile?: { vibe: string; score: number; qualifier: 'By Design' | 'Opportunity'; note: string }[];
+  activeContext?: {
+    authorVoice?: string;
+    characterVoices: string[];
+    loreProfiles: string[];
+    focusAreas: string[];
+  };
   sceneId?: string;
   isAccepted?: boolean;
   usedProfiles?: {
@@ -136,6 +143,8 @@ export interface Scene {
 }
 
 export type Screen = 'welcome' | 'workspace' | 'lore' | 'voices' | 'manuscript' | 'settings';
+
+export type WorkspaceTab = 'draft' | 'context' | 'refine' | 'archive' | 'report';
 
 export type RefineMode = 'collaborative' | 'review' | 'reaction';
 export type ReviewPerspective = 'editor' | 'reader' | 'critic';

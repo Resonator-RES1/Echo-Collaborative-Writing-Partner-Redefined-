@@ -30,6 +30,7 @@ interface VersionDisplayProps {
     onShowComparison: () => void;
     setShowConflicts: (show: boolean) => void;
     onClearVersionHistory: () => void;
+    onDeleteVersion: (id: string) => void;
     showToast: (message: string) => void;
     setFocusAreas: (areas: FocusArea[]) => void;
 }
@@ -37,7 +38,7 @@ interface VersionDisplayProps {
 export const VersionDisplay: React.FC<VersionDisplayProps> = React.memo(({
     mode, isRefining, reviewOutput, setReviewOutput, currentVersion, 
     currentVersionIndex, versionHistory, setCurrentVersionIndex, 
-    onUpdateVersion, onAcceptVersion, onShowComparison, setShowConflicts, onClearVersionHistory, showToast, setFocusAreas
+    onUpdateVersion, onAcceptVersion, onShowComparison, setShowConflicts, onClearVersionHistory, onDeleteVersion, showToast, setFocusAreas
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -124,9 +125,24 @@ export const VersionDisplay: React.FC<VersionDisplayProps> = React.memo(({
                                     <span className="text-xs font-label uppercase">Conflicts</span>
                                 </button>
                             )}
-                            <button onClick={onClearVersionHistory} title="Clear Archive" className="flex items-center gap-1.5 p-1.5 text-error hover:text-error/80 rounded-[0.5rem] hover:bg-error/10 transition-colors">
+                            <button 
+                                onClick={() => {
+                                    if (window.confirm("Delete this specific version?")) {
+                                        onDeleteVersion(currentVersion.id);
+                                        if (currentVersionIndex > 0) {
+                                            setCurrentVersionIndex(currentVersionIndex - 1);
+                                        }
+                                    }
+                                }} 
+                                title="Delete Current Version" 
+                                className="flex items-center gap-1.5 p-1.5 text-error hover:text-error/80 rounded-[0.5rem] hover:bg-error/10 transition-colors"
+                            >
                                 <X className="w-4 h-4" />
-                                <span className="text-xs font-label uppercase">Clear</span>
+                                <span className="text-xs font-label uppercase">Delete</span>
+                            </button>
+                            <button onClick={onClearVersionHistory} title="Clear Archive" className="flex items-center gap-1.5 p-1.5 text-error hover:text-error/80 rounded-[0.5rem] hover:bg-error/10 transition-colors">
+                                <Activity className="w-4 h-4" />
+                                <span className="text-xs font-label uppercase">Clear All</span>
                             </button>
                             <button onClick={() => setIsExpanded(!isExpanded)} title={isExpanded ? "Shrink Panel" : "Expand Panel"} className="p-1.5 text-on-surface-variant hover:text-on-surface rounded-[0.5rem] hover:bg-surface-container-highest transition-colors">
                                 {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}

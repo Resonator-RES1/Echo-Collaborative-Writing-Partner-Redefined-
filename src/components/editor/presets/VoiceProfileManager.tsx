@@ -6,11 +6,11 @@ import { GenderIcon } from '../../GenderIcon';
 interface VoiceProfileManagerProps {
     voiceProfiles: VoiceProfile[];
     onAddVoiceProfile: (profile: VoiceProfile) => void;
-    showToast: (message: string) => void;
+    onDeleteVoiceProfile: (id: string) => void;
 }
 
 export const VoiceProfileManager: React.FC<VoiceProfileManagerProps> = React.memo(({ 
-    voiceProfiles, onAddVoiceProfile, showToast
+    voiceProfiles, onAddVoiceProfile, onDeleteVoiceProfile
 }) => {
     const [selectedProfileId, setSelectedProfileId] = useState<string>('');
     const activeProfiles = voiceProfiles.filter(p => p.isActive);
@@ -19,7 +19,6 @@ export const VoiceProfileManager: React.FC<VoiceProfileManagerProps> = React.mem
         const profile = voiceProfiles.find(p => p.id === id);
         if (profile) {
             onAddVoiceProfile({ ...profile, isActive: !profile.isActive });
-            showToast(`"${profile.name}" voice ${profile.isActive ? 'deactivated' : 'activated'}.`);
             setSelectedProfileId('');
         }
     };

@@ -42,6 +42,7 @@ interface RefinementPresetsProps {
     onAddVoiceProfile: (profile: VoiceProfile) => void;
     onAddAuthorVoice: (voice: AuthorVoice) => void;
     onClearVersionHistory: () => void;
+    onDeleteVersion: (id: string) => void;
     setShowConflicts: (show: boolean) => void;
     currentSceneId: string | null;
 }
@@ -51,12 +52,11 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
         getDraft, selection, isRefining, setIsRefining, showToast, onNewVersion,
         versionHistory, currentVersionIndex, currentVersion, setCurrentVersionIndex,
         onShowComparison, onAcceptVersion, onUpdateVersion, loreEntries, voiceProfiles, authorVoices,
-        onAddLoreEntry, onAddVoiceProfile, onAddAuthorVoice, onClearVersionHistory, setShowConflicts,
+        onAddLoreEntry, onAddVoiceProfile, onAddAuthorVoice, onClearVersionHistory, onDeleteVersion, setShowConflicts,
         currentSceneId
     } = props;
 
     const [presetsOpen, setPresetsOpen] = useState(true);
-    const [activeTab, setActiveTab] = useState<'setup' | 'report'>('setup');
     const [showSettings, setShowSettings] = useState(false);
     const [isScanComplete, setIsScanComplete] = useState(false);
     const [focusAreas, setFocusAreas] = useState<FocusArea[]>([]);
@@ -167,12 +167,11 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
             metrics: result.metrics,
             loreCorrections: result.loreCorrections,
             sceneId: currentSceneId || undefined,
-            usedProfiles: result.usedProfiles
+            activeContext: result.activeContext
         };
 
         onNewVersion(newVersion);
         showToast(isTargeted ? "Targeted refinement complete!" : "New version created!");
-        setActiveTab('report');
         setIsRefining(false);
     }, [getDraft, selection, model, feedbackDepth, focusAreas, showToast, setIsRefining, onNewVersion, loreEntries, voiceProfiles, authorVoices, currentVersion, currentSceneId]);
 
@@ -203,7 +202,7 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
     const efficiency = totalContext > 0 ? Math.round((1 - (activeContext / totalContext)) * 100) : 0;
 
     return (
-        <>
+        <div className="space-y-6">
             <div className="bg-surface-container-low rounded-3xl border border-outline-variant/20 p-4 lg:p-6 shadow-xl space-y-6">
                 <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2 lg:gap-3">
@@ -214,7 +213,7 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
                             <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl lg:rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all">
                                 <Sparkles className="w-5 h-5 lg:w-6 lg:h-6 text-primary" />
                             </div>
-                            <span>Refinement Workspace</span>
+                            <span>Refinement Setup</span>
                             <div className="p-1 rounded-full hover:bg-primary/10 transition-all">
                                 {presetsOpen ? <ChevronUp className="w-4 h-4 lg:w-5 lg:h-5"/> : <ChevronDown className="w-4 h-4 lg:w-5 lg:h-5" />}
                             </div>
@@ -238,53 +237,7 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
                 </div>
 
                 {presetsOpen && (
-                    <div className="flex border-b border-outline-variant/20 mb-4">
-                        <button
-                            onClick={() => setActiveTab('setup')}
-                            className={`flex-1 py-2 text-xs lg:text-sm font-bold uppercase tracking-widest transition-colors border-b-2 ${
-                                activeTab === 'setup' 
-                                    ? 'border-primary text-primary' 
-                                    : 'border-transparent text-on-surface-variant hover:text-on-surface'
-                            }`}
-                        >
-                            Setup & Context
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('report')}
-                            className={`flex-1 py-2 text-xs lg:text-sm font-bold uppercase tracking-widest transition-colors border-b-2 ${
-                                activeTab === 'report' 
-                                    ? 'border-primary text-primary' 
-                                    : 'border-transparent text-on-surface-variant hover:text-on-surface'
-                            }`}
-                        >
-                            History & Report
-                        </button>
-                    </div>
-                )}
-
-                {presetsOpen && activeTab === 'setup' && (
                     <div className="space-y-6 lg:space-y-8 animate-in fade-in slide-in-from-top-4 duration-500">
-                        {suggestions.length > 0 && (
-                            <div className="bg-accent-sky/5 border border-accent-sky/20 rounded-2xl p-3 lg:p-4 space-y-3 shadow-inner">
-                                <div className="flex items-center gap-2 text-accent-sky font-black text-[10px] uppercase tracking-widest">
-                                    <AlertCircle className="w-4 h-4" />
-                                    <span>Smart Context Detected</span>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    {suggestions.map(s => (
-                                        <button 
-                                            key={s.id}
-                                            onClick={() => handleActivateSuggestion(s)}
-                                            className="text-[10px] font-black bg-surface-container-highest/40 border border-accent-sky/30 text-accent-sky px-2.5 py-1 rounded-xl hover:bg-accent-sky hover:text-white transition-all active:scale-95 flex items-center gap-1.5 uppercase tracking-wider"
-                                        >
-                                            <PlusCircle className="w-3 h-3" />
-                                            {s.name}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
                         <div className="grid grid-cols-1 gap-6 lg:gap-8">
                             <FocusAreaSelector 
                                 focusAreas={focusAreas} 
@@ -292,7 +245,7 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
                                 mode="collaborative"
                             />
                             
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+                            <div className="grid grid-cols-1 gap-6 lg:gap-8">
                                 <ModelSelector 
                                     selectedModel={model}
                                     setSelectedModel={setModel}
@@ -303,48 +256,7 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
                                     mode="collaborative"
                                 />
                             </div>
-
-                            <div className="space-y-6 lg:space-y-8">
-                                <AuthorVoiceManager 
-                                    authorVoices={authorVoices}
-                                    onAddAuthorVoice={onAddAuthorVoice}
-                                    showToast={showToast}
-                                />
-
-                                <VoiceProfileManager 
-                                    voiceProfiles={voiceProfiles}
-                                    onAddVoiceProfile={onAddVoiceProfile}
-                                    showToast={showToast}
-                                />
-
-                                <LoreContextManager 
-                                    loreEntries={loreEntries} 
-                                    onAddLoreEntry={onAddLoreEntry} 
-                                />
-                            </div>
                         </div>
-                    </div>
-                )}
-
-                {presetsOpen && activeTab === 'report' && (
-                    <div className="animate-in fade-in slide-in-from-top-4 duration-500">
-                        <VersionDisplay 
-                            mode="collaborative"
-                            isRefining={isRefining}
-                            reviewOutput={null}
-                            setReviewOutput={() => {}}
-                            currentVersion={currentVersion}
-                            currentVersionIndex={currentVersionIndex}
-                            versionHistory={versionHistory}
-                            setCurrentVersionIndex={setCurrentVersionIndex}
-                            onUpdateVersion={onUpdateVersion}
-                            onAcceptVersion={onAcceptVersion}
-                            onShowComparison={onShowComparison}
-                            setShowConflicts={setShowConflicts}
-                            onClearVersionHistory={onClearVersionHistory}
-                            showToast={showToast}
-                            setFocusAreas={handleAutoSetFocus}
-                        />
                     </div>
                 )}
             </div>
@@ -352,7 +264,7 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
             <button 
                 onClick={handleRefine} 
                 disabled={isRefining} 
-                className="w-full flex items-center justify-center gap-3 px-4 lg:px-6 py-4 lg:py-5 bg-primary-saturated text-on-primary-saturated font-label uppercase tracking-[0.2em] text-xs lg:text-sm font-black rounded-3xl hover:bg-primary-saturated/90 disabled:bg-surface-container-highest disabled:text-on-surface-variant/30 transition-all shadow-primary-glow hover:shadow-2xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] mt-6 group relative overflow-hidden text-shadow-lavender"
+                className="w-full flex items-center justify-center gap-3 px-4 lg:px-6 py-4 lg:py-5 bg-primary-saturated text-on-primary-saturated font-label uppercase tracking-[0.2em] text-xs lg:text-sm font-black rounded-3xl hover:bg-primary-saturated/90 disabled:bg-surface-container-highest disabled:text-on-surface-variant/30 transition-all shadow-primary-glow hover:shadow-2xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] group relative overflow-hidden text-shadow-lavender"
             >
                 <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
                 {isRefining ? <Loader2 className="animate-spin w-6 h-6" /> : <Sparkles className="w-6 h-6 group-hover:rotate-12 transition-transform" />}
@@ -363,6 +275,6 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
                 isOpen={showSettings} 
                 onClose={() => setShowSettings(false)} 
             />
-        </>
+        </div>
     );
 });

@@ -30,16 +30,16 @@ export const getRecommendations = (metrics: ProseMetrics) => {
 };
 
 export const copyReportToClipboard = async (currentVersion: RefinedVersion, showToast: (msg: string) => void) => {
-    const { audit, analysis, metrics, summary, usedProfiles, restraintLog } = currentVersion;
+    const { audit, analysis, metrics, summary, activeContext, restraintLog, expressionProfile } = currentVersion;
     
     let reportMarkdown = `# Refinement Report\n\n`;
 
-    if (usedProfiles) {
+    if (activeContext) {
         reportMarkdown += `## Active Context (Source of Truth)\n`;
-        reportMarkdown += `- **Author Voice:** ${usedProfiles.authorVoice || "None (Respecting Draft)"}\n`;
-        reportMarkdown += `- **Character Voices:** ${usedProfiles.characterVoices?.length ? usedProfiles.characterVoices.join(', ') : "None"}\n`;
-        reportMarkdown += `- **Lore Profiles:** ${usedProfiles.loreEntries?.length ? usedProfiles.loreEntries.join(', ') : "None"}\n`;
-        reportMarkdown += `- **Focus Areas:** ${usedProfiles.focusAreas?.length ? usedProfiles.focusAreas.join(', ') : "None"}\n\n`;
+        reportMarkdown += `- **Author Voice:** ${activeContext.authorVoice || "None (Respecting Draft)"}\n`;
+        reportMarkdown += `- **Character Voices:** ${activeContext.characterVoices?.length ? activeContext.characterVoices.join(', ') : "None"}\n`;
+        reportMarkdown += `- **Lore Profiles:** ${activeContext.loreProfiles?.length ? activeContext.loreProfiles.join(', ') : "None"}\n`;
+        reportMarkdown += `- **Focus Areas:** ${activeContext.focusAreas?.length ? activeContext.focusAreas.join(', ') : "None"}\n\n`;
     }
 
     if (audit) {
@@ -59,8 +59,8 @@ export const copyReportToClipboard = async (currentVersion: RefinedVersion, show
     if (restraintLog && restraintLog.length > 0) {
         reportMarkdown += `## Restraint Log\n`;
         restraintLog.forEach(log => {
-            reportMarkdown += `- **Preserved:** ${log.original || "Element"}\n`;
-            reportMarkdown += `  *Reason:* ${log.reason}\n`;
+            reportMarkdown += `- **[${log.category}]** ${log.target}\n`;
+            reportMarkdown += `  *Justification:* ${log.justification}\n`;
         });
         reportMarkdown += `\n`;
     }
@@ -70,7 +70,14 @@ export const copyReportToClipboard = async (currentVersion: RefinedVersion, show
         reportMarkdown += `> ${analysis}\n\n`;
     }
 
-    if (metrics) {
+    if (expressionProfile && expressionProfile.length > 0) {
+        reportMarkdown += `## Expression Profile (Prose Analytics)\n`;
+        expressionProfile.forEach(profile => {
+            reportMarkdown += `- **${profile.vibe}:** ${profile.score}/10 (${profile.qualifier})\n`;
+            reportMarkdown += `  *Note:* ${profile.note}\n`;
+        });
+        reportMarkdown += `\n`;
+    } else if (metrics) {
         reportMarkdown += `## Expression Profile (Prose Analytics)\n`;
         reportMarkdown += `- **Sensory Vividness:** ${metrics.sensory_vividness.score}/10 (${metrics.sensory_vividness.qualifier})\n`;
         reportMarkdown += `  *Note:* ${metrics.sensory_vividness.note}\n`;

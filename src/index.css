@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500;1,6..72,600;1,6..72,700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 @theme {
   --color-surface: #0b1325;
@@ -28,6 +29,15 @@
   --font-headline: "Newsreader", serif;
   --font-body: "Manrope", sans-serif;
   --font-label: "Space Grotesk", sans-serif;
+}
+
+@layer base {
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+  }
 }
 
 @layer utilities {
@@ -89,4 +99,41 @@
 
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Tiptap Styles */
+.tiptap p.is-editor-empty:first-child::before {
+  color: var(--color-on-surface-variant);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+.tiptap:focus {
+  outline: none;
+}
+
+.tiptap blockquote {
+  border-left: 4px solid var(--color-primary);
+  padding-left: 1.5rem;
+  font-style: italic;
+  color: var(--color-on-surface-variant);
+  margin: 1.5rem 0;
+}
+
+.tiptap h3 {
+  color: var(--color-primary);
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.ghost-border-accent {
+  border: 1px solid rgba(2, 132, 199, 0.3); /* accent-sky at 30% */
+  box-shadow: 0 0 30px -10px rgba(2, 132, 199, 0.2);
+}
+
+.focus-mode {
+  background-color: var(--color-surface-container-lowest);
 }

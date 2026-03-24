@@ -13,6 +13,7 @@ interface ManuscriptPanelProps {
   showToast: (message: string) => void;
   versionHistory: RefinedVersion[];
   onDeleteVersion: (id: string) => void;
+  onClearAcceptedVersions: () => void;
 }
 
 export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
@@ -23,7 +24,8 @@ export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
   setDraft,
   showToast,
   versionHistory,
-  onDeleteVersion
+  onDeleteVersion,
+  onClearAcceptedVersions
 }) => {
   const [activeTab, setActiveTab] = useState<'scenes' | 'accepted' | 'goals'>('scenes');
   const [showGoalModal, setShowGoalModal] = useState(false);
@@ -170,6 +172,21 @@ export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
 
         {activeTab === 'accepted' && (
           <div className="h-full overflow-y-auto p-6 space-y-4">
+            {versionHistory.length > 0 && (
+              <div className="flex justify-end mb-4">
+                <button 
+                  onClick={() => {
+                    if (window.confirm("Clear all accepted versions? This cannot be undone.")) {
+                      onClearAcceptedVersions();
+                    }
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-error/10 text-error hover:bg-error/20 transition-all font-label text-[10px] uppercase tracking-widest"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Clear All Accepted
+                </button>
+              </div>
+            )}
             {versionHistory.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 text-on-surface-variant/40">
                 <CheckCircle2 className="w-12 h-12 mb-4 opacity-20" />
@@ -186,8 +203,12 @@ export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
                       </p>
                     </div>
                     <button 
-                      onClick={() => onDeleteVersion(version.id)}
-                      className="p-2 text-on-surface-variant hover:text-error hover:bg-error/10 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                      onClick={() => {
+                        if (window.confirm("Delete this version?")) {
+                          onDeleteVersion(version.id);
+                        }
+                      }}
+                      className="p-2 text-on-surface-variant hover:text-error hover:bg-error/10 rounded-full transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
