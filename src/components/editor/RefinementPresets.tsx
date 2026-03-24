@@ -45,6 +45,31 @@ interface RefinementPresetsProps {
     onDeleteVersion: (id: string) => void;
     setShowConflicts: (show: boolean) => void;
     currentSceneId: string | null;
+    editorRef?: React.MutableRefObject<any>;
+}
+
+function replaceClosestOccurrence(fullText: string, searchText: string, replacementText: string, estimatedIndex: number): string {
+    if (!searchText) return fullText;
+    
+    let bestIndex = -1;
+    let minDistance = Infinity;
+    let currentIndex = fullText.indexOf(searchText);
+    
+    while (currentIndex !== -1) {
+        const distance = Math.abs(currentIndex - estimatedIndex);
+        if (distance < minDistance) {
+            minDistance = distance;
+            bestIndex = currentIndex;
+        }
+        currentIndex = fullText.indexOf(searchText, currentIndex + 1);
+    }
+    
+    if (bestIndex !== -1) {
+        return fullText.substring(0, bestIndex) + replacementText + fullText.substring(bestIndex + searchText.length);
+    }
+    
+    // Fallback if not found exactly (e.g. due to markdown formatting differences)
+    return fullText.replace(searchText, replacementText);
 }
 
 export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((props) => {
@@ -53,7 +78,7 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
         versionHistory, currentVersionIndex, currentVersion, setCurrentVersionIndex,
         onShowComparison, onAcceptVersion, onUpdateVersion, loreEntries, voiceProfiles, authorVoices,
         onAddLoreEntry, onAddVoiceProfile, onAddAuthorVoice, onClearVersionHistory, onDeleteVersion, setShowConflicts,
-        currentSceneId
+        currentSceneId, editorRef
     } = props;
 
     const [presetsOpen, setPresetsOpen] = useState(true);
@@ -126,6 +151,8 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
 
         const options = {
           draft: textToRefine,
+          fullContextDraft: isTargeted ? fullDraft : undefined,
+          selection: isTargeted ? selection : undefined,
           generationConfig: { model, temperature: currentTemperature },
           focusAreas,
           loreEntries, voiceProfiles, authorVoices,
@@ -143,10 +170,27 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
         let finalRefinedText = result.text;
         let extractedTitle = '';
         
-        if (isTargeted) {
+        if (isTargeted && editorRef?.current) {
              // If targeted, we replace the selection in the full draft
-             // We don't extract title from targeted refinement
-             finalRefinedText = fullDraft.substring(0, selection.start) + result.text + fullDraft.substring(selection.end);
+             // We use a token replacement method to perfectly preserve markdown formatting
+             const currentState = editorRef.current.state;
+             const token = `ECHOREFINETOKEN${Date.now()}`;
+             
+             // Insert token at selection
+             editorRef.current.commands.insertContentAt({ from: selection.start, to: selection.end }, token);
+             
+             // Get markdown with token
+             const markdownWithToken = editorRef.current.storage.markdown.getMarkdown();
+             
+             // Restore original state immediately
+             editorRef.current.view.updateState(currentState);
+             
+             // Replace token with refined text
+             // We use a function to avoid interpreting special characters in result.text
+             finalRefinedText = markdownWithToken.replace(token, () => result.text);
+        } else if (isTargeted) {
+             // Fallback if editorRef is not available
+             finalRefinedText = replaceClosestOccurrence(fullDraft, selection.text, result.text, selection.start);
         } else {
             // Try to extract title from the first line if it starts with #
             const lines = result.text.split('\n');
@@ -167,7 +211,16 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
             metrics: result.metrics,
             loreCorrections: result.loreCorrections,
             sceneId: currentSceneId || undefined,
-            activeContext: result.activeContext
+            activeContext: result.activeContext,
+            isSurgical: isTargeted,
+            originalSelection: isTargeted ? selection.text : undefined,
+            refinedSelection: isTargeted ? result.text : undefined,
+            usedProfiles: {
+                authorVoice: authorVoices.find(v => v.isActive)?.name,
+                characterVoices: voiceProfiles.filter(v => v.isActive).map(v => v.name),
+                loreEntries: loreEntries.filter(e => e.isActive).map(e => e.title),
+                focusAreas: focusAreas
+            }
         };
 
         onNewVersion(newVersion);
@@ -268,13 +321,37 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
             >
                 <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
                 {isRefining ? <Loader2 className="animate-spin w-6 h-6" /> : <Sparkles className="w-6 h-6 group-hover:rotate-12 transition-transform" />}
-                <span>{isRefining ? 'ECHO IS POLISHING...' : (selection && selection.text.trim().length > 0 ? 'REFINE SELECTION' : 'REFINE WITH ECHO')}</span>
+                <span>{isRefining ? 'ECHO IS POLISHING...' : (selection && selection.text.trim().length > 0 ? 'REFINE SELECTION ONLY' : 'REFINE WITH ECHO')}</span>
             </button>
 
             <SettingsModal 
                 isOpen={showSettings} 
                 onClose={() => setShowSettings(false)} 
+                showToast={showToast}
             />
+
+            {currentVersion && currentVersion.id !== 'initial' && (
+                <div className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <VersionDisplay 
+                        mode="collaborative"
+                        isRefining={isRefining}
+                        reviewOutput={null}
+                        setReviewOutput={() => {}}
+                        currentVersion={currentVersion}
+                        currentVersionIndex={currentVersionIndex}
+                        versionHistory={versionHistory}
+                        setCurrentVersionIndex={setCurrentVersionIndex}
+                        onUpdateVersion={onUpdateVersion}
+                        onAcceptVersion={onAcceptVersion}
+                        onShowComparison={onShowComparison}
+                        setShowConflicts={setShowConflicts}
+                        onClearVersionHistory={onClearVersionHistory}
+                        onDeleteVersion={onDeleteVersion}
+                        showToast={showToast}
+                        setFocusAreas={setFocusAreas}
+                    />
+                </div>
+            )}
         </div>
     );
 });

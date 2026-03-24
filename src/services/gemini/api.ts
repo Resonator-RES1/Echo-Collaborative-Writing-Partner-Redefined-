@@ -1,12 +1,25 @@
-import { GoogleGenAI, ThinkingLevel } from "@google/genai";
+import { GoogleGenAI, ThinkingLevel, Type } from "@google/genai";
 
 export interface GenerationConfig {
     model: 'gemini-3.1-flash-lite-preview' | 'gemini-3.1-pro-preview' | 'gemini-3-flash-preview';
     temperature: number;
 }
 
-export async function callAiApi(payload: any, retryCount = 0): Promise<any> {
-    const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+export interface AiPayload {
+    model?: string;
+    prompt: string;
+    systemInstruction?: string;
+    temperature?: number;
+    responseSchema?: any;
+    feedbackDepth?: 'casual' | 'balanced' | 'in-depth';
+}
+
+export async function callAiApi(payload: AiPayload, retryCount = 0): Promise<any> {
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY 
+        || import.meta.env.VITE_API_KEY
+        || (typeof process !== 'undefined' && process.env ? process.env.GEMINI_API_KEY : undefined)
+        || (typeof process !== 'undefined' && process.env ? process.env.API_KEY : undefined);
+        
     if (!apiKey) {
         throw new Error("Gemini API key is missing. Please check your environment variables.");
     }

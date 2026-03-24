@@ -6,43 +6,40 @@ import { AuthorVoiceForm } from './forms/AuthorVoiceForm';
 import { AuthorVoicesList } from './voices/AuthorVoicesList';
 import { CharacterVoicesList } from './voices/CharacterVoicesList';
 
+import { useLore } from '../contexts/LoreContext';
+
 interface VoicesScreenProps {
   setCurrentScreen: (screen: Screen) => void;
-  voiceProfiles: VoiceProfile[];
-  authorVoices: AuthorVoice[];
-  onAddProfile: (profile: VoiceProfile) => void;
-  onDeleteProfile: (id: string) => void;
-  onAddAuthorVoice: (voice: AuthorVoice) => void;
-  onDeleteAuthorVoice: (id: string) => void;
-  onImportProfiles: (profiles: VoiceProfile[]) => void;
-  onImportAuthorVoices: (voices: AuthorVoice[]) => void;
 }
 
 export function VoicesScreen({ 
-  setCurrentScreen, 
-  voiceProfiles, 
-  authorVoices,
-  onAddProfile, 
-  onDeleteProfile, 
-  onAddAuthorVoice,
-  onDeleteAuthorVoice,
-  onImportProfiles,
-  onImportAuthorVoices
+  setCurrentScreen
 }: VoicesScreenProps) {
+  const { 
+    voiceProfiles, 
+    authorVoices, 
+    addVoiceProfile, 
+    deleteVoiceProfile, 
+    addAuthorVoice, 
+    deleteAuthorVoice, 
+    importVoiceProfiles, 
+    importAuthorVoices 
+  } = useLore();
+
   const [showForm, setShowForm] = useState(false);
   const [showAuthorForm, setShowAuthorForm] = useState(false);
   const [editingProfile, setEditingProfile] = useState<VoiceProfile | undefined>(undefined);
   const [editingAuthorVoice, setEditingAuthorVoice] = useState<AuthorVoice | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSaveProfile = (profile: VoiceProfile) => {
-    onAddProfile(profile);
+  const handleSaveProfile = async (profile: VoiceProfile) => {
+    await addVoiceProfile(profile);
     setShowForm(false);
     setEditingProfile(undefined);
   };
 
-  const handleSaveAuthorVoice = (voice: AuthorVoice) => {
-    onAddAuthorVoice(voice);
+  const handleSaveAuthorVoice = async (voice: AuthorVoice) => {
+    await addAuthorVoice(voice);
     setShowAuthorForm(false);
     setEditingAuthorVoice(undefined);
   };
@@ -82,12 +79,12 @@ export function VoicesScreen({
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const content = e.target?.result as string;
         const profiles = JSON.parse(content);
         if (Array.isArray(profiles)) {
-          onImportProfiles(profiles);
+          await importVoiceProfiles(profiles);
         }
       } catch (error) {
         console.error("Failed to import voice profiles:", error);
@@ -97,7 +94,7 @@ export function VoicesScreen({
   };
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-700 relative">
+    <div className="flex-1 min-h-0 overflow-y-auto space-y-12 animate-in fade-in duration-700 relative pr-2 scrollbar-thin scroll-smooth">
       {/* Subtle Background Element */}
       <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
       <div className="fixed bottom-0 left-0 w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px] -z-10 pointer-events-none"></div>
@@ -143,8 +140,8 @@ export function VoicesScreen({
           authorVoices={authorVoices}
           onEdit={handleEditAuthorVoice}
           onAddNew={handleAddNewAuthor}
-          onDelete={onDeleteAuthorVoice}
-          onImport={onImportAuthorVoices}
+          onDelete={deleteAuthorVoice}
+          onImport={importAuthorVoices}
         />
 
         {/* Character Voices Section */}
@@ -152,7 +149,7 @@ export function VoicesScreen({
           voiceProfiles={voiceProfiles}
           onEdit={handleEditProfile}
           onAddNew={handleAddNew}
-          onDelete={onDeleteProfile}
+          onDelete={deleteVoiceProfile}
         />
 
       </div>

@@ -2,17 +2,62 @@ import { FocusArea, GuideSection } from "./types";
 
 export const GUIDE_SECTIONS: GuideSection[] = [
   {
+    id: 'about',
+    title: 'About Echo',
+    icon: 'Info',
+    description: 'Echo is a specialized AI writing partner designed to reveal the author—clearly, faithfully, and without distortion.',
+    features: [
+      'Voice Preservation: Built to solve the problem of AI "over-polishing" and losing the author\'s unique style.',
+      'Narrative Fidelity: Every refinement is grounded in your existing intent and stylistic DNA.',
+      'Restraint-First Design: Echo prioritizes clarity over cleverness, ensuring your voice remains the star.',
+      'For Serious Writers: Designed for those who want a partner in refinement, not a replacement for their creativity.'
+    ],
+    categories: [
+      {
+        title: 'The Philosophy',
+        items: [
+          {
+            title: 'Why Echo?',
+            description: 'Most AI tools try to "improve" writing by making it sound like a generic average. Echo does the opposite: it analyzes your unique patterns and helps you express them more clearly.',
+          },
+          {
+            title: 'Who is it for?',
+            description: 'Novelists, screenwriters, and creative storytellers who have a strong voice but want help with consistency, flow, and narrative precision.',
+          }
+        ]
+      }
+    ]
+  },
+  {
     id: 'workspace',
     title: 'Refinement Engine',
     icon: 'Sparkles',
     description: 'The core of Echo. Transform raw drafts into polished prose while preserving your unique stylistic identity.',
     features: [
       'Refine Mode: Intelligent polishing that respects your voice signature and narrative intent.',
+      'Surgical Refine: Select specific text to refine only that part, keeping the rest of your draft untouched.',
+      'Snippet View: Side-by-side comparison of original vs refined text for surgical refinements.',
       'Focus Lenses: Direct Echo to prioritize specific narrative layers like Tone, Emotion, Sensory Details, or Rhythm.',
-      'Polish Depth: Choose between Casual (light touch), Balanced (standard), or In-depth (comprehensive) refinement layers.',
-      'Intelligence Selector: Switch between Flash Lite (speed), Flash (balanced), and Pro (complex reasoning) models.'
+      'Polish Depth: Choose between Casual (light touch), Balanced (standard), or In-depth (comprehensive) refinement layers.'
     ],
     categories: [
+      {
+        title: 'Surgical vs Global',
+        items: [
+          {
+            title: 'Global Refinement',
+            description: 'Refines the entire visible draft. Best for overall flow and consistency checks.',
+          },
+          {
+            title: 'Surgical Refinement',
+            description: 'Select a sentence or paragraph. Echo focuses its entire intelligence on that specific snippet, providing a side-by-side comparison.',
+            example: {
+              before: 'Select a messy sentence in your editor.',
+              after: 'Click "Refine Selection Only" to see the focused result.'
+            }
+          }
+        ]
+      },
       {
         title: 'Focus Areas: Atmosphere & Style',
         items: [

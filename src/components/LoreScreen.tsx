@@ -4,22 +4,21 @@ import { LoreEntry, Screen } from '../types';
 import { LoreEntryForm } from './forms/LoreEntryForm';
 import { Sparkles } from 'lucide-react';
 
+import { useLore } from '../contexts/LoreContext';
+
 interface LoreScreenProps {
   setCurrentScreen: (screen: Screen) => void;
-  loreEntries: LoreEntry[];
-  onAddEntry: (entry: LoreEntry) => void;
-  onDeleteEntry: (id: string) => void;
-  onImportEntries: (entries: LoreEntry[]) => void;
 }
 
-export function LoreScreen({ setCurrentScreen, loreEntries, onAddEntry, onDeleteEntry, onImportEntries }: LoreScreenProps) {
+export function LoreScreen({ setCurrentScreen }: LoreScreenProps) {
+  const { loreEntries, addLoreEntry, deleteLoreEntry, importLoreEntries } = useLore();
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [showForm, setShowForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState<LoreEntry | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSaveEntry = (entry: LoreEntry) => {
-    onAddEntry(entry);
+  const handleSaveEntry = async (entry: LoreEntry) => {
+    await addLoreEntry(entry);
     setShowForm(false);
     setEditingEntry(undefined);
   };
@@ -49,12 +48,12 @@ export function LoreScreen({ setCurrentScreen, loreEntries, onAddEntry, onDelete
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const content = e.target?.result as string;
         const entries = JSON.parse(content);
         if (Array.isArray(entries)) {
-          onImportEntries(entries);
+          await importLoreEntries(entries);
         }
       } catch (error) {
         console.error("Failed to import lore entries:", error);
@@ -68,7 +67,7 @@ export function LoreScreen({ setCurrentScreen, loreEntries, onAddEntry, onDelete
     : loreEntries.filter(e => e.category === activeCategory);
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-700">
+    <div className="flex-1 min-h-0 overflow-y-auto space-y-12 animate-in fade-in duration-700 pr-2 scrollbar-thin scroll-smooth">
       {/* Search & Filter Section */}
       <section className="space-y-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -170,7 +169,7 @@ export function LoreScreen({ setCurrentScreen, loreEntries, onAddEntry, onDelete
                     <div className="flex items-center gap-2">
                       <span className="font-label text-[9px] text-on-surface-variant/50">{new Date(entry.lastModified).toLocaleDateString()}</span>
                       <button 
-                        onClick={(e) => { e.stopPropagation(); onDeleteEntry(entry.id); }}
+                        onClick={(e) => { e.stopPropagation(); deleteLoreEntry(entry.id); }}
                         className="text-on-surface-variant/30 hover:text-error transition-colors"
                         title="Delete Entry"
                       >

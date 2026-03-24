@@ -6,6 +6,8 @@ import { getSystemPrompt } from './prompts';
 
 export interface RefineDraftOptions {
   draft: string;
+  fullContextDraft?: string;
+  selection?: { start: number; end: number; text: string };
   generationConfig: GenerationConfig;
   focusAreas: FocusArea[];
   loreEntries?: LoreEntry[];
@@ -57,6 +59,8 @@ export const refineDraft = async (options: RefineDraftOptions): Promise<RefineDr
   try {
     const {
       draft,
+      fullContextDraft,
+      selection,
       generationConfig,
       focusAreas,
       loreEntries = [],
@@ -130,11 +134,16 @@ export const refineDraft = async (options: RefineDraftOptions): Promise<RefineDr
     const weighting = feedbackDepth === 'casual' ? '95% Voice / 5% Focus' : feedbackDepth === 'balanced' ? '80% Voice / 20% Focus' : '70% Voice / 30% Focus';
     preamble += `\n*** DIALING SYSTEM ***\nWeighting: ${weighting}\n\n`;
 
+    const isSurgical = !!(fullContextDraft && selection);
+    const refinedTextInstruction = isSurgical 
+        ? "The polished snippet. DO NOT include surrounding context or a title unless it was part of the selection. Return ONLY the refined version of the selected text."
+        : "The polished chapter (MUST start with '# Title' on the first line)";
+
     const outputInstruction = `
 \n### RESPONSE SCHEMA (JSON)
 Return the following structure:
 {
-  "refined_text": "The polished chapter/snippet (MUST start with '# Title' on the first line)",
+  "refined_text": "${refinedTextInstruction}",
   "editor_summary": "Concise explanation of refinements + acknowledgment of restraint (2-3 sentences max)",
   "justification": "Detailed surgical post-op of the refinement.",
   "evidence_based_claims": "Specific, measurable changes made to the text.",
@@ -168,7 +177,17 @@ Return the following structure:
 `;
     
     preamble += outputInstruction;
-    const userPrompt = preamble ? `${preamble}\n\n---\n\n${draft}` : draft;
+    
+    let userPrompt = '';
+    if (fullContextDraft && selection) {
+        preamble += `\n*** SURGICAL REFINEMENT MODE ***\n`;
+        preamble += `You are performing a targeted refinement. The user has selected a specific portion of the text to be refined.\n`;
+        preamble += `CRITICAL INSTRUCTION: You MUST ONLY refine the text provided in the <TARGET_SELECTION> block. The <FULL_DRAFT_CONTEXT> block is provided STRICTLY for context (so you understand the surrounding narrative, pacing, and flow). DO NOT rewrite or include the unselected text in your \`refined_text\` output.\n\n`;
+        
+        userPrompt = `${preamble}\n\n---\n\n<FULL_DRAFT_CONTEXT>\n${fullContextDraft}\n</FULL_DRAFT_CONTEXT>\n\n<TARGET_SELECTION>\n${selection.text}\n</TARGET_SELECTION>`;
+    } else {
+        userPrompt = preamble ? `${preamble}\n\n---\n\n${draft}` : draft;
+    }
 
     const result = await callAiApi({
         model: generationConfig.model,

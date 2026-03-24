@@ -10,10 +10,13 @@ import { EditorModals } from './editor/EditorModals';
 import { RefinementPresets } from './editor/RefinementPresets';
 import { ContinuityGuard } from './editor/ContinuityGuard';
 import { SideBySideDiff } from './editor/SideBySideDiff';
+import { RecentChangesList } from './editor/RecentChangesList';
 import { ContextPanel } from './editor/ContextPanel';
 import { RefinePanel } from './editor/RefinePanel';
 import { ArchivePanel } from './editor/ArchivePanel';
 import { ReportPanel } from './editor/ReportPanel';
+
+import { useLore } from '../contexts/LoreContext';
 
 interface EditorProps {
     draft: string;
@@ -27,16 +30,7 @@ interface EditorProps {
     showToast: (message: string) => void;
     onVersionCountChange?: (count: number) => void;
     onVersionHistoryChange?: (history: RefinedVersion[]) => void;
-    loreEntries: LoreEntry[];
-    voiceProfiles: VoiceProfile[];
-    authorVoices: AuthorVoice[];
     versionHistory: RefinedVersion[];
-    onAddLoreEntry: (entry: LoreEntry) => void;
-    onAddVoiceProfile: (profile: VoiceProfile) => void;
-    onAddAuthorVoice: (voice: AuthorVoice) => void;
-    onDeleteLoreEntry: (id: string) => void;
-    onDeleteVoiceProfile: (id: string) => void;
-    onDeleteAuthorVoice: (id: string) => void;
     onAddVersion: (version: RefinedVersion) => void;
     onClearVersionHistory: () => void;
     onDeleteVersion: (id: string) => void;
@@ -57,16 +51,7 @@ const Editor: React.FC<EditorProps> = ({
     showToast, 
     onVersionCountChange, 
     onVersionHistoryChange, 
-    loreEntries, 
-    voiceProfiles,
-    authorVoices,
     versionHistory,
-    onAddLoreEntry,
-    onAddVoiceProfile,
-    onAddAuthorVoice,
-    onDeleteLoreEntry,
-    onDeleteVoiceProfile,
-    onDeleteAuthorVoice,
     onAddVersion,
     onClearVersionHistory,
     onDeleteVersion,
@@ -74,6 +59,48 @@ const Editor: React.FC<EditorProps> = ({
     isFocusMode,
     setIsFocusMode
 }) => {
+  const { 
+    loreEntries, 
+    voiceProfiles, 
+    authorVoices,
+    addLoreEntry,
+    deleteLoreEntry,
+    addVoiceProfile,
+    deleteVoiceProfile,
+    addAuthorVoice,
+    deleteAuthorVoice
+  } = useLore();
+
+  const onAddLoreEntry = useCallback(async (entry: LoreEntry) => {
+    await addLoreEntry(entry);
+    showToast(`Lore entry "${entry.title}" updated.`);
+  }, [addLoreEntry, showToast]);
+
+  const onAddVoiceProfile = useCallback(async (profile: VoiceProfile) => {
+    await addVoiceProfile(profile);
+    showToast(`Voice profile for "${profile.name}" updated.`);
+  }, [addVoiceProfile, showToast]);
+
+  const onAddAuthorVoice = useCallback(async (voice: AuthorVoice) => {
+    await addAuthorVoice(voice);
+    showToast(`Author voice "${voice.name}" updated.`);
+  }, [addAuthorVoice, showToast]);
+
+  const onDeleteLoreEntry = useCallback(async (id: string) => {
+    await deleteLoreEntry(id);
+    showToast("Lore entry deleted.");
+  }, [deleteLoreEntry, showToast]);
+
+  const onDeleteVoiceProfile = useCallback(async (id: string) => {
+    await deleteVoiceProfile(id);
+    showToast("Voice profile deleted.");
+  }, [deleteVoiceProfile, showToast]);
+
+  const onDeleteAuthorVoice = useCallback(async (id: string) => {
+    await deleteAuthorVoice(id);
+    showToast("Author voice deleted.");
+  }, [deleteAuthorVoice, showToast]);
+
   const [draftState, dispatchDraft] = useReducer(draftReducer, { ...initialDraftState, present: draft });
   const draftRef = useRef(draftState.present);
   
@@ -190,66 +217,10 @@ const Editor: React.FC<EditorProps> = ({
 
   const handleFormat = useCallback(async (format: FormatType) => {
       if (!selection || !selection.text.trim()) {
-          showToast(`Please select text to ${format.replace('extract-', '')}.`);
+          showToast(`Please select text to format.`);
           return;
       }
-      const selectedText = selection.text;
-      
-      if (format === 'extract-lore') {
-          showToast("Extracting lore...");
-          try {
-              const { extractLoreFromText } = await import('../services/geminiService');
-              const partialLore = await extractLoreFromText(selectedText);
-              
-              const newLore: LoreEntry = {
-                  id: Date.now().toString(),
-                  title: partialLore.title || 'New Lore Entry',
-                  category: (partialLore.category as any) || 'World Mechanics',
-                  content: partialLore.content || selectedText,
-                  aliases: partialLore.aliases || [],
-                  lastModified: new Date().toISOString(),
-                  isActive: true
-              };
-              onAddLoreEntry(newLore);
-              showToast(`Extracted lore: ${newLore.title}`);
-          } catch (error) {
-              showToast("Failed to extract lore.");
-          }
-          return;
-      }
-
-      if (format === 'extract-voice') {
-          showToast("Extracting voice profile...");
-          try {
-              const { extractVoiceFromText } = await import('../services/geminiService');
-              const partialVoice = await extractVoiceFromText(selectedText);
-              
-              const newVoice: VoiceProfile = {
-                  id: Date.now().toString(),
-                  name: partialVoice.name || 'New Character',
-                  gender: 'unspecified',
-                  archetype: partialVoice.archetype || 'Unknown',
-                  soulPattern: partialVoice.soulPattern || '',
-                  cognitivePatterns: '',
-                  speechPatterns: partialVoice.speechPatterns || '',
-                  emotionalExpression: '',
-                  behavioralAnchors: '',
-                  conversationalRole: '',
-                  signatureTraits: [],
-                  idioms: [],
-                  exampleLines: [selectedText.substring(0, 100) + '...'],
-                  aliases: partialVoice.aliases || [],
-                  lastModified: new Date().toISOString(),
-                  isActive: true
-              };
-              onAddVoiceProfile(newVoice);
-              showToast(`Extracted voice: ${newVoice.name}`);
-          } catch (error) {
-              showToast("Failed to extract voice profile.");
-          }
-          return;
-      }
-  }, [selection, onAddLoreEntry, onAddVoiceProfile, showToast]);
+  }, [selection, showToast]);
 
   const handleUpdateVersion = useCallback((index: number, content: string) => {
     const newHistory = [...versionHistory];
@@ -276,7 +247,6 @@ const Editor: React.FC<EditorProps> = ({
       };
       onAddVersion(versionWithId);
       setCurrentVersionIndex(0);
-      setActiveTab('archive');
   }, [onAddVersion]);
 
   const handleShowComparison = useCallback(() => {
@@ -340,9 +310,55 @@ const Editor: React.FC<EditorProps> = ({
   }, [versionHistory, currentVersionIndex, onVersionHistoryChange, showToast]);
 
   const renderTabContent = () => {
-      switch (activeTab) {
-          case 'context':
-              return (
+      return (
+          <>
+              <div className={showContinuityGuard ? 'block' : 'hidden'}>
+                  <ContinuityGuard 
+                      draft={draft}
+                      loreEntries={loreEntries}
+                      voiceProfiles={voiceProfiles}
+                      onActivateLore={handleActivateLore}
+                      onActivateVoice={handleActivateVoice}
+                      onFix={handleContinuityFix}
+                      showToast={showToast}
+                      onIssuesUpdate={setContinuityIssues}
+                  />
+              </div>
+              <div className={`flex-1 min-h-0 flex flex-col overflow-hidden ${activeTab === 'draft' ? 'flex' : 'hidden'}`}>
+                  <div className="flex-1 min-h-0 flex flex-col mt-2 overflow-hidden">
+                      <RichTextEditor
+                          editorRef={editorRef}
+                          content={draftState.present}
+                          onChange={(markdown) => dispatchDraft({ type: 'SET', payload: markdown })}
+                          onSelectionChange={setSelection}
+                          className="font-headline text-xl tracking-tight leading-relaxed text-on-surface/90"
+                      />
+                      {editorMode === 'polishing' && showDiff && (
+                          <div className="mt-4 border-t border-outline-variant/20 pt-4">
+                              <SideBySideDiff original={draftState.original} polished={draftState.present} />
+                          </div>
+                      )}
+                      {editorMode === 'drafting' && showRecentChanges && (
+                          <div className="mt-4 border-t border-outline-variant/20 pt-4">
+                              <div className="flex flex-col max-h-[50vh] bg-surface-container-low border border-outline-variant/20 rounded-[0.75rem] overflow-hidden">
+                                  <div className="p-4 border-b border-outline-variant/20 bg-surface-container-low z-10">
+                                      <h4 className="text-xs font-label uppercase tracking-wider text-on-surface-variant m-0">Recent Changes</h4>
+                                  </div>
+                                  <div className="overflow-y-auto custom-scrollbar p-4 text-xs text-on-surface-variant/70">
+                                      <RecentChangesList original={draftState.loadedDraft || ''} current={draftState.present} />
+                                  </div>
+                              </div>
+                          </div>
+                      )}
+                  </div>
+
+                  <EditorFooter 
+                      saveStatus={saveStatus}
+                      wordCount={wordCount}
+                  />
+              </div>
+
+              {activeTab === 'context' && (
                   <ContextPanel 
                     loreEntries={loreEntries}
                     voiceProfiles={voiceProfiles}
@@ -356,9 +372,8 @@ const Editor: React.FC<EditorProps> = ({
                     suggestions={suggestions}
                     onActivateSuggestion={handleActivateSuggestion}
                   />
-              );
-          case 'refine':
-              return (
+              )}
+              {activeTab === 'refine' && (
                   <RefinePanel 
                     draft={draftState.present}
                     isRefining={isRefining}
@@ -382,10 +397,11 @@ const Editor: React.FC<EditorProps> = ({
                     onDeleteVersion={onDeleteVersion}
                     setShowConflicts={setShowConflicts}
                     currentSceneId={currentSceneId}
+                    selection={selection}
+                    editorRef={editorRef}
                   />
-              );
-          case 'archive':
-              return (
+              )}
+              {activeTab === 'archive' && (
                   <ArchivePanel 
                     versionHistory={versionHistory}
                     currentVersionIndex={currentVersionIndex}
@@ -393,63 +409,20 @@ const Editor: React.FC<EditorProps> = ({
                     onSelectVersion={handleSelectArchiveVersion}
                     onDeleteVersion={onDeleteVersion}
                     onClearHistory={onClearVersionHistory}
+                    onAcceptVersion={handleAcceptVersion}
+                    showToast={showToast}
                   />
-              );
-          case 'report':
-              return (
+              )}
+              {activeTab === 'report' && (
                   <ReportPanel 
                     version={currentVersion}
                     original={draftState.present}
                     onAccept={handleAcceptVersion}
                     onRevertLore={handleRevertLore}
                   />
-              );
-          case 'draft':
-          default:
-              return (
-                <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-                    <div className="flex-1 min-h-0 flex flex-col mt-2 overflow-hidden">
-                        <RichTextEditor
-                            editorRef={editorRef}
-                            content={draftState.present}
-                            onChange={(markdown) => dispatchDraft({ type: 'SET', payload: markdown })}
-                            onSelectionChange={setSelection}
-                            className="font-headline text-xl tracking-tight leading-relaxed text-on-surface/90"
-                        />
-                        {editorMode === 'polishing' && showDiff && (
-                            <div className="mt-4 border-t border-outline-variant/20 pt-4 max-h-[50vh] overflow-y-auto custom-scrollbar">
-                                <SideBySideDiff original={draftState.original} polished={draftState.present} />
-                            </div>
-                        )}
-                        {editorMode === 'drafting' && showRecentChanges && (
-                            <div className="mt-4 border-t border-outline-variant/20 pt-4 max-h-[50vh] overflow-y-auto custom-scrollbar">
-                                <h4 className="text-xs font-label uppercase tracking-wider text-on-surface-variant mb-2 sticky top-0 bg-surface-container-low pb-2 z-10">Recent Changes</h4>
-                                <div className="text-xs text-on-surface-variant/70">
-                                    <SideBySideDiff original={draftState.previous || ''} polished={draftState.present} />
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    <EditorFooter 
-                        saveStatus={saveStatus}
-                        wordCount={wordCount}
-                    />
-                    <div className={showContinuityGuard ? 'block' : 'hidden'}>
-                        <ContinuityGuard 
-                            draft={draftState.present}
-                            loreEntries={loreEntries}
-                            voiceProfiles={voiceProfiles}
-                            onActivateLore={handleActivateLore}
-                            onActivateVoice={handleActivateVoice}
-                            onFix={handleContinuityFix}
-                            showToast={showToast}
-                            onIssuesUpdate={setContinuityIssues}
-                        />
-                    </div>
-                </div>
-              );
-      }
+              )}
+          </>
+      );
   };
 
   return (
@@ -496,25 +469,32 @@ const Editor: React.FC<EditorProps> = ({
               </div>
           )}
 
-          {/* Main Editor Top Bar (Only for Draft Tab) */}
-          {activeTab === 'draft' && (
-              <div className="bg-surface-container-low/95 backdrop-blur-sm pb-2 border-b border-outline-variant/20 mb-2 sm:mb-3 -mx-4 px-4 lg:-mx-6 lg:px-6 flex items-center justify-between gap-4">
+          {/* Main Editor Top Bar */}
+          {(activeTab === 'draft' || activeTab === 'refine') && (
+              <div className="relative bg-surface-container-low/95 backdrop-blur-sm pb-2 border-b border-outline-variant/20 mb-2 sm:mb-3 -mx-4 px-4 lg:-mx-6 lg:px-6 flex items-center justify-between gap-2 sm:gap-4 min-h-[40px]">
                   {/* Left: Formatting Toolbar */}
-                  <div className="flex-none">
-                      <FormattingToolbar 
-                          editor={editorRef.current}
-                          onFormat={handleFormat} 
-                          hasSelection={!!selection && selection.text.trim().length > 0} 
-                          isFocusMode={isFocusMode}
-                          onToggleFocusMode={() => setIsFocusMode(!isFocusMode)}
-                      />
+                  <div className="flex-1 min-w-0 overflow-x-auto hide-scrollbar z-10 pr-[100px] sm:pr-[150px]">
+                      {activeTab === 'draft' ? (
+                          <FormattingToolbar 
+                              editor={editorRef.current}
+                              onFormat={handleFormat} 
+                              hasSelection={!!selection && selection.text.trim().length > 0} 
+                              isFocusMode={isFocusMode}
+                              onToggleFocusMode={() => setIsFocusMode(!isFocusMode)}
+                          />
+                      ) : (
+                          <div className="flex items-center gap-2 text-on-surface-variant/50 text-[10px] font-bold uppercase tracking-widest px-2">
+                              <Wand2 className="w-3.5 h-3.5" />
+                              <span className="hidden sm:inline">Refinement Workspace</span>
+                          </div>
+                      )}
                   </div>
                   
                   {/* Center: Continuity Guard */}
-                  <div className="flex-1 flex justify-center">
+                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[calc(50%+4px)] flex justify-center z-20 pointer-events-none">
                       <button 
                           onClick={() => setShowContinuityGuard(!showContinuityGuard)}
-                          className={`flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
+                          className={`pointer-events-auto flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
                               showContinuityGuard 
                                 ? 'bg-primary text-on-primary' 
                                 : continuityIssues > 0 
@@ -524,6 +504,7 @@ const Editor: React.FC<EditorProps> = ({
                           title="Continuity Guard"
                       >
                           <ShieldCheck className="w-3.5 h-3.5" />
+                          <span className="hidden md:inline">Continuity Guard</span>
                           {continuityIssues > 0 && (
                               <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-on-amber text-[8px] font-black">
                                   {continuityIssues}
@@ -533,30 +514,42 @@ const Editor: React.FC<EditorProps> = ({
                   </div>
 
                   {/* Right: Mode/View Buttons */}
-                  <div className="flex-none flex justify-end gap-2">
+                  <div className="flex-none flex justify-end gap-1 sm:gap-2 z-10">
                       <button 
                           onClick={() => {
+                              setActiveTab('draft');
                               setEditorMode('drafting');
                               setShowDiff(false);
                           }}
-                          className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${editorMode === 'drafting' ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
+                          className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === 'draft' && editorMode === 'drafting' ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
                           title="Drafting Mode"
                       >
                           <PenTool className="w-4 h-4" />
                       </button>
                       <button 
                           onClick={() => {
+                              if (activeTab !== 'draft') {
+                                setActiveTab('draft');
+                              }
                               dispatchDraft({ type: 'SET_ORIGINAL', payload: draftState.present });
                               setEditorMode('polishing');
                               setShowRecentChanges(false);
                           }}
-                          className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${editorMode === 'polishing' ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
+                          className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === 'draft' && editorMode === 'polishing' ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
                           title="Polishing Mode"
                       >
                           <Sparkles className="w-4 h-4" />
                       </button>
+
+                      <button 
+                          onClick={() => setActiveTab('refine')}
+                          className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === 'refine' ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
+                          title="Surgical Refine"
+                      >
+                          <Wand2 className="w-4 h-4" />
+                      </button>
                       
-                      {editorMode === 'polishing' && (
+                      {activeTab === 'draft' && editorMode === 'polishing' && (
                           <button 
                               onClick={() => setShowDiff(!showDiff)}
                               className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${showDiff ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
@@ -566,7 +559,7 @@ const Editor: React.FC<EditorProps> = ({
                           </button>
                       )}
                       
-                      {editorMode === 'drafting' && (
+                      {activeTab === 'draft' && editorMode === 'drafting' && (
                           <button 
                               onClick={() => setShowRecentChanges(!showRecentChanges)}
                               className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${showRecentChanges ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}

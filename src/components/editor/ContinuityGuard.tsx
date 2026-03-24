@@ -25,20 +25,10 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = ({
     onIssuesUpdate
 }) => {
     const [resolvedFixes, setResolvedFixes] = useState<{ id: string, original: string, replacement: string }[]>([]);
-    const [debouncedDraft, setDebouncedDraft] = useState(draft);
-
-    // Debounce the draft text to reduce scan frequency
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            setDebouncedDraft(draft);
-        }, 1000); // 1 second delay
-
-        return () => clearTimeout(handler);
-    }, [draft]);
 
     // 1. Detect Mentions
-    const detectedLoreIds = useMemo(() => scanForContext(debouncedDraft, loreEntries), [debouncedDraft, loreEntries]);
-    const detectedVoiceIds = useMemo(() => scanForContext(debouncedDraft, voiceProfiles), [debouncedDraft, voiceProfiles]);
+    const detectedLoreIds = useMemo(() => scanForContext(draft, loreEntries), [draft, loreEntries]);
+    const detectedVoiceIds = useMemo(() => scanForContext(draft, voiceProfiles), [draft, voiceProfiles]);
 
     const detectedLore = useMemo(() => 
         loreEntries.filter(e => detectedLoreIds.includes(e.id)), 
@@ -54,8 +44,8 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = ({
     const localWarnings = useMemo(() => {
         const activeLore = loreEntries.filter(e => e.isActive);
         const activeVoices = voiceProfiles.filter(v => v.isActive);
-        return detectPotentialInconsistencies(debouncedDraft, activeLore, activeVoices);
-    }, [debouncedDraft, loreEntries, voiceProfiles]);
+        return detectPotentialInconsistencies(draft, activeLore, activeVoices);
+    }, [draft, loreEntries, voiceProfiles]);
 
     // Filter out warnings that have been resolved
     const activeWarnings = useMemo(() => {

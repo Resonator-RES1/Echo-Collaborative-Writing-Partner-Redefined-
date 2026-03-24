@@ -1,8 +1,8 @@
 import React from 'react';
-import { Bold, Italic, List, ListOrdered, Quote, Heading3, BookOpen, Users, Strikethrough, Code, Maximize2, Minimize2 } from 'lucide-react';
+import { Bold, Italic, List, ListOrdered, Quote, Heading3, BookOpen, Users, Strikethrough, Code, Maximize2, Minimize2, Sparkles } from 'lucide-react';
 import { Editor } from '@tiptap/react';
 
-export type FormatType = 'bold' | 'italic' | 'strikethrough' | 'code' | 'h3' | 'quote' | 'ul' | 'ol' | 'extract-lore' | 'extract-voice';
+export type FormatType = 'bold' | 'italic' | 'strikethrough' | 'code' | 'h3' | 'quote' | 'ul' | 'ol';
 
 interface FormattingToolbarProps {
     editor: Editor | null;
@@ -25,13 +25,8 @@ export const FormattingToolbar: React.FC<FormattingToolbarProps> = React.memo(({
         { type: 'ol', icon: ListOrdered, title: 'Numbered List', action: () => editor?.chain().focus().toggleOrderedList().run(), isActive: () => editor?.isActive('orderedList') },
     ] as const;
 
-    const extractButtons = [
-        { type: 'extract-lore', icon: BookOpen, title: 'Extract to Lore' },
-        { type: 'extract-voice', icon: Users, title: 'Extract to Voice' },
-    ] as const;
-
     return (
-        <div className="flex items-center justify-between w-full">
+        <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
                  {formatButtons.map(btn => (
                     <button
@@ -48,7 +43,7 @@ export const FormattingToolbar: React.FC<FormattingToolbarProps> = React.memo(({
                     </button>
                  ))}
                  
-                 <div className="w-px h-4 bg-outline-variant/30 mx-2" />
+                 <div className="w-px h-4 bg-outline-variant/30 mx-1 sm:mx-2" />
                  
                  <button
                     onClick={onToggleFocusMode}
@@ -62,22 +57,6 @@ export const FormattingToolbar: React.FC<FormattingToolbarProps> = React.memo(({
                     {isFocusMode ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
                  </button>
             </div>
-            
-            {hasSelection && (
-                <div className="flex items-center gap-1 animate-in fade-in slide-in-from-right-2">
-                    {extractButtons.map(btn => (
-                        <button
-                            key={btn.type}
-                            onClick={() => onFormat(btn.type)}
-                            title={btn.title}
-                            className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-accent-sky hover:text-white hover:bg-accent-sky bg-accent-sky/5 border border-accent-sky/20 rounded-full transition-all"
-                        >
-                            <btn.icon className="w-3.5 h-3.5" />
-                            {btn.title}
-                        </button>
-                    ))}
-                </div>
-            )}
         </div>
     );
 });

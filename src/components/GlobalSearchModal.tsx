@@ -1,18 +1,14 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Search, X, Replace, ChevronRight, ChevronDown, Check } from 'lucide-react';
 import { Scene, LoreEntry, VoiceProfile, AuthorVoice } from '../types';
+
+import { useLore } from '../contexts/LoreContext';
 
 interface GlobalSearchModalProps {
   isOpen: boolean;
   onClose: () => void;
   scenes: Scene[];
-  loreEntries: LoreEntry[];
-  voiceProfiles: VoiceProfile[];
-  authorVoices: AuthorVoice[];
   onUpdateScene: (scene: Scene) => void;
-  onUpdateLore: (lore: LoreEntry) => void;
-  onUpdateVoiceProfile: (voice: VoiceProfile) => void;
-  onUpdateAuthorVoice: (voice: AuthorVoice) => void;
   showToast: (message: string) => void;
 }
 
@@ -28,12 +24,32 @@ interface SearchMatch {
 }
 
 export function GlobalSearchModal({
-  isOpen, onClose, scenes, loreEntries, voiceProfiles, authorVoices,
-  onUpdateScene, onUpdateLore, onUpdateVoiceProfile, onUpdateAuthorVoice, showToast
+  isOpen, onClose, scenes, onUpdateScene, showToast
 }: GlobalSearchModalProps) {
+  const { 
+    loreEntries, 
+    voiceProfiles, 
+    authorVoices,
+    addLoreEntry,
+    addVoiceProfile,
+    addAuthorVoice
+  } = useLore();
+
   const [query, setQuery] = useState('');
   const [replaceText, setReplaceText] = useState('');
   const [selectedMatches, setSelectedMatches] = useState<Set<string>>(new Set());
+
+  const onUpdateLore = useCallback(async (lore: LoreEntry) => {
+    await addLoreEntry(lore);
+  }, [addLoreEntry]);
+
+  const onUpdateVoiceProfile = useCallback(async (voice: VoiceProfile) => {
+    await addVoiceProfile(voice);
+  }, [addVoiceProfile]);
+
+  const onUpdateAuthorVoice = useCallback(async (voice: AuthorVoice) => {
+    await addAuthorVoice(voice);
+  }, [addAuthorVoice]);
 
   const matches = useMemo(() => {
     if (!query.trim() || query.length < 2) return [];

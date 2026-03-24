@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Settings, X, Key, Trash2, ShieldAlert, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Settings, X, Key, Trash2, ShieldAlert, CheckCircle2, RefreshCw, Copy, BookOpen } from 'lucide-react';
 import { useProject } from '../contexts/ProjectContext';
+import { copyFullGuideToClipboard } from '../utils/guideUtils';
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  showToast?: (message: string) => void;
 }
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = (props) => {
+  const { isOpen, onClose } = props;
   const [hasCustomKey, setHasCustomKey] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const { resetProject } = useProject();
@@ -35,6 +38,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     await resetProject();
     setShowResetConfirm(false);
     onClose();
+  };
+
+  const handleCopyGuide = () => {
+    copyFullGuideToClipboard();
+    if (props.showToast) {
+      props.showToast("Full guide copied to clipboard as Markdown.");
+    }
   };
 
   return (
@@ -113,6 +123,31 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   >
                     <Key className="w-4 h-4" />
                     {hasCustomKey ? 'Manage Pro Key' : 'Connect Pro Key'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Documentation Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 font-label text-[10px] uppercase tracking-[0.2em] text-primary/50 font-black">
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>Documentation</span>
+                </div>
+                
+                <div className="p-6 rounded-3xl bg-surface-container-highest/30 border border-outline-variant/10 space-y-4">
+                  <div className="space-y-1">
+                    <h3 className="font-label text-xs uppercase tracking-widest font-black">Export Guide</h3>
+                    <p className="text-xs text-on-surface-variant leading-relaxed">
+                      Copy the entire Echo Studio guide to your clipboard in Markdown format for offline reference.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleCopyGuide}
+                    className="w-full py-4 rounded-2xl bg-surface-container-highest text-on-surface border border-outline-variant/10 font-label text-[10px] uppercase tracking-[0.2em] font-black hover:bg-primary/10 hover:text-primary transition-all flex items-center justify-center gap-3"
+                  >
+                    <Copy className="w-4 h-4" />
+                    Copy Full Guide
                   </button>
                 </div>
               </div>

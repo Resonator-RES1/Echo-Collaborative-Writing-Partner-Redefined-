@@ -42,6 +42,15 @@ export const VersionDisplay: React.FC<VersionDisplayProps> = React.memo(({
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+    const [viewMode, setViewMode] = useState<'full' | 'surgical'>('surgical');
+
+    useEffect(() => {
+        if (currentVersion?.isSurgical) {
+            setViewMode('surgical');
+        } else {
+            setViewMode('full');
+        }
+    }, [currentVersion?.id]);
 
     useEffect(() => {
         if (mode !== 'collaborative') {
@@ -95,15 +104,38 @@ export const VersionDisplay: React.FC<VersionDisplayProps> = React.memo(({
         transition-all duration-300 ease-in-out
     `;
 
-    const textToShow = currentVersion?.text;
+    const textToShow = (viewMode === 'surgical' && currentVersion?.isSurgical) 
+        ? currentVersion.refinedSelection 
+        : currentVersion?.text;
+
+    const isSurgicalMode = currentVersion?.isSurgical;
 
     return (
         <div className={containerClasses}>
             <div className="p-3 border-b border-outline-variant/20 flex justify-between items-center flex-shrink-0 bg-surface-container-highest/30 rounded-t-[0.75rem]">
-                <h3 className="font-headline text-lg text-primary font-semibold tracking-tight flex items-center gap-2">
-                    <FileText className="w-5 h-5" />
-                    Echo Archive
-                </h3>
+                <div className="flex items-center gap-3">
+                    <h3 className="font-headline text-lg text-primary font-semibold tracking-tight flex items-center gap-2">
+                        <FileText className="w-5 h-5" />
+                        Echo Archive
+                    </h3>
+                    
+                    {isSurgicalMode && (
+                        <div className="flex items-center bg-surface-container-highest rounded-full p-0.5 border border-outline-variant/20 ml-2">
+                            <button 
+                                onClick={() => setViewMode('surgical')}
+                                className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all ${viewMode === 'surgical' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
+                            >
+                                Snippet
+                            </button>
+                            <button 
+                                onClick={() => setViewMode('full')}
+                                className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all ${viewMode === 'full' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
+                            >
+                                Full Draft
+                            </button>
+                        </div>
+                    )}
+                </div>
                 <div className="flex items-center gap-1.5">
                     {textToShow && !isRefining && (
                         <>
@@ -170,11 +202,34 @@ export const VersionDisplay: React.FC<VersionDisplayProps> = React.memo(({
                         autoFocus
                     />
                 ) : textToShow ? (
-                    <div className="space-y-6">
-                        <div className="relative">
-                            <div className="prose prose-invert max-w-none whitespace-pre-wrap break-words text-on-surface p-6 bg-surface-container-highest/20 rounded-xl border border-outline-variant/20 prose-headings:text-primary prose-headings:font-bold">
-                                <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>{textToShow}</ReactMarkdown>
-                            </div>
+                        <div className="space-y-6">
+                            {isSurgicalMode && viewMode === 'surgical' && (
+                                <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-4">
+                                    <div className="flex items-center gap-2 text-primary mb-3">
+                                        <Zap className="w-4 h-4" />
+                                        <span className="text-xs font-bold uppercase tracking-widest">Surgical Refinement View</span>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/60">Original Selection</span>
+                                            <div className="p-3 bg-surface-container-low rounded-lg border border-outline-variant/10 text-sm italic text-on-surface-variant line-clamp-6 overflow-y-auto max-h-40">
+                                                {currentVersion.originalSelection}
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-primary/60">Refined Result</span>
+                                            <div className="p-3 bg-surface-container-highest/40 rounded-lg border border-primary/10 text-sm font-medium text-on-surface line-clamp-6 overflow-y-auto max-h-40">
+                                                {currentVersion.refinedSelection}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            <div className="relative">
+                                <div className="prose prose-invert max-w-none whitespace-pre-wrap break-words text-on-surface p-6 bg-surface-container-highest/20 rounded-xl border border-outline-variant/20 prose-headings:text-primary prose-headings:font-bold">
+                                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>{textToShow}</ReactMarkdown>
+                                </div>
                             
                             {currentVersion.conflicts && currentVersion.conflicts.length > 0 && (
                                 <div className="absolute -left-2 top-0 flex flex-col gap-2">

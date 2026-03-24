@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Clock, Trash2, ChevronRight, History, Sparkles, Calendar, Eye, Activity, Copy } from 'lucide-react';
+import { Clock, Trash2, ChevronRight, History, Sparkles, Calendar, Eye, Activity, Copy, CheckCircle2 } from 'lucide-react';
 import { RefinedVersion } from '../../types';
 import { SideBySideDiff } from './SideBySideDiff';
+import { VersionDisplay } from './presets/VersionDisplay';
 import { formatReportForCopy } from '../../utils/reportFormatter';
 
 interface ArchivePanelProps {
@@ -11,6 +12,8 @@ interface ArchivePanelProps {
     onSelectVersion: (index: number) => void;
     onDeleteVersion: (id: string) => void;
     onClearHistory: () => void;
+    onAcceptVersion?: (version: RefinedVersion) => void;
+    showToast: (message: string) => void;
 }
 
 export const ArchivePanel: React.FC<ArchivePanelProps> = ({
@@ -19,7 +22,9 @@ export const ArchivePanel: React.FC<ArchivePanelProps> = ({
     originalDraft,
     onSelectVersion,
     onDeleteVersion,
-    onClearHistory
+    onClearHistory,
+    onAcceptVersion,
+    showToast
 }) => {
     const [viewMode, setViewMode] = useState<'list' | 'detail'>('list');
     const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
@@ -63,31 +68,15 @@ export const ArchivePanel: React.FC<ArchivePanelProps> = ({
                         </button>
                         <button 
                             onClick={() => onSelectVersion(selectedIdx)}
-                            className="flex items-center justify-center gap-2 sm:gap-3 px-6 py-4 sm:px-8 sm:py-4 bg-primary-saturated text-on-primary-saturated font-label uppercase tracking-[0.15em] sm:tracking-[0.2em] text-[10px] sm:text-xs font-black rounded-2xl hover:bg-primary-saturated/90 transition-all shadow-primary-glow hover:shadow-xl hover:-translate-y-1 active:translate-y-0 active:scale-95 group relative overflow-hidden text-shadow-lavender border-b-2 border-primary-saturated/30 w-full sm:w-auto"
+                            className="flex items-center justify-center gap-2 sm:gap-3 px-6 py-4 sm:px-8 sm:py-4 bg-surface-container-highest text-on-surface-variant font-label uppercase tracking-[0.15em] sm:tracking-[0.2em] text-[10px] sm:text-xs font-black rounded-2xl hover:bg-surface-container-highest/80 transition-all shadow-sm hover:shadow-md hover:-translate-y-1 active:translate-y-0 active:scale-95 group relative overflow-hidden border-b-2 border-outline-variant/20 w-full sm:w-auto"
                         >
-                            <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
-                            <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 group-hover:rotate-12 transition-transform" />
-                            <span>Restore</span>
+                            <Eye className="w-3 h-3 sm:w-4 sm:h-4 group-hover:rotate-12 transition-transform" />
+                            <span>Preview</span>
                         </button>
                     </div>
                 </div>
 
                 <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-2 space-y-6 sm:space-y-8 pb-12">
-                    <div className="bg-surface-container-low rounded-3xl border border-outline-variant/10 p-4 sm:p-8 shadow-sm">
-                        <div className="flex items-center gap-3 mb-4 sm:mb-6">
-                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                                <Sparkles className="w-5 h-5 sm:w-7 sm:h-7 text-primary" />
-                            </div>
-                            <div>
-                                <h3 className="font-headline text-lg sm:text-2xl font-bold">{version.title || 'Refinement Detail'}</h3>
-                                <p className="text-[9px] sm:text-[10px] text-on-surface-variant/60 uppercase tracking-[0.2em] font-black">Refined Draft Preview</p>
-                            </div>
-                        </div>
-                        <div className="prose prose-invert max-w-none font-headline text-base sm:text-xl tracking-tight leading-relaxed text-on-surface/80 whitespace-pre-wrap font-body bg-surface-container-highest/20 p-4 sm:p-6 rounded-2xl border border-outline-variant/5">
-                            {version.text}
-                        </div>
-                    </div>
-
                     <div className="bg-surface-container-low rounded-3xl border border-outline-variant/10 p-4 sm:p-8 shadow-sm">
                         <div className="flex items-center justify-between mb-4 sm:mb-6">
                             <h4 className="font-headline text-lg sm:text-xl font-bold flex items-center gap-2">
@@ -101,6 +90,25 @@ export const ArchivePanel: React.FC<ArchivePanelProps> = ({
                         </div>
                         <SideBySideDiff original={originalDraft} polished={version.text} />
                     </div>
+
+                    <VersionDisplay 
+                        mode="archive"
+                        isRefining={false}
+                        reviewOutput={null}
+                        setReviewOutput={() => {}}
+                        currentVersion={version}
+                        currentVersionIndex={selectedIdx}
+                        versionHistory={versionHistory}
+                        setCurrentVersionIndex={onSelectVersion}
+                        onUpdateVersion={() => {}}
+                        onAcceptVersion={onAcceptVersion || (() => {})}
+                        onShowComparison={() => {}}
+                        setShowConflicts={() => {}}
+                        onClearVersionHistory={onClearHistory}
+                        onDeleteVersion={onDeleteVersion}
+                        showToast={showToast}
+                        setFocusAreas={() => {}}
+                    />
                 </div>
             </div>
         );

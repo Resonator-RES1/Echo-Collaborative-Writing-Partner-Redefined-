@@ -26,6 +26,8 @@ interface RefinePanelProps {
     onDeleteVersion: (id: string) => void;
     setShowConflicts: (show: boolean) => void;
     currentSceneId: string | null;
+    selection?: { text: string; start: number; end: number } | null;
+    editorRef?: React.MutableRefObject<any>;
 }
 
 export const RefinePanel: React.FC<RefinePanelProps> = (props) => {
@@ -35,7 +37,8 @@ export const RefinePanel: React.FC<RefinePanelProps> = (props) => {
                 <RefinementPresets 
                     {...props} 
                     getDraft={() => props.draft} 
-                    selection={null} 
+                    selection={props.selection || null} 
+                    editorRef={props.editorRef}
                 />
             </div>
         </div>

@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, ArrowRight, BookOpen, Wand2, Mic2, BarChart3, ChevronRight, X, Download, Upload, ChevronDown, Info } from 'lucide-react';
+import { Sparkles, ArrowRight, BookOpen, Wand2, Mic2, BarChart3, ChevronRight, X, Download, Upload, ChevronDown, Info, Copy } from 'lucide-react';
 import { Screen, GuideCategory, GuideItem } from '../types';
 import { GUIDE_SECTIONS } from '../constants';
 import { useProject } from '../contexts/ProjectContext';
+import { copyFullGuideToClipboard } from '../utils/guideUtils';
 import * as Icons from 'lucide-react';
 
 interface WelcomeScreenProps {
@@ -116,14 +117,15 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden py-12 md:py-20 px-4">
-      {/* Background Textures */}
-      <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute top-1/4 left-1/4 w-64 md:w-96 h-64 md:h-96 bg-primary/10 blur-[80px] md:blur-[120px] rounded-full animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-48 md:w-64 h-48 md:h-64 bg-secondary/10 blur-[60px] md:blur-[100px] rounded-full animate-pulse delay-700"></div>
-      </div>
+    <div className="h-full w-full relative overflow-y-auto scrollbar-none">
+      <div className="min-h-full w-full flex flex-col items-center justify-center relative py-8 md:py-12 px-4">
+        {/* Background Textures */}
+        <div className="absolute inset-0 pointer-events-none z-0">
+          <div className="absolute top-1/4 left-1/4 w-64 md:w-96 h-64 md:h-96 bg-primary/10 blur-[80px] md:blur-[120px] rounded-full animate-pulse"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-48 md:w-64 h-48 md:h-64 bg-secondary/10 blur-[60px] md:blur-[100px] rounded-full animate-pulse delay-700"></div>
+        </div>
 
-      <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait">
         {!showGuide ? (
           <motion.div
             key="hero"
@@ -223,11 +225,11 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full max-w-6xl h-full md:h-auto relative z-10"
+            className="w-full max-w-6xl h-[90vh] md:h-[85vh] relative z-10 flex flex-col"
           >
-            <div className="glass-panel bg-surface-container-low rounded-none md:rounded-[2rem] border-0 md:border border-outline-variant/20 overflow-hidden shadow-2xl flex flex-col md:flex-row min-h-screen md:min-h-[700px] md:max-h-[90vh]">
+            <div className="glass-panel bg-surface-container-low rounded-none md:rounded-[2rem] border-0 md:border border-outline-variant/20 shadow-2xl flex flex-col md:flex-row h-full overflow-hidden">
               {/* Sidebar */}
-              <div className="w-full md:w-80 flex-shrink-0 bg-surface-container-high/50 p-6 md:p-8 border-b md:border-b-0 md:border-r border-outline-variant/10 flex flex-col">
+              <div className="w-full md:w-80 flex-shrink-0 bg-surface-container-high/50 p-6 md:p-8 border-b md:border-b-0 md:border-r border-outline-variant/10 flex flex-col overflow-y-auto">
                 <div className="flex items-center justify-between mb-6 md:mb-12">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
@@ -264,7 +266,16 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
                   })}
                 </nav>
 
-                <div className="hidden md:block mt-auto pt-12">
+                <div className="flex flex-col gap-3 mt-auto pt-8 md:pt-12">
+                  <button
+                    onClick={() => {
+                      copyFullGuideToClipboard();
+                    }}
+                    className="w-full py-3 rounded-xl bg-surface-container-highest text-on-surface-variant border border-outline-variant/10 font-label text-[10px] uppercase tracking-widest hover:bg-primary/10 hover:text-primary transition-all font-black flex items-center justify-center gap-2"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    Copy Full Guide
+                  </button>
                   <button
                     onClick={onStart}
                     className="w-full py-4 rounded-xl bg-primary/10 text-primary border border-primary/20 font-label text-[10px] uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-all font-black"
@@ -275,7 +286,7 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
               </div>
 
               {/* Content Area */}
-              <div className="flex-grow p-6 md:p-12 lg:p-16 relative overflow-y-auto scrollbar-thin">
+              <div className="flex-grow p-6 md:p-12 lg:p-16 relative overflow-y-auto scroll-smooth scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeSection}
@@ -342,6 +353,7 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 }

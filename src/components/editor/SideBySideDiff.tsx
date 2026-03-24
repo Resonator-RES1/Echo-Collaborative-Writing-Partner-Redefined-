@@ -23,14 +23,22 @@ export const SideBySideDiff: React.FC<{ original: string; polished: string }> = 
     });
 
     return (
-        <div className="flex w-full bg-surface-container-low border border-outline-variant/20 rounded-[0.75rem] overflow-hidden">
-            <div className="w-1/2 p-6 whitespace-pre-wrap font-headline text-sm leading-relaxed border-r border-outline-variant/20 text-on-surface/80 overflow-y-auto max-h-[40vh]">
-                <h4 className="text-xs font-label uppercase tracking-wider text-on-surface-variant mb-4 sticky top-0 bg-surface-container-low pb-2 z-10">Original Draft</h4>
-                <p>{leftPane}</p>
+        <div className="flex flex-col w-full bg-surface-container-low border border-outline-variant/20 rounded-[0.75rem] overflow-hidden max-h-[50vh]">
+            <div className="flex w-full border-b border-outline-variant/20 bg-surface-container-low sticky top-0 z-10">
+                <div className="w-1/2 p-4 border-r border-outline-variant/20">
+                    <h4 className="text-xs font-label uppercase tracking-wider text-on-surface-variant m-0">Original Draft</h4>
+                </div>
+                <div className="w-1/2 p-4">
+                    <h4 className="text-xs font-label uppercase tracking-wider text-on-surface-variant m-0">Polished Version</h4>
+                </div>
             </div>
-            <div className="w-1/2 p-6 whitespace-pre-wrap font-headline text-sm leading-relaxed text-on-surface/80 overflow-y-auto max-h-[40vh]">
-                <h4 className="text-xs font-label uppercase tracking-wider text-on-surface-variant mb-4 sticky top-0 bg-surface-container-low pb-2 z-10">Polished Version</h4>
-                <p>{rightPane}</p>
+            <div className="flex w-full overflow-y-auto custom-scrollbar">
+                <div className="w-1/2 p-6 whitespace-pre-wrap font-headline text-sm leading-relaxed border-r border-outline-variant/20 text-on-surface/80">
+                    <p>{leftPane}</p>
+                </div>
+                <div className="w-1/2 p-6 whitespace-pre-wrap font-headline text-sm leading-relaxed text-on-surface/80">
+                    <p>{rightPane}</p>
+                </div>
             </div>
         </div>
     );

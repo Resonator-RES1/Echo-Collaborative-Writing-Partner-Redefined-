@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -21,6 +21,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   className = '',
   editorRef,
 }) => {
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -41,8 +43,13 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     ],
     content,
     onUpdate: ({ editor }) => {
-      const markdown = (editor.storage as any).markdown.getMarkdown();
-      onChange(markdown);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        const markdown = (editor.storage as any).markdown.getMarkdown();
+        onChange(markdown);
+      }, 500);
     },
     onSelectionUpdate: ({ editor }) => {
       if (!onSelectionChange) return;
@@ -61,6 +68,15 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       },
     },
   });
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   // Sync external content changes (e.g. from Echo Archive or Scene switching)
   useEffect(() => {

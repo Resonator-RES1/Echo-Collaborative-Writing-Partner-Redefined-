@@ -120,6 +120,9 @@ export interface RefinedVersion {
   };
   sceneId?: string;
   isAccepted?: boolean;
+  isSurgical?: boolean;
+  originalSelection?: string;
+  refinedSelection?: string;
   usedProfiles?: {
     authorVoice?: string;
     characterVoices?: string[];
