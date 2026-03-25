@@ -247,6 +247,11 @@ const Editor: React.FC<EditorProps> = ({
       };
       onAddVersion(versionWithId);
       setCurrentVersionIndex(0);
+      
+      // If it's a full draft refinement (not surgical), switch to report tab
+      if (!version.isSurgical) {
+          setActiveTab('report');
+      }
   }, [onAddVersion]);
 
   const handleShowComparison = useCallback(() => {
@@ -380,25 +385,16 @@ const Editor: React.FC<EditorProps> = ({
                     setIsRefining={setIsRefining}
                     showToast={showToast}
                     onNewVersion={handleNewVersion}
-                    versionHistory={versionHistory}
-                    currentVersionIndex={currentVersionIndex}
-                    currentVersion={currentVersion}
-                    setCurrentVersionIndex={setCurrentVersionIndex}
-                    onShowComparison={handleShowComparison}
-                    onAcceptVersion={handleAcceptVersion}
-                    onUpdateVersion={handleUpdateVersion}
                     loreEntries={loreEntries}
                     voiceProfiles={voiceProfiles}
                     authorVoices={authorVoices}
                     onAddLoreEntry={onAddLoreEntry}
                     onAddVoiceProfile={onAddVoiceProfile}
                     onAddAuthorVoice={onAddAuthorVoice}
-                    onClearVersionHistory={onClearVersionHistory}
-                    onDeleteVersion={onDeleteVersion}
-                    setShowConflicts={setShowConflicts}
                     currentSceneId={currentSceneId}
                     selection={selection}
                     editorRef={editorRef}
+                    setActiveTab={setActiveTab}
                   />
               )}
               {activeTab === 'archive' && (
@@ -411,6 +407,7 @@ const Editor: React.FC<EditorProps> = ({
                     onClearHistory={onClearVersionHistory}
                     onAcceptVersion={handleAcceptVersion}
                     showToast={showToast}
+                    onRevertSpecificLore={handleRevertSpecificLore}
                   />
               )}
               {activeTab === 'report' && (
@@ -426,7 +423,7 @@ const Editor: React.FC<EditorProps> = ({
   };
 
   return (
-    <div className={`flex flex-col lg:flex-row gap-4 lg:gap-8 flex-1 min-h-0 animate-in fade-in duration-700 ${isFocusMode ? 'focus-mode' : ''}`}>
+    <div className={`flex flex-col lg:flex-row gap-4 lg:gap-8 flex-1 min-h-0 animate-in fade-in duration-700 ${isFocusMode && activeTab === 'draft' ? 'focus-mode' : ''}`}>
       <EditorModals 
         showComparison={showComparison}
         showConflicts={showConflicts}
@@ -442,11 +439,11 @@ const Editor: React.FC<EditorProps> = ({
         onRevertSpecificLore={handleRevertSpecificLore}
       />
       
-      <section className={`flex-1 flex flex-col min-h-0 transition-all duration-500 ${isFocusMode ? 'max-w-4xl mx-auto w-full' : ''}`}>
-        <div className={`bg-surface-container-low/50 backdrop-blur-sm rounded-[0.75rem] shadow-2xl ghost-border flex flex-col flex-1 relative min-h-0 overflow-hidden transition-all duration-500 p-4 lg:p-6 ${isFocusMode ? 'ghost-border-accent' : ''}`}>
+      <section className={`flex-1 flex flex-col min-h-0 transition-all duration-500 ${isFocusMode && activeTab === 'draft' ? 'max-w-4xl mx-auto w-full' : ''}`}>
+        <div className={`bg-surface-container-low/50 backdrop-blur-sm rounded-[0.75rem] shadow-2xl ghost-border flex flex-col flex-1 relative min-h-0 overflow-hidden transition-all duration-500 p-4 lg:p-6 ${isFocusMode && activeTab === 'draft' ? 'ghost-border-accent' : ''}`}>
           
           {/* Workspace Tab Bar */}
-          {!isFocusMode && (
+          {(!isFocusMode || activeTab !== 'draft') && (
               <div className="bg-surface-container-low/90 backdrop-blur-md py-2 -mx-4 px-4 lg:-mx-6 lg:px-6 mb-2 border-b border-outline-variant/10 overflow-x-auto hide-scrollbar">
                   <div className="flex items-center gap-1 sm:gap-1.5 bg-surface-container-highest/50 p-1 rounded-full w-max mx-auto border border-outline-variant/10 shadow-sm">
                       {[
@@ -458,7 +455,10 @@ const Editor: React.FC<EditorProps> = ({
                       ].map(tab => (
                           <button
                               key={tab.id}
-                              onClick={() => setActiveTab(tab.id as WorkspaceTab)}
+                              onClick={() => {
+                                  setActiveTab(tab.id as WorkspaceTab);
+                                  if (tab.id !== 'draft') setIsFocusMode(false);
+                              }}
                               className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === tab.id ? 'bg-primary text-on-primary shadow-lg shadow-primary/20' : 'text-on-surface-variant hover:text-primary hover:bg-primary/5'}`}
                           >
                               <tab.icon className="w-3.5 h-3.5" />
@@ -470,24 +470,17 @@ const Editor: React.FC<EditorProps> = ({
           )}
 
           {/* Main Editor Top Bar */}
-          {(activeTab === 'draft' || activeTab === 'refine') && (
+          {activeTab === 'draft' && (
               <div className="relative bg-surface-container-low/95 backdrop-blur-sm pb-2 border-b border-outline-variant/20 mb-2 sm:mb-3 -mx-4 px-4 lg:-mx-6 lg:px-6 flex items-center justify-between gap-2 sm:gap-4 min-h-[40px]">
                   {/* Left: Formatting Toolbar */}
                   <div className="flex-1 min-w-0 overflow-x-auto hide-scrollbar z-10 pr-[100px] sm:pr-[150px]">
-                      {activeTab === 'draft' ? (
-                          <FormattingToolbar 
-                              editor={editorRef.current}
-                              onFormat={handleFormat} 
-                              hasSelection={!!selection && selection.text.trim().length > 0} 
-                              isFocusMode={isFocusMode}
-                              onToggleFocusMode={() => setIsFocusMode(!isFocusMode)}
-                          />
-                      ) : (
-                          <div className="flex items-center gap-2 text-on-surface-variant/50 text-[10px] font-bold uppercase tracking-widest px-2">
-                              <Wand2 className="w-3.5 h-3.5" />
-                              <span className="hidden sm:inline">Refinement Workspace</span>
-                          </div>
-                      )}
+                      <FormattingToolbar 
+                          editor={editorRef.current}
+                          onFormat={handleFormat} 
+                          hasSelection={!!selection && selection.text.trim().length > 0} 
+                          isFocusMode={isFocusMode}
+                          onToggleFocusMode={() => setIsFocusMode(!isFocusMode)}
+                      />
                   </div>
                   
                   {/* Center: Continuity Guard */}
@@ -521,21 +514,18 @@ const Editor: React.FC<EditorProps> = ({
                               setEditorMode('drafting');
                               setShowDiff(false);
                           }}
-                          className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === 'draft' && editorMode === 'drafting' ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
+                          className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${editorMode === 'drafting' ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
                           title="Drafting Mode"
                       >
                           <PenTool className="w-4 h-4" />
                       </button>
                       <button 
                           onClick={() => {
-                              if (activeTab !== 'draft') {
-                                setActiveTab('draft');
-                              }
                               dispatchDraft({ type: 'SET_ORIGINAL', payload: draftState.present });
                               setEditorMode('polishing');
                               setShowRecentChanges(false);
                           }}
-                          className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === 'draft' && editorMode === 'polishing' ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
+                          className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${editorMode === 'polishing' ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
                           title="Polishing Mode"
                       >
                           <Sparkles className="w-4 h-4" />
@@ -543,13 +533,13 @@ const Editor: React.FC<EditorProps> = ({
 
                       <button 
                           onClick={() => setActiveTab('refine')}
-                          className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === 'refine' ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
+                          className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary`}
                           title="Surgical Refine"
                       >
                           <Wand2 className="w-4 h-4" />
                       </button>
                       
-                      {activeTab === 'draft' && editorMode === 'polishing' && (
+                      {editorMode === 'polishing' && (
                           <button 
                               onClick={() => setShowDiff(!showDiff)}
                               className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${showDiff ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
@@ -559,7 +549,7 @@ const Editor: React.FC<EditorProps> = ({
                           </button>
                       )}
                       
-                      {activeTab === 'draft' && editorMode === 'drafting' && (
+                      {editorMode === 'drafting' && (
                           <button 
                               onClick={() => setShowRecentChanges(!showRecentChanges)}
                               className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${showRecentChanges ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}

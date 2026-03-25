@@ -1,5 +1,8 @@
 import React from 'react';
 import { Activity, Info } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
 import { RefinedVersion } from '../../types';
 
 interface ReportAnalysisProps {
@@ -27,9 +30,14 @@ export const ReportAnalysis: React.FC<ReportAnalysisProps> = ({ analysis, expres
                     <div className="absolute top-0 left-0 w-1 h-full bg-primary/20"></div>
                     <div className="flex gap-4">
                         <Info className="w-4 h-4 text-primary/50 shrink-0 mt-1" />
-                        <p className="text-sm text-on-surface-variant leading-relaxed whitespace-pre-wrap font-headline italic">
-                            {analysis}
-                        </p>
+                        <div className="prose prose-sm prose-slate max-w-none 
+                            prose-p:text-sm prose-p:text-on-surface-variant prose-p:leading-relaxed prose-p:italic
+                            prose-strong:text-primary prose-strong:font-bold
+                            dark:prose-invert">
+                            <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+                                {analysis}
+                            </ReactMarkdown>
+                        </div>
                     </div>
                 </div>
 

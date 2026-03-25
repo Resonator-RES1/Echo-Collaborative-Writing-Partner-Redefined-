@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart3, Info } from 'lucide-react';
+import { TrendingUp, Info } from 'lucide-react';
 import { RefinedVersion, ProseMetrics } from '../../types';
 
 interface ReportMetricsProps {
@@ -13,7 +13,7 @@ export const ReportMetrics: React.FC<ReportMetricsProps> = ({ metrics }) => {
         <div className="bg-surface-container-low rounded-2xl border border-outline-variant/10 p-6 shadow-sm h-full">
             <div className="flex items-center gap-4 mb-6">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <BarChart3 className="w-6 h-6 text-primary" />
+                    <TrendingUp className="w-6 h-6 text-primary" />
                 </div>
                 <div>
                     <h3 className="font-headline text-xl font-bold text-on-surface">Prose Metrics</h3>

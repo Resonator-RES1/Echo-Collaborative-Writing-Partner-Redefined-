@@ -1,5 +1,5 @@
-import React from 'react';
-import { Activity, CheckCircle2, BarChart3, Copy } from 'lucide-react';
+import React, { useState } from 'react';
+import { Activity, CheckCircle2, BarChart3, Copy, Sparkles, Check } from 'lucide-react';
 import { RefinedVersion } from '../../types';
 import { ReportContext } from '../report/ReportContext';
 import { ReportAudit } from '../report/ReportAudit';
@@ -21,6 +21,8 @@ export const ReportPanel: React.FC<ReportPanelProps> = ({
     onAccept,
     onRevertLore
 }) => {
+    const [copied, setCopied] = useState(false);
+
     if (!version) {
         return (
             <div className="flex flex-col flex-1 min-h-0 items-center justify-center text-center p-8 animate-in fade-in duration-700">
@@ -44,7 +46,7 @@ export const ReportPanel: React.FC<ReportPanelProps> = ({
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 mb-4 sm:mb-8 relative z-10">
                     <div className="flex items-center gap-3 sm:gap-4">
                         <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-primary/10 flex items-center justify-center shadow-inner">
-                            <Activity className="w-5 h-5 sm:w-7 sm:h-7 text-primary" />
+                            <Sparkles className="w-5 h-5 sm:w-7 sm:h-7 text-primary" />
                         </div>
                         <div>
                             <h3 className="font-headline text-lg sm:text-2xl font-bold text-on-surface tracking-tight">{version.title || 'Refinement Report'}</h3>
@@ -55,11 +57,27 @@ export const ReportPanel: React.FC<ReportPanelProps> = ({
                         onClick={() => {
                             const reportText = formatReportForCopy(version);
                             navigator.clipboard.writeText(reportText);
+                            setCopied(true);
+                            setTimeout(() => setCopied(false), 2000);
                         }}
-                        className="flex items-center justify-center gap-2 px-4 py-3 sm:px-6 sm:py-3 bg-surface-container-highest/50 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-on-surface-variant hover:bg-primary hover:text-on-primary transition-all shadow-sm group border border-outline-variant/10 w-full sm:w-auto"
+                        title="Copy full report including analysis and metrics"
+                        className={`flex items-center justify-center gap-2 px-4 py-3 sm:px-6 sm:py-3 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all shadow-sm group border border-outline-variant/10 w-full sm:w-auto ${
+                            copied 
+                            ? 'bg-accent-emerald/20 text-accent-emerald border-accent-emerald/30' 
+                            : 'bg-surface-container-highest/50 text-on-surface-variant hover:bg-primary hover:text-on-primary'
+                        }`}
                     >
-                        <Copy className="w-3 h-3 sm:w-4 sm:h-4 group-hover:scale-110 transition-transform" />
-                        <span>Copy</span>
+                        {copied ? (
+                            <>
+                                <Check className="w-3 h-3 sm:w-4 sm:h-4" />
+                                <span>Copied!</span>
+                            </>
+                        ) : (
+                            <>
+                                <Copy className="w-3 h-3 sm:w-4 sm:h-4 group-hover:scale-110 transition-transform" />
+                                <span>Copy Full Report</span>
+                            </>
+                        )}
                     </button>
                 </div>
                 

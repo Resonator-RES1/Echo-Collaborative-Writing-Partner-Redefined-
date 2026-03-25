@@ -9,12 +9,6 @@ import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import { marked } from 'marked';
 import { RefinedVersion, FocusArea } from '../../../types';
-import { copyReportToClipboard } from './report/utils';
-import { ReportContext } from './report/ReportContext';
-import { ReportAudit } from './report/ReportAudit';
-import { ReportRestraintLog } from './report/ReportRestraintLog';
-import { ReportAnalysis } from './report/ReportAnalysis';
-import { ReportMetrics } from './report/ReportMetrics';
 
 interface VersionDisplayProps {
     mode: string;
@@ -88,11 +82,6 @@ export const VersionDisplay: React.FC<VersionDisplayProps> = React.memo(({
                 showToast("Failed to copy text.");
             });
         }
-    };
-
-    const handleCopyReport = async () => {
-        if (!currentVersion) return;
-        await copyReportToClipboard(currentVersion, showToast);
     };
 
     const containerClasses = `
@@ -237,53 +226,6 @@ export const VersionDisplay: React.FC<VersionDisplayProps> = React.memo(({
                                 </div>
                             )}
                         </div>
-                        
-                        {(currentVersion.summary || currentVersion.metrics || currentVersion.analysis || currentVersion.audit) && (
-                            <div className="bg-surface-container-highest/20 rounded-2xl border border-outline-variant/30 p-8 space-y-10">
-                                <div className="flex items-center justify-between border-b border-outline-variant/20 pb-4">
-                                    <div className="flex items-center gap-4">
-                                        <h4 className="font-headline text-2xl text-primary font-bold tracking-tight">Refinement Report</h4>
-                                        <button 
-                                            onClick={handleCopyReport}
-                                            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container-highest text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-all border border-outline-variant/10 hover:border-primary/30 group"
-                                            title="Copy full report to clipboard"
-                                        >
-                                            <Copy className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-                                            <span className="text-[10px] font-black uppercase tracking-widest">Copy Report</span>
-                                        </button>
-                                    </div>
-                                    <div className="flex items-center gap-2 px-4 py-1.5 bg-primary/10 rounded-full border border-primary/20">
-                                        <Zap className="w-4 h-4 text-primary" />
-                                        <span className="text-xs font-bold text-primary uppercase tracking-widest">AI Audit Active</span>
-                                    </div>
-                                </div>
-
-                                {/* Active Context used for this refinement */}
-                                <ReportContext usedProfiles={currentVersion.usedProfiles} />
-
-                                {/* Refinement Audit - NOW AT TOP */}
-                                {currentVersion.audit && <ReportAudit audit={currentVersion.audit} />}
-
-                                {/* Restraint Log */}
-                                {currentVersion.restraintLog && <ReportRestraintLog restraintLog={currentVersion.restraintLog} />}
-
-                                {/* Analysis */}
-                                {currentVersion.analysis && <ReportAnalysis analysis={currentVersion.analysis} />}
-
-                                {/* Expression Profile / Metrics */}
-                                {currentVersion.metrics && <ReportMetrics metrics={currentVersion.metrics} setFocusAreas={setFocusAreas} />}
-
-                                {currentVersion.summary && (
-                                    <div className="pt-6 border-t border-outline-variant/20">
-                                        <h5 className="font-label text-xs uppercase tracking-widest text-on-surface/60 mb-3 flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4" />
-                                            Editor's Summary
-                                        </h5>
-                                        <p className="text-base text-on-surface/80 leading-relaxed font-medium">{currentVersion.summary}</p>
-                                    </div>
-                                )}
-                            </div>
-                        )}
                     </div>
                 ) : (
                     <p className="text-on-surface-variant/70 italic text-center mt-8">Refined versions of your draft will appear here.</p>

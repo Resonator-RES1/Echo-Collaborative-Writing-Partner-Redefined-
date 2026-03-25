@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { Clock, Trash2, ChevronRight, History, Sparkles, Calendar, Eye, Activity, Copy, CheckCircle2 } from 'lucide-react';
-import { RefinedVersion } from '../../types';
+import { Clock, Trash2, ChevronRight, History, Sparkles, Calendar, Eye, Activity, Copy, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { RefinedVersion, LoreCorrection } from '../../types';
 import { SideBySideDiff } from './SideBySideDiff';
-import { VersionDisplay } from './presets/VersionDisplay';
 import { formatReportForCopy } from '../../utils/reportFormatter';
 
 interface ArchivePanelProps {
@@ -14,6 +13,7 @@ interface ArchivePanelProps {
     onClearHistory: () => void;
     onAcceptVersion?: (version: RefinedVersion) => void;
     showToast: (message: string) => void;
+    onRevertSpecificLore?: (correction: LoreCorrection) => void;
 }
 
 export const ArchivePanel: React.FC<ArchivePanelProps> = ({
@@ -24,7 +24,8 @@ export const ArchivePanel: React.FC<ArchivePanelProps> = ({
     onDeleteVersion,
     onClearHistory,
     onAcceptVersion,
-    showToast
+    showToast,
+    onRevertSpecificLore
 }) => {
     const [viewMode, setViewMode] = useState<'list' | 'detail'>('list');
     const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
@@ -91,24 +92,36 @@ export const ArchivePanel: React.FC<ArchivePanelProps> = ({
                         <SideBySideDiff original={originalDraft} polished={version.text} />
                     </div>
 
-                    <VersionDisplay 
-                        mode="archive"
-                        isRefining={false}
-                        reviewOutput={null}
-                        setReviewOutput={() => {}}
-                        currentVersion={version}
-                        currentVersionIndex={selectedIdx}
-                        versionHistory={versionHistory}
-                        setCurrentVersionIndex={onSelectVersion}
-                        onUpdateVersion={() => {}}
-                        onAcceptVersion={onAcceptVersion || (() => {})}
-                        onShowComparison={() => {}}
-                        setShowConflicts={() => {}}
-                        onClearVersionHistory={onClearHistory}
-                        onDeleteVersion={onDeleteVersion}
-                        showToast={showToast}
-                        setFocusAreas={() => {}}
-                    />
+                    {version.loreCorrections && version.loreCorrections.length > 0 && (
+                        <div className="bg-surface-container-low rounded-3xl border border-outline-variant/10 p-4 sm:p-8 shadow-sm">
+                            <div className="flex items-center gap-2 mb-6 text-accent-rose">
+                                <ShieldCheck className="w-5 h-5" />
+                                <h4 className="font-headline text-lg sm:text-xl font-bold">Lore Corrections Detected</h4>
+                            </div>
+                            <div className="space-y-4">
+                                {version.loreCorrections.map((correction, idx) => (
+                                    <div key={idx} className="p-4 bg-surface-container-highest/30 rounded-2xl border border-outline-variant/10 group">
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <span className="text-xs font-bold text-on-surface-variant/50 line-through">{correction.original}</span>
+                                                    <ChevronRight className="w-3 h-3 text-on-surface-variant/30" />
+                                                    <span className="text-sm font-bold text-on-surface">{correction.refined}</span>
+                                                </div>
+                                                <p className="text-xs text-on-surface-variant/70 italic leading-relaxed">{correction.reason}</p>
+                                            </div>
+                                            <button 
+                                                onClick={() => onRevertSpecificLore?.(correction)}
+                                                className="px-4 py-2 bg-accent-rose/10 text-accent-rose text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-accent-rose hover:text-white transition-all shadow-sm active:scale-95"
+                                            >
+                                                Revert
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         );

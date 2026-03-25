@@ -135,15 +135,12 @@ export const refineDraft = async (options: RefineDraftOptions): Promise<RefineDr
     preamble += `\n*** DIALING SYSTEM ***\nWeighting: ${weighting}\n\n`;
 
     const isSurgical = !!(fullContextDraft && selection);
-    const refinedTextInstruction = isSurgical 
-        ? "The polished snippet. DO NOT include surrounding context or a title unless it was part of the selection. Return ONLY the refined version of the selected text."
-        : "The polished chapter (MUST start with '# Title' on the first line)";
-
+    
     const outputInstruction = `
 \n### RESPONSE SCHEMA (JSON)
 Return the following structure:
 {
-  "refined_text": "${refinedTextInstruction}",
+  "refined_text": "The polished version of the text. If full chapter, start with a Markdown H1 header (#) for the title. If surgical, return ONLY the refined snippet, PRESERVING all original paragraph breaks, spacing, and structural formatting.",
   "editor_summary": "Concise explanation of refinements + acknowledgment of restraint (2-3 sentences max)",
   "justification": "Detailed surgical post-op of the refinement.",
   "evidence_based_claims": "Specific, measurable changes made to the text.",
@@ -182,10 +179,12 @@ Return the following structure:
     if (fullContextDraft && selection) {
         preamble += `\n*** SURGICAL REFINEMENT MODE ***\n`;
         preamble += `You are performing a targeted refinement. The user has selected a specific portion of the text to be refined.\n`;
-        preamble += `CRITICAL INSTRUCTION: You MUST ONLY refine the text provided in the <TARGET_SELECTION> block. The <FULL_DRAFT_CONTEXT> block is provided STRICTLY for context (so you understand the surrounding narrative, pacing, and flow). DO NOT rewrite or include the unselected text in your \`refined_text\` output.\n\n`;
+        preamble += `CRITICAL INSTRUCTION: You MUST ONLY refine the text provided in the <TARGET_SELECTION> block. The <FULL_DRAFT_CONTEXT> block is provided STRICTLY for context (so you understand the surrounding narrative, pacing, and flow). DO NOT rewrite or include the unselected text in your \`refined_text\` output. DO NOT add a title or header if it was not in the selection. PRESERVE all original paragraph breaks, indentation, and structural spacing from the original selection.\n\n`;
         
         userPrompt = `${preamble}\n\n---\n\n<FULL_DRAFT_CONTEXT>\n${fullContextDraft}\n</FULL_DRAFT_CONTEXT>\n\n<TARGET_SELECTION>\n${selection.text}\n</TARGET_SELECTION>`;
     } else {
+        preamble += `\n*** FULL CHAPTER REFINEMENT MODE ***\n`;
+        preamble += `Refine the entire draft provided below. Ensure the first line is a Markdown H1 header (#) containing the title of the piece.\n\n`;
         userPrompt = preamble ? `${preamble}\n\n---\n\n${draft}` : draft;
     }
 

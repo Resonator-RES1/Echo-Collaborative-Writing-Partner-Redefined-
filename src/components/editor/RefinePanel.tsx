@@ -1,7 +1,7 @@
 import React from 'react';
 import { Sparkles, Loader2, Zap, AlertCircle, PlusCircle, Settings, FileText } from 'lucide-react';
 import { RefinementPresets } from './RefinementPresets';
-import { Scene, RefinedVersion, LoreEntry, VoiceProfile, AuthorVoice, FeedbackDepth, FocusArea } from '../../types';
+import { Scene, RefinedVersion, LoreEntry, VoiceProfile, AuthorVoice, FeedbackDepth, FocusArea, WorkspaceTab } from '../../types';
 
 interface RefinePanelProps {
     draft: string;
@@ -9,25 +9,16 @@ interface RefinePanelProps {
     setIsRefining: (isRefining: boolean) => void;
     showToast: (message: string) => void;
     onNewVersion: (version: RefinedVersion) => void;
-    versionHistory: RefinedVersion[];
-    currentVersionIndex: number;
-    currentVersion: RefinedVersion;
-    setCurrentVersionIndex: (index: number) => void;
-    onShowComparison: () => void;
-    onAcceptVersion: (version: RefinedVersion) => void;
-    onUpdateVersion: (index: number, content: string) => void;
     loreEntries: LoreEntry[];
     voiceProfiles: VoiceProfile[];
     authorVoices: AuthorVoice[];
     onAddLoreEntry: (entry: LoreEntry) => void;
     onAddVoiceProfile: (profile: VoiceProfile) => void;
     onAddAuthorVoice: (voice: AuthorVoice) => void;
-    onClearVersionHistory: () => void;
-    onDeleteVersion: (id: string) => void;
-    setShowConflicts: (show: boolean) => void;
     currentSceneId: string | null;
     selection?: { text: string; start: number; end: number } | null;
     editorRef?: React.MutableRefObject<any>;
+    setActiveTab?: (tab: WorkspaceTab) => void;
 }
 
 export const RefinePanel: React.FC<RefinePanelProps> = (props) => {
@@ -39,6 +30,7 @@ export const RefinePanel: React.FC<RefinePanelProps> = (props) => {
                     getDraft={() => props.draft} 
                     selection={props.selection || null} 
                     editorRef={props.editorRef}
+                    setActiveTab={props.setActiveTab}
                 />
             </div>
         </div>

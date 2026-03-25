@@ -33,7 +33,7 @@ export function TopAppBar({ currentScreen, setCurrentScreen, versionCount = 0, s
         <div className="flex justify-between items-center w-full gap-4">
           <div className="flex items-center gap-2 md:gap-3 cursor-pointer shrink-0" onClick={() => setCurrentScreen('lore')}>
             <h1 className="font-headline text-primary italic tracking-tighter text-xl md:text-2xl whitespace-nowrap">
-              Echo <span className="hidden md:inline text-xs not-italic font-label uppercase tracking-[0.2em] text-on-surface/40 ml-2">Narrative Intelligence Suite</span>
+              Echo <span className="hidden md:inline text-xs not-italic font-label uppercase tracking-[0.2em] text-on-surface/40 ml-2">Authorial Clarity</span>
             </h1>
           </div>
 
