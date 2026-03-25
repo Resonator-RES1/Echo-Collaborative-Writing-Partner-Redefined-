@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, BookOpen, Fingerprint, Database } from 'lucide-react';
-import { LoreEntry } from '../../types';
+import { X, Save, BookOpen, Fingerprint, Database, Cpu } from 'lucide-react';
+import { LoreEntry, Gender } from '../../types';
 
 interface LoreEntryFormProps {
   onClose: () => void;
@@ -14,15 +14,22 @@ export function LoreEntryForm({ onClose, onSave, initialData, isModal = true }: 
   const [category, setCategory] = useState<LoreEntry['category']>(initialData?.category || 'World Mechanics');
   const [content, setContent] = useState(initialData?.content || '');
   const [aliases, setAliases] = useState(initialData?.aliases?.join(', ') || '');
+  const [gender, setGender] = useState<Gender>(initialData?.gender || 'unspecified');
+  const [sensoryPalette, setSensoryPalette] = useState(initialData?.sensoryPalette || '');
 
   useEffect(() => {
     setTitle(initialData?.title || '');
     setCategory(initialData?.category || 'World Mechanics');
     setContent(initialData?.content || '');
     setAliases(initialData?.aliases?.join(', ') || '');
+    setGender(initialData?.gender || 'unspecified');
+    setSensoryPalette(initialData?.sensoryPalette || '');
   }, [initialData]);
 
   const placeholders: Record<string, string> = {
+    'Characters': "Physical description, key traits, and personal history...",
+    'Locations': "Describe the atmosphere, layout, and key features...",
+    'Items': "Appearance, function, and significance...",
     'World Mechanics': "Laws of magic, physics, fundamental rules of the universe...",
     'Geography & Ecology': "Landscapes, climates, flora, fauna, and environmental systems...",
     'Societal Strata': "Class structures, political systems, cultural norms, and hierarchies...",
@@ -43,6 +50,8 @@ export function LoreEntryForm({ onClose, onSave, initialData, isModal = true }: 
       category,
       content,
       aliases: aliasList,
+      gender: category === 'Characters' ? gender : undefined,
+      sensoryPalette,
       lastModified: new Date().toISOString(),
     });
   };
@@ -93,7 +102,7 @@ export function LoreEntryForm({ onClose, onSave, initialData, isModal = true }: 
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g., The Shattered Isles"
+                placeholder={category === 'Characters' ? "Character Name (e.g. Elara Vance)" : "e.g., The Shattered Isles"}
                 className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface"
                 required
               />
@@ -107,14 +116,41 @@ export function LoreEntryForm({ onClose, onSave, initialData, isModal = true }: 
                 onChange={(e) => setCategory(e.target.value as LoreEntry['category'])}
                 className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface appearance-none"
               >
-                <option value="World Mechanics">World Mechanics</option>
-                <option value="Geography & Ecology">Geography & Ecology</option>
-                <option value="Societal Strata">Societal Strata</option>
-                <option value="Historical Context">Historical Context</option>
-                <option value="Current State">Current State</option>
+                <optgroup label="Identity (Local Guard)">
+                  <option value="Characters">Characters</option>
+                  <option value="Locations">Locations</option>
+                  <option value="Items">Items</option>
+                </optgroup>
+                <optgroup label="Engine (AI Refinement)">
+                  <option value="World Mechanics">World Mechanics</option>
+                  <option value="Geography & Ecology">Geography & Ecology</option>
+                  <option value="Societal Strata">Societal Strata</option>
+                  <option value="Historical Context">Historical Context</option>
+                  <option value="Current State">Current State</option>
+                  <option value="Other">Other</option>
+                </optgroup>
               </select>
             </div>
           </div>
+
+          {category === 'Characters' && (
+            <div className="space-y-2">
+              <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
+                Gender
+              </label>
+              <select
+                value={gender}
+                onChange={(e) => setGender(e.target.value as Gender)}
+                className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface appearance-none"
+              >
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="non-binary">Non-binary</option>
+                <option value="unspecified">Other / Neutral</option>
+              </select>
+              <p className="text-[10px] text-on-surface-variant/50 italic ml-1">Used for pronoun consistency checks.</p>
+            </div>
+          )}
 
           <div className="space-y-2">
             <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
@@ -133,10 +169,10 @@ export function LoreEntryForm({ onClose, onSave, initialData, isModal = true }: 
         {/* Section 2: World Engine */}
         <div className="space-y-4 flex-1 flex flex-col min-h-[300px]">
           <div className="flex items-center gap-2 pb-2 border-b border-outline-variant/10">
-            <Database className="w-4 h-4 text-primary" />
+            <Cpu className="w-4 h-4 text-primary" />
             <h3 className="text-sm font-headline font-bold text-on-surface uppercase tracking-wider">World Engine</h3>
             <span className="text-[10px] font-label text-on-surface-variant/60 ml-2 italic">
-              Actual facts and rules used by Echo to ensure logical consistency.
+              Advanced logic used by Echo to mirror this entry's facts and rules during refinement.
             </span>
           </div>
 
@@ -151,6 +187,20 @@ export function LoreEntryForm({ onClose, onSave, initialData, isModal = true }: 
               className="w-full flex-1 bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-none text-on-surface leading-relaxed"
               required
             />
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
+              Sensory Palette
+            </label>
+            <input 
+              type="text"
+              value={sensoryPalette}
+              onChange={(e) => setSensoryPalette(e.target.value)}
+              placeholder="e.g. ozone, cold iron, flickering shadows, damp stone"
+              className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface"
+            />
+            <p className="text-[10px] text-on-surface-variant/50 italic ml-1">Keywords Echo will weave into descriptions when 'Sensory' focus is active.</p>
           </div>
         </div>
 

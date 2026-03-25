@@ -32,9 +32,11 @@ export interface MasterVoice {
 export interface LoreEntry {
   id: string;
   title: string;
-  category: 'World Mechanics' | 'Geography & Ecology' | 'Societal Strata' | 'Historical Context' | 'Current State' | string;
+  category: 'Characters' | 'Locations' | 'Items' | 'World Mechanics' | 'Geography & Ecology' | 'Societal Strata' | 'Historical Context' | 'Current State' | 'Other';
   content: string;
   aliases?: string[];
+  gender?: Gender;
+  sensoryPalette?: string;
   lastModified: string;
   isActive?: boolean;
 }
@@ -46,6 +48,7 @@ export interface VoiceProfile {
   preview?: string;
   gender: Gender | 'other';
   archetype: string;
+  coreMotivation?: string;
   soulPattern: string;
   cognitivePatterns: string;
   speechPatterns: string;

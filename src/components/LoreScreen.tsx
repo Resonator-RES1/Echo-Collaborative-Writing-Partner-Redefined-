@@ -77,7 +77,18 @@ export function LoreScreen({ setCurrentScreen }: LoreScreenProps) {
     });
   }, [loreEntries, activeCategory, searchQuery]);
 
-  const categories = ['All', 'Characters', 'Locations', 'Items', 'Rules', 'Other'];
+  const categories = [
+    'All',
+    'Characters',
+    'Locations',
+    'Items',
+    'World Mechanics',
+    'Geography & Ecology',
+    'Societal Strata',
+    'Historical Context',
+    'Current State',
+    'Other'
+  ];
 
   return (
     <div className="flex-1 min-h-0 flex flex-col animate-in fade-in duration-700">

@@ -77,19 +77,23 @@ export const refineDraft = async (options: RefineDraftOptions): Promise<RefineDr
 
     const activeLore = loreEntries.filter(e => e.isActive);
     if (activeLore.length > 0) {
-        const systemicRules = activeLore.filter(l => l.category === 'World Mechanics' || l.category === 'Societal Strata');
-        const worldContext = activeLore.filter(l => l.category !== 'World Mechanics' && l.category !== 'Societal Strata');
+        const systemicRules = activeLore.filter(l => 
+          ['World Mechanics', 'Geography & Ecology', 'Societal Strata'].includes(l.category)
+        );
+        const worldContext = activeLore.filter(l => 
+          !['World Mechanics', 'Geography & Ecology', 'Societal Strata'].includes(l.category)
+        );
 
         preamble += '*** ACTIVE LORE (PRIMARY TRUTH) ***\n';
         
         if (systemicRules.length > 0) {
             preamble += '--- SYSTEMIC RULES (HARD CONSTRAINTS) ---\n';
-            preamble += systemicRules.map(l => `- [${l.category}] ${l.title}: ${l.content}`).join('\n') + '\n';
+            preamble += systemicRules.map(l => `- [${l.category}] ${l.title}: ${l.content} ${l.sensoryPalette ? `(Sensory: ${l.sensoryPalette})` : ''}`).join('\n') + '\n';
         }
         
         if (worldContext.length > 0) {
             preamble += '--- WORLD CONTEXT (NARRATIVE GUIDES) ---\n';
-            preamble += worldContext.map(l => `- [${l.category}] ${l.title}: ${l.content}`).join('\n') + '\n';
+            preamble += worldContext.map(l => `- [${l.category}] ${l.title}: ${l.content} ${l.sensoryPalette ? `(Sensory: ${l.sensoryPalette})` : ''}`).join('\n') + '\n';
         }
         preamble += '\n';
     }
@@ -113,6 +117,7 @@ export const refineDraft = async (options: RefineDraftOptions): Promise<RefineDr
         preamble += activeVoices.map(v => {
             const engine = [
                 `- ${v.name}:`,
+                `  Core-Motivation: ${v.coreMotivation || 'Unknown'}`,
                 `  Soul-Pattern: ${v.soulPattern}`,
                 `  Speech-Patterns: ${v.speechPatterns}`,
                 `  Idioms: ${v.idioms.join(', ')}`,

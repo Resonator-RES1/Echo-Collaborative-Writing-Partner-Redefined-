@@ -13,6 +13,7 @@ export function VoiceProfileForm({ onClose, onSave, initialData, isModal = true 
   const [name, setName] = useState(initialData?.name || '');
   const [gender, setGender] = useState<Gender | 'other'>(initialData?.gender || 'unspecified');
   const [archetype, setArchetype] = useState(initialData?.archetype || '');
+  const [coreMotivation, setCoreMotivation] = useState(initialData?.coreMotivation || '');
   const [aliases, setAliases] = useState(initialData?.aliases?.join(', ') || '');
   const [soulPattern, setSoulPattern] = useState(initialData?.soulPattern || '');
   const [cognitivePatterns, setCognitivePatterns] = useState(initialData?.cognitivePatterns || '');
@@ -20,29 +21,13 @@ export function VoiceProfileForm({ onClose, onSave, initialData, isModal = true 
   const [emotionalExpression, setEmotionalExpression] = useState(initialData?.emotionalExpression || '');
   const [behavioralAnchors, setBehavioralAnchors] = useState(initialData?.behavioralAnchors || '');
   const [conversationalRole, setConversationalRole] = useState(initialData?.conversationalRole || '');
-  const [signatureTraits, setSignatureTraits] = useState<string[]>(initialData?.signatureTraits || ['']);
-  const [idioms, setIdioms] = useState<string[]>(initialData?.idioms || ['']);
+  const [signatureTraits, setSignatureTraits] = useState(initialData?.signatureTraits?.join(', ') || '');
+  const [idioms, setIdioms] = useState(initialData?.idioms?.join(', ') || '');
   const [exampleLines, setExampleLines] = useState<string[]>(initialData?.exampleLines || ['']);
   const [physicalTells, setPhysicalTells] = useState(initialData?.physicalTells || '');
   const [internalMonologueStyle, setInternalMonologueStyle] = useState(initialData?.internalMonologueStyle || '');
   const [conflictStyle, setConflictStyle] = useState(initialData?.conflictStyle || '');
   const [preview, setPreview] = useState(initialData?.preview || '');
-
-  const handleAddSignatureTrait = () => setSignatureTraits([...signatureTraits, '']);
-  const handleRemoveSignatureTrait = (index: number) => setSignatureTraits(signatureTraits.filter((_, i) => i !== index));
-  const handleSignatureTraitChange = (index: number, value: string) => {
-    const newTraits = [...signatureTraits];
-    newTraits[index] = value;
-    setSignatureTraits(newTraits);
-  };
-
-  const handleAddIdiom = () => setIdioms([...idioms, '']);
-  const handleRemoveIdiom = (index: number) => setIdioms(idioms.filter((_, i) => i !== index));
-  const handleIdiomChange = (index: number, value: string) => {
-    const newIdioms = [...idioms];
-    newIdioms[index] = value;
-    setIdioms(newIdioms);
-  };
 
   const handleAddExampleLine = () => setExampleLines([...exampleLines, '']);
   const handleRemoveExampleLine = (index: number) => setExampleLines(exampleLines.filter((_, i) => i !== index));
@@ -61,6 +46,7 @@ export function VoiceProfileForm({ onClose, onSave, initialData, isModal = true 
       name,
       gender: gender as any,
       archetype,
+      coreMotivation,
       aliases: aliases.split(',').map(s => s.trim()).filter(Boolean),
       soulPattern,
       cognitivePatterns,
@@ -68,8 +54,8 @@ export function VoiceProfileForm({ onClose, onSave, initialData, isModal = true 
       emotionalExpression,
       behavioralAnchors,
       conversationalRole,
-      signatureTraits: signatureTraits.filter(t => t.trim()),
-      idioms: idioms.filter(i => i.trim()),
+      signatureTraits: signatureTraits.split(',').map(t => t.trim()).filter(Boolean),
+      idioms: idioms.split(',').map(i => i.trim()).filter(Boolean),
       exampleLines: exampleLines.filter(l => l.trim()),
       physicalTells,
       internalMonologueStyle,
@@ -186,6 +172,20 @@ export function VoiceProfileForm({ onClose, onSave, initialData, isModal = true 
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
+                  Core Motivation
+                </label>
+                <textarea 
+                  value={coreMotivation}
+                  onChange={(e) => setCoreMotivation(e.target.value)}
+                  placeholder="What drives this character's actions and speech? (e.g., Seeking redemption for a past failure...)"
+                  rows={2}
+                  className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface resize-none"
+                />
+                <p className="text-[10px] text-on-surface-variant/50 italic ml-1">Used by Echo to craft dialogue subtext and intent.</p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
                   Soul-Pattern (Core Voice Description)
                 </label>
                 <textarea 
@@ -200,60 +200,50 @@ export function VoiceProfileForm({ onClose, onSave, initialData, isModal = true 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">Cognitive Patterns</label>
-                  <input type="text" value={cognitivePatterns} onChange={(e) => setCognitivePatterns(e.target.value)} className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface" />
+                  <textarea 
+                    value={cognitivePatterns} 
+                    onChange={(e) => setCognitivePatterns(e.target.value)} 
+                    rows={2}
+                    className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface resize-none" 
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">Speech Patterns</label>
-                  <input type="text" value={speechPatterns} onChange={(e) => setSpeechPatterns(e.target.value)} className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface" />
+                  <textarea 
+                    value={speechPatterns} 
+                    onChange={(e) => setSpeechPatterns(e.target.value)} 
+                    rows={2}
+                    className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface resize-none" 
+                  />
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-2 text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
-                    <Brain className="w-3.5 h-3.5" />
-                    Signature Traits
-                  </label>
-                  <button type="button" onClick={handleAddSignatureTrait} className="p-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all">
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {signatureTraits.map((trait, index) => (
-                    <div key={index} className="flex gap-2">
-                      <input type="text" value={trait} onChange={(e) => handleSignatureTraitChange(index, e.target.value)} placeholder="e.g., Cynical wit" className="flex-1 bg-surface-container-highest/50 border border-outline-variant/30 rounded-xl p-3 text-sm text-on-surface focus:ring-2 focus:ring-primary/20 outline-none transition-all" />
-                      {signatureTraits.length > 1 && (
-                        <button type="button" onClick={() => handleRemoveSignatureTrait(index)} className="p-2 rounded-xl text-error hover:bg-error/10 transition-all">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
+                  <Brain className="w-3.5 h-3.5" />
+                  Signature Traits (Comma separated)
+                </label>
+                <textarea 
+                  value={signatureTraits} 
+                  onChange={(e) => setSignatureTraits(e.target.value)} 
+                  placeholder="e.g., Cynical wit, highly formal, prone to metaphor"
+                  rows={2}
+                  className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface resize-none" 
+                />
               </div>
 
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-2 text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
-                    <Quote className="w-3.5 h-3.5" />
-                    Signature Idioms
-                  </label>
-                  <button type="button" onClick={handleAddIdiom} className="p-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all">
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {idioms.map((idiom, index) => (
-                    <div key={index} className="flex gap-2">
-                      <input type="text" value={idiom} onChange={(e) => handleIdiomChange(index, e.target.value)} placeholder="e.g., 'By the Drowning Deep'" className="flex-1 bg-surface-container-highest/50 border border-outline-variant/30 rounded-xl p-3 text-sm text-on-surface focus:ring-2 focus:ring-primary/20 outline-none transition-all" />
-                      {idioms.length > 1 && (
-                        <button type="button" onClick={() => handleRemoveIdiom(index)} className="p-2 rounded-xl text-error hover:bg-error/10 transition-all">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
+                  <Quote className="w-3.5 h-3.5" />
+                  Signature Idioms (Comma separated)
+                </label>
+                <textarea 
+                  value={idioms} 
+                  onChange={(e) => setIdioms(e.target.value)} 
+                  placeholder="e.g., 'By the Drowning Deep', 'Mark my words'"
+                  rows={2}
+                  className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface resize-none" 
+                />
               </div>
 
               <div className="space-y-4">
@@ -282,22 +272,42 @@ export function VoiceProfileForm({ onClose, onSave, initialData, isModal = true 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">Conflict Style</label>
-                  <input type="text" value={conflictStyle} onChange={(e) => setConflictStyle(e.target.value)} className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface" />
+                  <textarea 
+                    value={conflictStyle} 
+                    onChange={(e) => setConflictStyle(e.target.value)} 
+                    rows={2}
+                    className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface resize-none" 
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">Conversational Role</label>
-                  <input type="text" value={conversationalRole} onChange={(e) => setConversationalRole(e.target.value)} className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface" />
+                  <textarea 
+                    value={conversationalRole} 
+                    onChange={(e) => setConversationalRole(e.target.value)} 
+                    rows={2}
+                    className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface resize-none" 
+                  />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">Physical Tells</label>
-                  <input type="text" value={physicalTells} onChange={(e) => setPhysicalTells(e.target.value)} className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface" />
+                  <textarea 
+                    value={physicalTells} 
+                    onChange={(e) => setPhysicalTells(e.target.value)} 
+                    rows={2}
+                    className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface resize-none" 
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">Internal Monologue</label>
-                  <input type="text" value={internalMonologueStyle} onChange={(e) => setInternalMonologueStyle(e.target.value)} className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface" />
+                  <textarea 
+                    value={internalMonologueStyle} 
+                    onChange={(e) => setInternalMonologueStyle(e.target.value)} 
+                    rows={2}
+                    className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface resize-none" 
+                  />
                 </div>
               </div>
             </div>
