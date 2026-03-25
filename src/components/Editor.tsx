@@ -408,6 +408,7 @@ const Editor: React.FC<EditorProps> = ({
                     onAcceptVersion={handleAcceptVersion}
                     showToast={showToast}
                     onRevertSpecificLore={handleRevertSpecificLore}
+                    setActiveTab={setActiveTab}
                   />
               )}
               {activeTab === 'report' && (
@@ -428,7 +429,7 @@ const Editor: React.FC<EditorProps> = ({
         showComparison={showComparison}
         showConflicts={showConflicts}
         showLoreRevert={showLoreRevert}
-        currentVersionText={currentVersion.text}
+        currentVersion={currentVersion}
         originalDraft={draftState.present}
         conflicts={currentVersion.conflicts || []}
         loreCorrections={currentVersion.loreCorrections || []}
@@ -437,6 +438,8 @@ const Editor: React.FC<EditorProps> = ({
         setShowLoreRevert={setShowLoreRevert}
         onRevertLore={handleRevertLore}
         onRevertSpecificLore={handleRevertSpecificLore}
+        onAcceptVersion={handleAcceptVersion}
+        setActiveTab={setActiveTab}
       />
       
       <section className={`flex-1 flex flex-col min-h-0 transition-all duration-500 ${isFocusMode && activeTab === 'draft' ? 'max-w-4xl mx-auto w-full' : ''}`}>
@@ -444,7 +447,7 @@ const Editor: React.FC<EditorProps> = ({
           
           {/* Workspace Tab Bar */}
           {(!isFocusMode || activeTab !== 'draft') && (
-              <div className="bg-surface-container-low/90 backdrop-blur-md py-2 -mx-4 px-4 lg:-mx-6 lg:px-6 mb-2 border-b border-outline-variant/10 overflow-x-auto hide-scrollbar">
+              <div className="sticky top-0 z-20 bg-surface-container-low/90 backdrop-blur-md py-2 -mx-4 px-4 lg:-mx-6 lg:px-6 mb-2 border-b border-outline-variant/10 overflow-x-auto hide-scrollbar">
                   <div className="flex items-center gap-1 sm:gap-1.5 bg-surface-container-highest/50 p-1 rounded-full w-max mx-auto border border-outline-variant/10 shadow-sm">
                       {[
                           { id: 'draft', label: 'Draft', icon: FileText },

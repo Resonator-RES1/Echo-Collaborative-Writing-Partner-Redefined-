@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Clock, Trash2, ChevronRight, History, Sparkles, Calendar, Eye, Activity, Copy, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { Clock, Trash2, ChevronRight, History, Sparkles, Calendar, Eye, Activity, Copy, CheckCircle2, ShieldCheck, BarChart3 } from 'lucide-react';
 import { RefinedVersion, LoreCorrection } from '../../types';
 import { SideBySideDiff } from './SideBySideDiff';
 import { formatReportForCopy } from '../../utils/reportFormatter';
@@ -14,6 +14,7 @@ interface ArchivePanelProps {
     onAcceptVersion?: (version: RefinedVersion) => void;
     showToast: (message: string) => void;
     onRevertSpecificLore?: (correction: LoreCorrection) => void;
+    setActiveTab: (tab: any) => void;
 }
 
 export const ArchivePanel: React.FC<ArchivePanelProps> = ({
@@ -25,7 +26,8 @@ export const ArchivePanel: React.FC<ArchivePanelProps> = ({
     onClearHistory,
     onAcceptVersion,
     showToast,
-    onRevertSpecificLore
+    onRevertSpecificLore,
+    setActiveTab
 }) => {
     const [viewMode, setViewMode] = useState<'list' | 'detail'>('list');
     const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
@@ -122,6 +124,31 @@ export const ArchivePanel: React.FC<ArchivePanelProps> = ({
                             </div>
                         </div>
                     )}
+
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+                        <button 
+                            onClick={() => {
+                                onSelectVersion(selectedIdx);
+                                setActiveTab('report');
+                            }}
+                            className="flex items-center justify-center gap-2 px-6 py-3 bg-surface-container-highest/50 rounded-full text-[11px] font-black uppercase tracking-widest text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-all border border-outline-variant/10 w-full sm:w-auto"
+                        >
+                            <BarChart3 className="w-4 h-4" />
+                            <span>See Report</span>
+                        </button>
+                        <button 
+                            onClick={() => {
+                                if (onAcceptVersion) {
+                                    onAcceptVersion(version);
+                                    setViewMode('list');
+                                }
+                            }}
+                            className="flex items-center justify-center gap-3 px-8 py-4 bg-primary text-on-primary rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-95 w-full sm:w-auto"
+                        >
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span>Accept Refined Version</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         );

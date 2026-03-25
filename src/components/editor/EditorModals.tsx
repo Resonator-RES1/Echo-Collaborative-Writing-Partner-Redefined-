@@ -8,7 +8,7 @@ interface EditorModalsProps {
     showComparison: boolean;
     showConflicts: boolean;
     showLoreRevert: boolean;
-    currentVersionText: string;
+    currentVersion: any;
     originalDraft: string;
     conflicts: LoreConflict[];
     loreCorrections: LoreCorrection[];
@@ -17,13 +17,15 @@ interface EditorModalsProps {
     setShowLoreRevert: (show: boolean) => void;
     onRevertLore: () => void;
     onRevertSpecificLore: (correction: LoreCorrection) => void;
+    onAcceptVersion: (version: any) => void;
+    setActiveTab: (tab: any) => void;
 }
 
 export const EditorModals: React.FC<EditorModalsProps> = React.memo(({
     showComparison,
     showConflicts,
     showLoreRevert,
-    currentVersionText,
+    currentVersion,
     originalDraft,
     conflicts,
     loreCorrections,
@@ -31,7 +33,9 @@ export const EditorModals: React.FC<EditorModalsProps> = React.memo(({
     setShowConflicts,
     setShowLoreRevert,
     onRevertLore,
-    onRevertSpecificLore
+    onRevertSpecificLore,
+    onAcceptVersion,
+    setActiveTab
 }) => {
     return (
         <>
@@ -40,8 +44,13 @@ export const EditorModals: React.FC<EditorModalsProps> = React.memo(({
                     isOpen={showComparison}
                     onClose={() => setShowComparison(false)}
                     original={originalDraft}
-                    polished={currentVersionText}
+                    polished={currentVersion.text}
                     onRevertLore={onRevertLore}
+                    onAccept={() => onAcceptVersion(currentVersion)}
+                    onSeeReport={() => {
+                        setActiveTab('report');
+                        setShowComparison(false);
+                    }}
                 />
             )}
             {showConflicts && (

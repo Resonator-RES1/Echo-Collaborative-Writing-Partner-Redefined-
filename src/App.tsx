@@ -182,7 +182,16 @@ export default function App() {
   }, [showToast]);
 
   const addVersion = useCallback(async (version: RefinedVersion) => {
-    setVersionHistory(prev => [version, ...prev]);
+    setVersionHistory(prev => {
+        const unaccepted = prev.filter(v => !v.isAccepted);
+        if (unaccepted.length >= 20) {
+            // Find the oldest unaccepted version (at the end of the unaccepted list)
+            const oldestUnaccepted = unaccepted[unaccepted.length - 1];
+            db.deleteEcho(oldestUnaccepted.id).catch(err => console.error("Failed to auto-delete old echo:", err));
+            return [version, ...prev.filter(v => v.id !== oldestUnaccepted.id)];
+        }
+        return [version, ...prev];
+    });
     await db.putEcho(version);
   }, []);
 
