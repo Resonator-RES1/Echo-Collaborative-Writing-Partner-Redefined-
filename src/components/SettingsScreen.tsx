@@ -1,12 +1,30 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ProjectManager } from './ProjectManager';
-import { Settings, Shield, Database, Info, LogOut } from 'lucide-react';
+import { Settings, Shield, Database, Info, LogOut, Key } from 'lucide-react';
+import * as db from '../services/dbService';
 
 interface SettingsScreenProps {
   showToast: (message: string) => void;
 }
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({ showToast }) => {
+  const [apiKey, setApiKey] = useState('');
+
+  useEffect(() => {
+    const loadApiKey = async () => {
+      const savedKey = await db.getSetting('api_key');
+      if (savedKey) setApiKey(savedKey);
+    };
+    loadApiKey();
+  }, []);
+
+  const handleApiKeyChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newKey = e.target.value;
+    setApiKey(newKey);
+    await db.putSetting('api_key', newKey);
+    showToast('API Key updated successfully.');
+  };
+
   return (
     <div className="flex flex-col h-full bg-surface overflow-y-auto">
       <div className="max-w-4xl mx-auto w-full p-6 md:p-12 space-y-12">
@@ -19,6 +37,33 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ showToast }) => 
             <p className="text-on-surface-variant">Manage your project and application preferences</p>
           </div>
         </div>
+
+        <section className="space-y-6">
+          <div className="flex items-center gap-3 border-b border-outline-variant/10 pb-2">
+            <Key className="w-5 h-5 text-primary" />
+            <h2 className="font-headline text-xl text-on-surface">API Configuration</h2>
+          </div>
+          <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl p-8 shadow-sm space-y-4">
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-on-surface-variant/60">Gemini API Key</label>
+              <div className="relative">
+                <input
+                  type="password"
+                  value={apiKey}
+                  onChange={handleApiKeyChange}
+                  placeholder="Enter your Gemini API key..."
+                  className="w-full p-4 rounded-xl bg-surface-container-highest/20 border border-outline-variant/20 focus:border-primary/50 outline-none transition-all font-mono text-sm"
+                />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-widest text-on-surface-variant/30 pointer-events-none">
+                  Project Specific
+                </div>
+              </div>
+              <p className="text-[10px] text-on-surface-variant/50 leading-relaxed">
+                Your API key is stored locally in your browser and never sent to our servers. It is used only for refinement requests.
+              </p>
+            </div>
+          </div>
+        </section>
 
         <section className="space-y-6">
           <div className="flex items-center gap-3 border-b border-outline-variant/10 pb-2">

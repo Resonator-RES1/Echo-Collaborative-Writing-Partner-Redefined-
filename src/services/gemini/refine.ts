@@ -13,6 +13,7 @@ export interface RefineDraftOptions {
   loreEntries?: LoreEntry[];
   voiceProfiles?: VoiceProfile[];
   authorVoices?: AuthorVoice[];
+  customInstruction?: string;
   chapterNumber?: number;
   previousEchoes?: RefinedVersion[];
   feedbackDepth?: FeedbackDepth;
@@ -157,6 +158,10 @@ export const refineDraft = async (options: RefineDraftOptions): Promise<RefineDr
         }
     } else {
         preamble += `\n*** PRIORITY DIRECTIVES ***\nNo specific focus areas selected. Provide a general, balanced polish.\n\n`;
+    }
+
+    if (options.customInstruction) {
+        preamble += `*** SPECIAL INSTRUCTION (USER OVERRIDE) ***\n${options.customInstruction}\n\n`;
     }
 
     const weighting = feedbackDepth === 'casual' ? '95% Voice / 5% Focus' : feedbackDepth === 'balanced' ? '80% Voice / 20% Focus' : '70% Voice / 30% Focus';

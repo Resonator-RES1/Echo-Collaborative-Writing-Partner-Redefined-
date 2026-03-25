@@ -1,4 +1,5 @@
 import { GoogleGenAI, ThinkingLevel, Type } from "@google/genai";
+import { getSetting } from "../dbService";
 
 export interface GenerationConfig {
     model: 'gemini-3.1-flash-lite-preview' | 'gemini-3.1-pro-preview' | 'gemini-3-flash-preview';
@@ -15,7 +16,9 @@ export interface AiPayload {
 }
 
 export async function callAiApi(payload: AiPayload, retryCount = 0): Promise<any> {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY 
+    const dbApiKey = await getSetting('api_key');
+    const apiKey = dbApiKey
+        || import.meta.env.VITE_GEMINI_API_KEY 
         || import.meta.env.VITE_API_KEY
         || (typeof process !== 'undefined' && process.env ? process.env.GEMINI_API_KEY : undefined)
         || (typeof process !== 'undefined' && process.env ? process.env.API_KEY : undefined);

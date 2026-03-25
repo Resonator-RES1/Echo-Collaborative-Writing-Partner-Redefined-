@@ -1,10 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, ArrowRight, BookOpen, Wand2, Mic2, BarChart3, ChevronRight, X, Download, Upload, ChevronDown, Info, Copy } from 'lucide-react';
-import { Screen, GuideCategory, GuideItem } from '../types';
+import { Sparkles, ArrowRight, BookOpen, Wand2, Mic2, BarChart3, ChevronRight, X, Download, Upload, ChevronDown, Info, Copy, Fingerprint, Cpu, Layout, Play, Zap } from 'lucide-react';
+import { Screen, GuideCategory, GuideItem, FocusArea } from '../types';
 import { GUIDE_SECTIONS } from '../constants';
 import { useProject } from '../contexts/ProjectContext';
 import { copyFullGuideToClipboard } from '../utils/guideUtils';
+import { refineDraft } from '../services/gemini/refine';
 import * as Icons from 'lucide-react';
 
 interface WelcomeScreenProps {
@@ -92,13 +93,234 @@ const GuideItemCard = ({ item }: { item: GuideItem }) => {
   );
 };
 
+const MiniMirrorReport = ({ result }: { result: any }) => {
+  if (!result || result.text?.startsWith('Error:')) return null;
+  
+  const aura = result.expressionProfile?.[0]?.vibe || 'Neutral';
+  const fidelity = result.audit?.voiceFidelityScore || 0;
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="p-5 rounded-2xl bg-primary/5 border border-primary/10 space-y-3 shadow-sm"
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-3 h-3 text-primary" />
+          <span className="text-[10px] font-black uppercase tracking-widest text-primary/60">Mirror Report</span>
+        </div>
+        <div className="flex gap-2">
+          <span className="px-2 py-0.5 rounded-full bg-primary/10 text-[9px] font-bold text-primary">Aura: {aura}</span>
+          <span className="px-2 py-0.5 rounded-full bg-primary/10 text-[9px] font-bold text-primary">Fidelity: {fidelity}/10</span>
+        </div>
+      </div>
+      <p className="text-xs text-on-surface-variant italic leading-relaxed">
+        {result.summary || "Refinement complete. Voice integrity preserved."}
+      </p>
+    </motion.div>
+  );
+};
+
+const Playground = () => {
+  const [input, setInput] = useState('The forest was nice.');
+  const [result, setResult] = useState<any>(null);
+  const [isRefining, setIsRefining] = useState(false);
+  const [preset, setPreset] = useState<FocusArea>('tone');
+
+  const presetStyles: Record<string, any> = {
+    tone: {
+      name: 'Dark & Atmospheric',
+      narrativeStyle: 'Gothic, heavy with atmosphere and shadow.',
+      proseStructure: 'Dense, layered descriptions.',
+      pacingAndRhythm: 'Slow, deliberate, building dread.',
+      vocabularyAndDiction: 'Visceral, archaic, evocative.',
+      thematicAnchors: 'Shadows, decay, the unknown.'
+    },
+    rhythm: {
+      name: 'Lyrical & Flowing',
+      narrativeStyle: 'Poetic, musical, and fluid.',
+      proseStructure: 'Long, cascading sentences with varied cadence.',
+      pacingAndRhythm: 'Melodic and rhythmic, like a song.',
+      vocabularyAndDiction: 'Soft, resonant, sensory.',
+      thematicAnchors: 'Nature, memory, light.'
+    },
+    voiceIntegrity: {
+      name: 'Clipped & Military',
+      narrativeStyle: 'Staccato, efficient, and direct.',
+      proseStructure: 'Short, punchy sentences. No fluff.',
+      pacingAndRhythm: 'Fast, urgent, mechanical.',
+      vocabularyAndDiction: 'Technical, sharp, utilitarian.',
+      thematicAnchors: 'Duty, precision, steel.'
+    }
+  };
+
+  const presets: { id: FocusArea; label: string; icon: any }[] = [
+    { id: 'tone', label: 'Dark & Atmospheric', icon: Sparkles },
+    { id: 'rhythm', label: 'Lyrical & Flowing', icon: Mic2 },
+    { id: 'voiceIntegrity', label: 'Clipped & Military', icon: Fingerprint },
+  ];
+
+  const handleRefine = async () => {
+    if (!input.trim() || isRefining) return;
+    setIsRefining(true);
+    try {
+      const res = await refineDraft({
+        draft: input,
+        focusAreas: [preset],
+        authorVoices: [{ 
+          ...presetStyles[preset], 
+          id: 'playground-preset', 
+          isActive: true, 
+          lastModified: new Date().toISOString() 
+        }],
+        customInstruction: `In this playground mode, you are encouraged to demonstrate the ${presetStyles[preset].name} style vividly. While maintaining the core intent, feel free to lean into the requested stylistic DNA to show the user how the engine transforms prose.`,
+        generationConfig: { model: 'gemini-3-flash-preview', temperature: 0.7 },
+      });
+      
+      // Clean up any potential markdown headers if they leaked through
+      if (res && res.text) {
+        res.text = res.text.replace(/^# .*\n+/, '').trim();
+      }
+      
+      setResult(res);
+    } catch (e) {
+      console.error(e);
+      setResult({ text: 'Error: Failed to connect to engine.' });
+    } finally {
+      setIsRefining(false);
+    }
+  };
+
+  return (
+    <div className="space-y-8 max-w-5xl mx-auto">
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center shadow-inner">
+            <Play className="w-6 h-6 text-primary" />
+          </div>
+          <div>
+            <h3 className="font-headline text-3xl font-light">The Playground</h3>
+            <p className="text-sm text-on-surface-variant">Test the engine in real-time. Low pressure, high fidelity.</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/60 ml-1">Input Draft</label>
+              <div className="relative">
+                <textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Paste a single sentence here..."
+                  className="w-full h-48 p-6 rounded-[2rem] bg-surface-container-highest/20 border border-outline-variant/20 focus:border-primary/50 outline-none transition-all resize-none font-body text-sm leading-relaxed"
+                />
+                <div className="absolute bottom-6 right-6 text-[9px] font-black uppercase tracking-widest text-on-surface-variant/20 pointer-events-none">
+                  Raw Prose
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/60 ml-1">Engine Presets</label>
+              <div className="flex flex-wrap gap-2">
+                {presets.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => setPreset(p.id)}
+                    className={`px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border flex items-center gap-2 ${
+                      preset === p.id 
+                        ? 'bg-primary text-on-primary border-primary shadow-lg shadow-primary/20' 
+                        : 'bg-surface-container-highest/50 text-on-surface-variant border-outline-variant/10 hover:bg-surface-container-high'
+                    }`}
+                  >
+                    <p.icon className="w-3 h-3" />
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={handleRefine}
+              disabled={isRefining || !input.trim()}
+              className="w-full py-5 rounded-2xl bg-primary text-on-primary font-label text-xs uppercase tracking-[0.2em] transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-3 shadow-xl shadow-primary/20"
+            >
+              {isRefining ? (
+                <>
+                  <Zap className="w-4 h-4 animate-pulse" />
+                  Refining...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  Test Refine
+                </>
+              )}
+            </button>
+          </div>
+
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 ml-1">Echo Output</label>
+              <div className="relative h-48 p-6 rounded-[2rem] bg-surface-container-low border border-outline-variant/10 flex flex-col shadow-inner">
+                <div className="flex-grow overflow-y-auto scrollbar-none">
+                  {result ? (
+                    <motion.p 
+                      key={result.text}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className={`text-sm leading-relaxed font-medium ${result.text?.startsWith('Error:') ? 'text-error' : 'text-on-surface italic'}`}
+                    >
+                      {result.text?.startsWith('Error:') ? result.text : (result.text ? `"${result.text}"` : '')}
+                    </motion.p>
+                  ) : (
+                    <div className="h-full flex flex-col items-center justify-center text-on-surface-variant/30 space-y-3">
+                      <div className="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center">
+                        <Sparkles className="w-6 h-6 opacity-20" />
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-widest">Awaiting Refinement</span>
+                    </div>
+                  )}
+                </div>
+                <div className="absolute bottom-6 right-6 text-[9px] font-black uppercase tracking-widest text-primary/20 pointer-events-none">
+                  Polished Result
+                </div>
+              </div>
+            </div>
+
+            <AnimatePresence>
+              {result && !result.text?.startsWith('Error:') && (
+                <MiniMirrorReport result={result} />
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
   const [showGuide, setShowGuide] = useState(false);
+  const [activeTab, setActiveTab] = useState<'handbook' | 'playground'>('handbook');
   const [activeSection, setActiveSection] = useState(GUIDE_SECTIONS[0].id);
+  const [viewMode, setViewMode] = useState<'grid' | 'detail'>('grid');
+  const [visitedSections, setVisitedSections] = useState<Set<string>>(new Set([GUIDE_SECTIONS[0].id]));
+  
   const { exportProject, importProject, isImporting } = useProject();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const activeGuideData = GUIDE_SECTIONS.find(s => s.id === activeSection) || GUIDE_SECTIONS[0];
+
+  const progress = (visitedSections.size / GUIDE_SECTIONS.length) * 100;
+
+  const handleSectionSelect = (id: string) => {
+    setActiveSection(id);
+    setViewMode('detail');
+    setVisitedSections(prev => new Set([...prev, id]));
+  };
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -227,16 +449,49 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             className="w-full max-w-6xl h-[90vh] md:h-[85vh] relative z-10 flex flex-col"
           >
-            <div className="glass-panel bg-surface-container-low rounded-none md:rounded-[2rem] border-0 md:border border-outline-variant/20 shadow-2xl flex flex-col md:flex-row h-full overflow-hidden">
-              {/* Sidebar */}
-              <div className="w-full md:w-80 flex-shrink-0 bg-surface-container-high/50 p-6 md:p-8 border-b md:border-b-0 md:border-r border-outline-variant/10 flex flex-col overflow-y-auto">
-                <div className="flex items-center justify-between mb-6 md:mb-12">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                      <BookOpen className="w-4 h-4 text-primary" />
+            <div className="glass-panel bg-surface-container-low rounded-none md:rounded-[2rem] border-0 md:border border-outline-variant/20 shadow-2xl flex flex-col h-full overflow-hidden">
+              {/* Top Navigation & Progress */}
+              <div className="flex-shrink-0 bg-surface-container-high/50 border-b border-outline-variant/10">
+                <div className="h-1 bg-surface-container-highest w-full">
+                  <motion.div 
+                    className="h-full bg-primary"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progress}%` }}
+                    transition={{ duration: 0.5 }}
+                  />
+                </div>
+                
+                <div className="px-6 md:px-8 py-4 flex items-center justify-between">
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <BookOpen className="w-4 h-4 text-primary" />
+                      </div>
+                      <h2 className="font-label text-xs uppercase tracking-[0.3em] text-primary font-black">Discovery Hub</h2>
                     </div>
-                    <h2 className="font-label text-xs uppercase tracking-[0.3em] text-primary font-black">Echo Guide</h2>
+
+                    <div className="h-4 w-px bg-outline-variant/20 hidden md:block" />
+
+                    <nav className="flex gap-1 bg-surface-container-highest/50 p-1 rounded-lg">
+                      <button
+                        onClick={() => setActiveTab('handbook')}
+                        className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${
+                          activeTab === 'handbook' ? 'bg-surface-container-low text-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'
+                        }`}
+                      >
+                        The Handbook
+                      </button>
+                      <button
+                        onClick={() => setActiveTab('playground')}
+                        className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${
+                          activeTab === 'playground' ? 'bg-surface-container-low text-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'
+                        }`}
+                      >
+                        The Playground
+                      </button>
+                    </nav>
                   </div>
+
                   <button 
                     onClick={() => setShowGuide(false)}
                     className="p-2 rounded-full hover:bg-surface-container-highest transition-colors"
@@ -244,110 +499,151 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
                     <X className="w-4 h-4" />
                   </button>
                 </div>
-
-                <nav className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-x-visible pb-4 md:pb-0 scrollbar-none">
-                  {GUIDE_SECTIONS.map((section) => {
-                    const IconComponent = (Icons as any)[section.icon] || Sparkles;
-                    return (
-                      <button
-                        key={section.id}
-                        onClick={() => setActiveSection(section.id)}
-                        className={`flex-shrink-0 md:w-full flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl transition-all group ${
-                          activeSection === section.id 
-                            ? 'bg-primary text-on-primary shadow-lg shadow-primary/20' 
-                            : 'hover:bg-surface-container-highest text-on-surface-variant'
-                        }`}
-                      >
-                        <IconComponent className={`w-4 h-4 md:w-5 md:h-5 ${activeSection === section.id ? '' : 'group-hover:scale-110 transition-transform'}`} />
-                        <span className="font-label text-[9px] md:text-[11px] uppercase tracking-widest whitespace-nowrap font-black">{section.title}</span>
-                        {activeSection === section.id && <ChevronRight className="hidden md:block w-4 h-4 ml-auto" />}
-                      </button>
-                    );
-                  })}
-                </nav>
-
-                <div className="flex flex-col gap-3 mt-auto pt-8 md:pt-12">
-                  <button
-                    onClick={() => {
-                      copyFullGuideToClipboard();
-                    }}
-                    className="w-full py-3 rounded-xl bg-surface-container-highest text-on-surface-variant border border-outline-variant/10 font-label text-[10px] uppercase tracking-widest hover:bg-primary/10 hover:text-primary transition-all font-black flex items-center justify-center gap-2"
-                  >
-                    <Copy className="w-3.5 h-3.5" />
-                    Copy Full Guide
-                  </button>
-                  <button
-                    onClick={onStart}
-                    className="w-full py-4 rounded-xl bg-primary/10 text-primary border border-primary/20 font-label text-[10px] uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-all font-black"
-                  >
-                    Start Writing
-                  </button>
-                </div>
               </div>
 
-              {/* Content Area */}
-              <div className="flex-grow p-6 md:p-12 lg:p-16 relative overflow-y-auto scroll-smooth scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+              {/* Main Content Area */}
+              <div className="flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent p-6 md:p-12">
                 <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activeSection}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.4 }}
-                    className="space-y-8 md:space-y-12 relative z-10"
-                  >
-                    <div className="space-y-4 md:space-y-6">
-                      <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-primary/10 flex items-center justify-center shadow-inner">
-                        {React.createElement((Icons as any)[activeGuideData.icon] || Sparkles, { className: "w-6 h-6 md:w-8 md:h-8 text-primary" })}
-                      </div>
-                      <div className="space-y-2">
-                        <h3 className="font-headline text-3xl md:text-5xl font-light tracking-tight">{activeGuideData.title}</h3>
-                        <div className="h-1 w-20 bg-primary/30 rounded-full" />
-                      </div>
-                      <p className="font-body text-base md:text-lg text-on-surface-variant leading-relaxed max-w-2xl italic">
-                        {activeGuideData.description}
-                      </p>
-                    </div>
+                  {activeTab === 'handbook' ? (
+                    <motion.div
+                      key="handbook"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      className="h-full"
+                    >
+                      {viewMode === 'grid' ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
+                          {GUIDE_SECTIONS.map((section, idx) => {
+                            const IconComponent = (Icons as any)[section.icon] || Sparkles;
+                            const isVisited = visitedSections.has(section.id);
+                            return (
+                              <motion.button
+                                key={section.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: idx * 0.1 }}
+                                onClick={() => handleSectionSelect(section.id)}
+                                className="group relative p-8 rounded-[2rem] bg-surface-container-highest/20 border border-outline-variant/10 hover:border-primary/30 hover:bg-surface-container-highest/40 transition-all text-left flex flex-col justify-between overflow-hidden"
+                              >
+                                <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+                                  <IconComponent className="w-32 h-32" />
+                                </div>
+                                
+                                <div className="space-y-4 relative z-10">
+                                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
+                                    isVisited ? 'bg-primary/10 text-primary' : 'bg-surface-container-highest text-on-surface-variant'
+                                  }`}>
+                                    <IconComponent className="w-6 h-6" />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <h3 className="font-headline text-2xl font-light group-hover:text-primary transition-colors">{section.title}</h3>
+                                    <p className="text-sm text-on-surface-variant leading-relaxed line-clamp-2">{section.description}</p>
+                                  </div>
+                                </div>
 
-                    <div className="space-y-8 md:space-y-12">
-                      {/* Features List */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-                        {activeGuideData.features.map((feature, idx) => (
-                          <motion.div
-                            key={idx}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: idx * 0.1 }}
-                            className="flex gap-4 p-5 md:p-6 rounded-2xl bg-surface-container-highest/30 border border-outline-variant/10 hover:border-primary/20 transition-all group"
-                          >
-                            <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0 group-hover:scale-150 transition-transform" />
-                            <p className="text-sm text-on-surface-variant leading-relaxed font-medium">{feature}</p>
-                          </motion.div>
-                        ))}
-                      </div>
+                                <div className="flex items-center justify-between mt-8 relative z-10">
+                                  <span className="text-[10px] font-black uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+                                    Begin Mastery <ArrowRight className="w-3 h-3" />
+                                  </span>
+                                  {isVisited && (
+                                    <div className="flex items-center gap-1.5 text-[9px] font-bold text-primary/60 uppercase tracking-tighter">
+                                      <Zap className="w-3 h-3" />
+                                      Mastered
+                                    </div>
+                                  )}
+                                </div>
+                              </motion.button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col lg:flex-row gap-12 h-full">
+                          {/* Left Side: Philosophy */}
+                          <div className="w-full lg:w-1/2 space-y-8">
+                            <button 
+                              onClick={() => setViewMode('grid')}
+                              className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors"
+                            >
+                              <ArrowRight className="w-3 h-3 rotate-180" />
+                              Back to Grid
+                            </button>
 
-                      {/* Categorized Content (Focus Areas etc) */}
-                      {activeGuideData.categories && (
-                        <div className="space-y-8 pt-8 border-t border-outline-variant/10">
-                          <div className="flex items-center gap-3">
-                            <Sparkles className="w-4 h-4 text-primary" />
-                            <h4 className="font-label text-xs uppercase tracking-[0.2em] text-on-surface/50 font-black">Detailed Breakdown</h4>
+                            <div className="space-y-6">
+                              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+                                {React.createElement((Icons as any)[activeGuideData.icon] || Sparkles, { className: "w-8 h-8 text-primary" })}
+                              </div>
+                              <div className="space-y-2">
+                                <h3 className="font-headline text-4xl md:text-5xl font-light tracking-tight">{activeGuideData.title}</h3>
+                                <div className="h-1 w-20 bg-primary/30 rounded-full" />
+                              </div>
+                              <p className="font-body text-lg text-on-surface-variant leading-relaxed italic">
+                                {activeGuideData.description}
+                              </p>
+                            </div>
+
+                            <div className="space-y-4">
+                              {activeGuideData.features.map((feature, idx) => (
+                                <div key={idx} className="flex gap-4 p-4 rounded-xl bg-surface-container-highest/30 border border-outline-variant/10">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+                                  <p className="text-sm text-on-surface-variant leading-relaxed font-medium">{feature}</p>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                          <div className="grid grid-cols-1 gap-6">
-                            {activeGuideData.categories.map((category, idx) => (
-                              <CollapsibleCategory key={idx} category={category} />
-                            ))}
+
+                          {/* Right Side: Interactive Example */}
+                          <div className="w-full lg:w-1/2 bg-surface-container-highest/20 rounded-[2.5rem] border border-outline-variant/10 p-8 flex flex-col shadow-inner">
+                            <div className="flex items-center gap-3 mb-8">
+                              <Layout className="w-4 h-4 text-primary" />
+                              <h4 className="font-label text-[10px] uppercase tracking-[0.2em] text-on-surface/50 font-black">Interactive Example</h4>
+                            </div>
+
+                            <div className="flex-grow space-y-8 overflow-y-auto pr-2 scrollbar-none">
+                              {activeGuideData.categories?.map((category, cIdx) => (
+                                <div key={cIdx} className="space-y-6">
+                                  <h5 className="text-[10px] font-black uppercase tracking-widest text-primary/60 border-b border-primary/10 pb-2">{category.title}</h5>
+                                  <div className="space-y-8">
+                                    {category.items.map((item, iIdx) => (
+                                      <div key={iIdx} className="space-y-4">
+                                        <div className="space-y-1">
+                                          <h6 className="text-sm font-bold text-on-surface">{item.title}</h6>
+                                          <p className="text-xs text-on-surface-variant leading-relaxed">{item.description}</p>
+                                        </div>
+                                        {item.example && (
+                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="p-5 rounded-2xl bg-surface-container-low border border-outline-variant/5 space-y-2 shadow-sm">
+                                              <span className="text-[9px] font-black uppercase tracking-tighter text-on-surface-variant/40">Draft Box</span>
+                                              <p className="text-xs italic text-on-surface-variant/70 leading-relaxed">"{item.example.before}"</p>
+                                            </div>
+                                            <div className="p-5 rounded-2xl bg-primary/5 border border-primary/10 space-y-2 shadow-sm">
+                                              <span className="text-[9px] font-black uppercase tracking-tighter text-primary/40">Refined Box</span>
+                                              <p className="text-xs font-medium text-on-surface leading-relaxed">"{item.example.after}"</p>
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       )}
-                    </div>
-                  </motion.div>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="playground"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      className="h-full"
+                    >
+                      <Playground />
+                    </motion.div>
+                  )}
                 </AnimatePresence>
-
-                {/* Decorative background for content */}
-                <div className="absolute top-1/2 right-0 -translate-y-1/2 translate-x-1/2 opacity-[0.02] pointer-events-none hidden lg:block">
-                   {React.createElement((Icons as any)[activeGuideData.icon] || Sparkles, { className: "w-96 h-96" })}
-                </div>
               </div>
             </div>
           </motion.div>
