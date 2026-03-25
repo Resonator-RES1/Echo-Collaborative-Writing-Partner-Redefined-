@@ -1,14 +1,16 @@
 import React, { useState, useMemo } from 'react';
-import { Scene, RefinedVersion, WritingGoal } from '../types';
+import { Scene, RefinedVersion, WritingGoal, Chapter } from '../types';
 import { SceneManager } from './editor/SceneManager';
 import { Book, Download, Upload, Target, CheckCircle2, Trash2, ChevronRight, ChevronDown, FileText } from 'lucide-react';
 import * as db from '../services/dbService';
 
 interface ManuscriptPanelProps {
   scenes: Scene[];
+  chapters: Chapter[];
   currentSceneId: string | null;
   setCurrentSceneId: (id: string) => void;
   setScenes: React.Dispatch<React.SetStateAction<Scene[]>>;
+  setChapters: React.Dispatch<React.SetStateAction<Chapter[]>>;
   setDraft: (draft: string) => void;
   showToast: (message: string) => void;
   versionHistory: RefinedVersion[];
@@ -18,9 +20,11 @@ interface ManuscriptPanelProps {
 
 export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
   scenes,
+  chapters,
   currentSceneId,
   setCurrentSceneId,
   setScenes,
+  setChapters,
   setDraft,
   showToast,
   versionHistory,
@@ -160,11 +164,14 @@ export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
             <div className="flex-1 overflow-y-auto p-6">
               <SceneManager 
                 scenes={scenes}
+                chapters={chapters}
                 currentSceneId={currentSceneId}
                 setCurrentSceneId={setCurrentSceneId}
                 setScenes={setScenes}
+                setChapters={setChapters}
                 setDraft={setDraft}
                 showToast={showToast}
+                versionHistory={versionHistory}
               />
             </div>
           </div>

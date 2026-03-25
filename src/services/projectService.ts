@@ -1,5 +1,5 @@
 import * as db from './dbService';
-import { LoreEntry, VoiceProfile, RefinedVersion, AuthorVoice } from '../types';
+import { LoreEntry, VoiceProfile, RefinedVersion, AuthorVoice, Scene, Chapter } from '../types';
 
 export interface ProjectData {
   name: string;
@@ -9,17 +9,21 @@ export interface ProjectData {
   voices: VoiceProfile[];
   authorVoices: AuthorVoice[];
   echoes: RefinedVersion[];
+  scenes: Scene[];
+  chapters: Chapter[];
   settings: Record<string, any>;
 }
 
 export const projectService = {
   exportProject: async (projectName: string): Promise<void> => {
-    const [lore, voices, authorVoices, echoes, settings] = await Promise.all([
+    const [lore, voices, authorVoices, echoes, scenes, settings, chapters] = await Promise.all([
       db.getLoreEntries(),
       db.getVoiceProfiles(),
       db.getAuthorVoices(),
       db.getEchoes(),
-      db.getAllSettings()
+      db.getScenes(),
+      db.getAllSettings(),
+      db.getChapters()
     ]);
 
     const projectData: ProjectData = {
@@ -30,6 +34,8 @@ export const projectService = {
       voices,
       authorVoices,
       echoes,
+      scenes,
+      chapters,
       settings
     };
 
@@ -61,6 +67,8 @@ export const projectService = {
             db.setAllVoiceProfiles(data.voices),
             db.setAllAuthorVoices(data.authorVoices || []),
             db.setAllEchoes(data.echoes),
+            db.setAllScenes(data.scenes || []),
+            db.setAllChapters(data.chapters || []),
             db.setAllSettings(data.settings || {})
           ]);
 

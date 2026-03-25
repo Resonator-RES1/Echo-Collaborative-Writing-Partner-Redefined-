@@ -340,7 +340,18 @@ const Editor: React.FC<EditorProps> = ({
                       />
                       {editorMode === 'polishing' && showDiff && (
                           <div className="mt-4 border-t border-outline-variant/20 pt-4">
-                              <SideBySideDiff original={draftState.original} polished={draftState.present} />
+                              <SideBySideDiff 
+                                  original={draftState.original} 
+                                  polished={draftState.present} 
+                                  onSeeReport={() => setActiveTab('report')}
+                                  onAcceptChanges={() => {
+                                      // In polishing mode, the changes are already in draftState.present
+                                      // We just need to save them and maybe switch back to drafting mode
+                                      setEditorMode('drafting');
+                                      setShowDiff(false);
+                                      showToast("Changes accepted and saved to draft.");
+                                  }}
+                              />
                           </div>
                       )}
                       {editorMode === 'drafting' && showRecentChanges && (
@@ -417,6 +428,7 @@ const Editor: React.FC<EditorProps> = ({
                     original={draftState.present}
                     onAccept={handleAcceptVersion}
                     onRevertLore={handleRevertLore}
+                    onRevertSpecificLore={handleRevertSpecificLore}
                   />
               )}
           </>

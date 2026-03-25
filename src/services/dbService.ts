@@ -1,5 +1,5 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
-import { LoreEntry, VoiceProfile, RefinedVersion, AuthorVoice, Scene } from '../types';
+import { LoreEntry, VoiceProfile, RefinedVersion, AuthorVoice, Scene, Chapter } from '../types';
 
 interface EchoDB extends DBSchema {
   lore: {
@@ -22,6 +22,10 @@ interface EchoDB extends DBSchema {
     key: string;
     value: Scene;
   };
+  chapters: {
+    key: string;
+    value: Chapter;
+  };
   settings: {
     key: string;
     value: any;
@@ -29,7 +33,7 @@ interface EchoDB extends DBSchema {
 }
 
 const DB_NAME = 'echo-cloud-db';
-const DB_VERSION = 4; // Bump version to add scenes
+const DB_VERSION = 5; // Bump version to add chapters
 
 let dbPromise: Promise<IDBPDatabase<EchoDB>> | null = null;
 
@@ -51,6 +55,9 @@ export const getDB = () => {
         }
         if (!db.objectStoreNames.contains('scenes')) {
           db.createObjectStore('scenes', { keyPath: 'id' });
+        }
+        if (!db.objectStoreNames.contains('chapters')) {
+          db.createObjectStore('chapters', { keyPath: 'id' });
         }
         if (!db.objectStoreNames.contains('settings')) {
           db.createObjectStore('settings');
@@ -198,6 +205,33 @@ export const setAllScenes = async (scenes: Scene[]): Promise<void> => {
   await tx.done;
 };
 
+// --- CHAPTERS ---
+export const getChapters = async (): Promise<Chapter[]> => {
+  const db = await getDB();
+  const chapters = await db.getAll('chapters');
+  return chapters.sort((a, b) => a.order - b.order);
+};
+
+export const putChapter = async (chapter: Chapter): Promise<void> => {
+  const db = await getDB();
+  await db.put('chapters', chapter);
+};
+
+export const deleteChapter = async (id: string): Promise<void> => {
+  const db = await getDB();
+  await db.delete('chapters', id);
+};
+
+export const setAllChapters = async (chapters: Chapter[]): Promise<void> => {
+  const db = await getDB();
+  const tx = db.transaction('chapters', 'readwrite');
+  await tx.store.clear();
+  for (const chapter of chapters) {
+    await tx.store.put(chapter);
+  }
+  await tx.done;
+};
+
 // --- SETTINGS ---
 export const getSetting = async (key: string): Promise<any> => {
   const db = await getDB();
@@ -237,11 +271,13 @@ export const setAllSettings = async (settings: Record<string, any>): Promise<voi
 
 export const clearProjectData = async (): Promise<void> => {
   const db = await getDB();
-  const tx = db.transaction(['lore', 'voices', 'authorVoices', 'echoes'], 'readwrite');
+  const tx = db.transaction(['lore', 'voices', 'authorVoices', 'echoes', 'scenes', 'chapters'], 'readwrite');
   await tx.objectStore('lore').clear();
   await tx.objectStore('voices').clear();
   await tx.objectStore('authorVoices').clear();
   await tx.objectStore('echoes').clear();
+  await tx.objectStore('scenes').clear();
+  await tx.objectStore('chapters').clear();
   await tx.done;
   
   // Also clear project-specific settings but keep auth/project info

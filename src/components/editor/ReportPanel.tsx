@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Activity, CheckCircle2, BarChart3, Copy, Sparkles, Check } from 'lucide-react';
-import { RefinedVersion } from '../../types';
+import { RefinedVersion, LoreCorrection } from '../../types';
 import { ReportContext } from '../report/ReportContext';
 import { ReportAudit } from '../report/ReportAudit';
 import { ReportRestraintLog } from '../report/ReportRestraintLog';
 import { ReportAnalysis } from '../report/ReportAnalysis';
 import { ReportMetrics } from '../report/ReportMetrics';
+import { ReportLoreCorrections } from '../report/ReportLoreCorrections';
 import { formatReportForCopy } from '../../utils/reportFormatter';
 
 interface ReportPanelProps {
@@ -13,13 +14,15 @@ interface ReportPanelProps {
     original: string;
     onAccept: (version: RefinedVersion) => void;
     onRevertLore: () => void;
+    onRevertSpecificLore?: (correction: LoreCorrection) => void;
 }
 
 export const ReportPanel: React.FC<ReportPanelProps> = ({
     version,
     original,
     onAccept,
-    onRevertLore
+    onRevertLore,
+    onRevertSpecificLore
 }) => {
     const [copied, setCopied] = useState(false);
 
@@ -81,17 +84,28 @@ export const ReportPanel: React.FC<ReportPanelProps> = ({
                     </button>
                 </div>
                 
-                <div className="relative p-4 sm:p-6 bg-surface-container-highest/10 rounded-2xl border border-outline-variant/5">
-                    <div className="absolute -left-1 top-4 bottom-4 w-1 bg-primary/40 rounded-full"></div>
-                    <h4 className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-primary/60 mb-2 ml-3 sm:ml-4">Executive Summary</h4>
-                    <p className="text-on-surface leading-relaxed italic pl-3 sm:pl-4 text-sm sm:text-base font-headline font-medium">
-                        {version.summary}
-                    </p>
+                <div className="relative p-6 sm:p-8 bg-amber-500/10 rounded-2xl border border-amber-500/20">
+                    <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
+                            <Sparkles className="w-6 h-6 text-amber-600" />
+                        </div>
+                        <div>
+                            <h4 className="text-amber-700 font-headline text-lg sm:text-xl font-bold mb-2">
+                                Echo's Verdict: High Fidelity Refinement.
+                            </h4>
+                            <p className="text-amber-900/80 text-sm sm:text-base leading-relaxed">
+                                Your unique voice was preserved{version.loreCorrections && version.loreCorrections.length > 0 ? `, and ${version.loreCorrections.length} lore conflicts were corrected` : ''}. Ready for review.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             {/* Detailed Report Sections */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
+                <div className="lg:col-span-2">
+                    <ReportLoreCorrections loreCorrections={version.loreCorrections} onRevertSpecificLore={onRevertSpecificLore} />
+                </div>
                 <div className="lg:col-span-2">
                     <ReportRestraintLog restraintLog={version.restraintLog} />
                 </div>

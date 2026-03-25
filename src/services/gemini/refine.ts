@@ -77,8 +77,21 @@ export const refineDraft = async (options: RefineDraftOptions): Promise<RefineDr
 
     const activeLore = loreEntries.filter(e => e.isActive);
     if (activeLore.length > 0) {
-        preamble += '*** ACTIVE LORE (PRIMARY TRUTH) ***\nUse the following lore entries for consistency and world-building. These are the primary truth:\n' +
-            activeLore.map(l => `- [${l.category}] ${l.title}: ${l.content}`).join('\n') + '\n\n';
+        const systemicRules = activeLore.filter(l => l.category === 'World Mechanics' || l.category === 'Societal Strata');
+        const worldContext = activeLore.filter(l => l.category !== 'World Mechanics' && l.category !== 'Societal Strata');
+
+        preamble += '*** ACTIVE LORE (PRIMARY TRUTH) ***\n';
+        
+        if (systemicRules.length > 0) {
+            preamble += '--- SYSTEMIC RULES (HARD CONSTRAINTS) ---\n';
+            preamble += systemicRules.map(l => `- [${l.category}] ${l.title}: ${l.content}`).join('\n') + '\n';
+        }
+        
+        if (worldContext.length > 0) {
+            preamble += '--- WORLD CONTEXT (NARRATIVE GUIDES) ---\n';
+            preamble += worldContext.map(l => `- [${l.category}] ${l.title}: ${l.content}`).join('\n') + '\n';
+        }
+        preamble += '\n';
     }
 
     const activeAuthorVoice = authorVoices.find(v => v.isActive);
@@ -94,9 +107,19 @@ export const refineDraft = async (options: RefineDraftOptions): Promise<RefineDr
 
     const activeVoices = voiceProfiles.filter(v => v.isActive);
     if (activeVoices.length > 0) {
-        preamble += '*** CHARACTER VOICE REFERENCE (DIALOGUE & BEHAVIOR) ***\n';
-        preamble += `CRITICAL: Use these patterns ONLY for character dialogue and specific character-driven actions. If a character is NOT found in the specific text snippet being refined, ignore their voice profile to save reasoning power.\n`;
-        preamble += activeVoices.map(v => `- ${v.name} (${v.archetype}): ${v.soulPattern}. Speech: ${v.speechPatterns}. Emotional Expression: ${v.emotionalExpression}`).join('\n') + '\n\n';
+        preamble += '*** CHARACTER VOICE ENGINE (STYLISTIC LOGIC) ***\n';
+        preamble += `Character Identity (Name/Gender) is already established in the draft. Use the provided Engine Profiles strictly for stylistic, rhythmic, and systemic logic refinement.\n`;
+        preamble += `CRITICAL: If a character is NOT found in the specific text snippet being refined, ignore their voice profile.\n`;
+        preamble += activeVoices.map(v => {
+            const engine = [
+                `- ${v.name}:`,
+                `  Soul-Pattern: ${v.soulPattern}`,
+                `  Speech-Patterns: ${v.speechPatterns}`,
+                `  Idioms: ${v.idioms.join(', ')}`,
+                `  Example Lines: ${v.exampleLines.join(' | ')}`
+            ].join('\n');
+            return engine;
+        }).join('\n\n') + '\n\n';
     }
 
     if (previousEchoes.length > 0) {

@@ -54,7 +54,11 @@ export const detectPotentialInconsistencies = (text: string, activeLore: LoreEnt
         
         // Check if the main name or any alias is mentioned
         const terms = [name, ...(voice.aliases || []).map(a => a.toLowerCase())];
-        const isMentioned = terms.some(term => term.trim() && lowerText.includes(term));
+        const isMentioned = terms.some(term => {
+            if (!term.trim()) return false;
+            const regex = getRegex(term);
+            return regex.test(text);
+        });
 
         if (isMentioned) {
             // Use regex with word boundaries for more robust pronoun detection
@@ -64,7 +68,7 @@ export const detectPotentialInconsistencies = (text: string, activeLore: LoreEnt
                     warnings.push({ 
                         id: `pronoun-${idSuffix}-${voice.id}`, 
                         type: 'voice', 
-                        severity: 'low', 
+                        severity: 'medium', 
                         message: `Possible pronoun mismatch for ${voice.name} (Profile: ${voice.gender}, but found '${pronoun}').`, 
                         actionable: { original: pronoun, replacement: replacement } 
                     });
@@ -74,46 +78,57 @@ export const detectPotentialInconsistencies = (text: string, activeLore: LoreEnt
             if (voice.gender === 'male') {
                 checkPronoun('she', 'he', 'she');
                 checkPronoun('her', 'his', 'her');
+                checkPronoun('hers', 'his', 'hers');
             }
             if (voice.gender === 'female') {
                 checkPronoun('he', 'she', 'he');
                 checkPronoun('him', 'her', 'him');
-                checkPronoun('his', 'hers', 'his');
+                checkPronoun('his', 'her', 'his');
             }
 
-            // Check if an alias is used instead of the main name
-            if (voice.aliases && voice.aliases.length > 0 && !lowerText.includes(name)) {
-                const usedAlias = voice.aliases.find(a => lowerText.includes(a.toLowerCase()));
-                if (usedAlias) {
-                    warnings.push({
-                        id: `alias-${voice.id}-${usedAlias}`,
-                        type: 'voice',
-                        severity: 'low',
-                        message: `Using alias "${usedAlias}" for ${voice.name}.`,
-                        actionable: { original: usedAlias, replacement: voice.name }
-                    });
-                }
+            // Check for alias usage (Info alert)
+            if (voice.aliases && voice.aliases.length > 0) {
+                voice.aliases.forEach(alias => {
+                    if (!alias.trim()) return;
+                    const regex = getRegex(alias);
+                    if (regex.test(text)) {
+                        warnings.push({
+                            id: `alias-${voice.id}-${alias}`,
+                            type: 'voice',
+                            severity: 'low',
+                            message: `Using alias "${alias}" for ${voice.name}.`,
+                            actionable: { original: alias, replacement: voice.name }
+                        });
+                    }
+                });
             }
         }
     });
 
-    // 2. Lore checks (e.g., checking if an alias is used without the main title)
+    // 2. Lore checks (e.g., checking if an alias is used)
     activeLore.forEach(lore => {
         const title = lore.title.toLowerCase();
         const terms = [title, ...(lore.aliases || []).map(a => a.toLowerCase())];
-        const isMentioned = terms.some(term => term.trim() && lowerText.includes(term));
+        const isMentioned = terms.some(term => {
+            if (!term.trim()) return false;
+            const regex = getRegex(term);
+            return regex.test(text);
+        });
 
-        if (isMentioned && lore.aliases && lore.aliases.length > 0 && !lowerText.includes(title)) {
-            const usedAlias = lore.aliases.find(a => lowerText.includes(a.toLowerCase()));
-            if (usedAlias) {
-                warnings.push({
-                    id: `alias-${lore.id}-${usedAlias}`,
-                    type: 'lore',
-                    severity: 'low',
-                    message: `Using alias "${usedAlias}" for ${lore.title}.`,
-                    actionable: { original: usedAlias, replacement: lore.title }
-                });
-            }
+        if (isMentioned && lore.aliases && lore.aliases.length > 0) {
+            lore.aliases.forEach(alias => {
+                if (!alias.trim()) return;
+                const regex = getRegex(alias);
+                if (regex.test(text)) {
+                    warnings.push({
+                        id: `alias-${lore.id}-${alias}`,
+                        type: 'lore',
+                        severity: 'low',
+                        message: `Using alias "${alias}" for ${lore.title}.`,
+                        actionable: { original: alias, replacement: lore.title }
+                    });
+                }
+            });
         }
     });
 

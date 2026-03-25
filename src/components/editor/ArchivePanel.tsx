@@ -91,7 +91,20 @@ export const ArchivePanel: React.FC<ArchivePanelProps> = ({
                                 <span className="flex items-center gap-1 text-accent-emerald/70"><span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-accent-emerald/50 rounded-full"></span> Polished</span>
                             </div>
                         </div>
-                        <SideBySideDiff original={originalDraft} polished={version.text} />
+                        <SideBySideDiff 
+                            original={originalDraft} 
+                            polished={version.text} 
+                            onSeeReport={() => {
+                                onSelectVersion(selectedIdx);
+                                setActiveTab('report');
+                            }}
+                            onAcceptChanges={() => {
+                                if (onAcceptVersion) {
+                                    onAcceptVersion(version);
+                                    setViewMode('list');
+                                }
+                            }}
+                        />
                     </div>
 
                     {version.loreCorrections && version.loreCorrections.length > 0 && (
@@ -124,31 +137,6 @@ export const ArchivePanel: React.FC<ArchivePanelProps> = ({
                             </div>
                         </div>
                     )}
-
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-                        <button 
-                            onClick={() => {
-                                onSelectVersion(selectedIdx);
-                                setActiveTab('report');
-                            }}
-                            className="flex items-center justify-center gap-2 px-6 py-3 bg-surface-container-highest/50 rounded-full text-[11px] font-black uppercase tracking-widest text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-all border border-outline-variant/10 w-full sm:w-auto"
-                        >
-                            <BarChart3 className="w-4 h-4" />
-                            <span>See Report</span>
-                        </button>
-                        <button 
-                            onClick={() => {
-                                if (onAcceptVersion) {
-                                    onAcceptVersion(version);
-                                    setViewMode('list');
-                                }
-                            }}
-                            className="flex items-center justify-center gap-3 px-8 py-4 bg-primary text-on-primary rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-95 w-full sm:w-auto"
-                        >
-                            <CheckCircle2 className="w-4 h-4" />
-                            <span>Accept Refined Version</span>
-                        </button>
-                    </div>
                 </div>
             </div>
         );

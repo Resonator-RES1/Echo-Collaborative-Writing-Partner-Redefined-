@@ -6,6 +6,18 @@ interface ReportMetricsProps {
     metrics: RefinedVersion['metrics'];
 }
 
+const getStatusLabel = (score: number) => {
+    if (score >= 9) return "Crystal Clear";
+    if (score >= 7) return "Minor Drift";
+    return "Review Required";
+};
+
+const getStatusColor = (score: number) => {
+    if (score >= 9) return "text-green-500 bg-green-500/10";
+    if (score >= 7) return "text-amber-500 bg-amber-500/10";
+    return "text-red-500 bg-red-500/10";
+};
+
 export const ReportMetrics: React.FC<ReportMetricsProps> = ({ metrics }) => {
     if (!metrics) return null;
 
@@ -25,7 +37,12 @@ export const ReportMetrics: React.FC<ReportMetricsProps> = ({ metrics }) => {
                 {Object.entries(metrics as ProseMetrics).map(([key, metric]) => (
                     <div key={key} className="space-y-2">
                         <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/50">{key.replace(/_/g, ' ')}</span>
+                            <div className="flex items-center gap-3">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/50">{key.replace(/_/g, ' ')}</span>
+                                <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${getStatusColor(metric.score)}`}>
+                                    {getStatusLabel(metric.score)}
+                                </span>
+                            </div>
                             <div className="flex items-baseline gap-1">
                                 <span className="text-xl font-headline font-black text-on-surface">{metric.score}</span>
                                 <span className="text-[10px] text-on-surface-variant/30 font-bold">/ 10</span>

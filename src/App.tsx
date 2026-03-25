@@ -13,12 +13,13 @@ import { WelcomeScreen } from './components/WelcomeScreen';
 import { ManuscriptPanel } from './components/ManuscriptPanel';
 import { SettingsScreen } from './components/SettingsScreen';
 import { GlobalSearchModal } from './components/GlobalSearchModal';
-import { Screen, RefinedVersion, Scene } from './types';
+import { Screen, RefinedVersion, Scene, Chapter } from './types';
 import * as db from './services/dbService';
 import { useLore } from './contexts/LoreContext';
 
 export default function App() {
   const [scenes, setScenes] = useState<Scene[]>([]);
+  const [chapters, setChapters] = useState<Chapter[]>([]);
   const [currentSceneId, setCurrentSceneId] = useState<string | null>(null);
   const [draft, setDraft] = useState<string>('');
   const [toast, setToast] = useState<{ message: string, id: number } | null>(null);
@@ -51,9 +52,10 @@ export default function App() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [loadedEchoes, loadedScenes] = await Promise.all([
+        const [loadedEchoes, loadedScenes, loadedChapters] = await Promise.all([
           db.getEchoes(),
-          db.getScenes()
+          db.getScenes(),
+          db.getChapters()
         ]);
         
         let firstSceneId = loadedScenes.length > 0 ? loadedScenes[0].id : null;
@@ -71,6 +73,10 @@ export default function App() {
         }
         setVersionHistory(migratedEchoes);
         
+        if (loadedChapters.length > 0) {
+            setChapters(loadedChapters);
+        }
+
         if (loadedScenes.length > 0) {
             setScenes(loadedScenes);
             setCurrentSceneId(loadedScenes[0].id);
@@ -141,8 +147,20 @@ export default function App() {
       db.setAllEchoes(updated);
       return updated;
     });
+    
+    if (currentSceneId) {
+      setScenes(prev => {
+        const updated = prev.map(s => s.id === currentSceneId ? { ...s, hasEcho: true } : s);
+        const activeScene = updated.find(s => s.id === currentSceneId);
+        if (activeScene) {
+          db.putScene(activeScene);
+        }
+        return updated;
+      });
+    }
+    
     showToast("Version accepted and stored in Manuscript.");
-  }, [showToast]);
+  }, [showToast, currentSceneId]);
 
   const deleteVersion = useCallback(async (id: string) => {
     setVersionHistory(prev => prev.filter(v => v.id !== id));
@@ -182,16 +200,22 @@ export default function App() {
   }, [showToast]);
 
   const addVersion = useCallback(async (version: RefinedVersion) => {
+    let oldestUnacceptedId: string | null = null;
+    
     setVersionHistory(prev => {
-        const unaccepted = prev.filter(v => !v.isAccepted);
-        if (unaccepted.length >= 20) {
-            // Find the oldest unaccepted version (at the end of the unaccepted list)
-            const oldestUnaccepted = unaccepted[unaccepted.length - 1];
-            db.deleteEcho(oldestUnaccepted.id).catch(err => console.error("Failed to auto-delete old echo:", err));
+        const unacceptedForScene = prev.filter(v => !v.isAccepted && v.sceneId === version.sceneId);
+        if (unacceptedForScene.length >= 21) {
+            // Find the oldest unaccepted version for this scene (at the end of the list since we prepend)
+            const oldestUnaccepted = unacceptedForScene[unacceptedForScene.length - 1];
+            oldestUnacceptedId = oldestUnaccepted.id;
             return [version, ...prev.filter(v => v.id !== oldestUnaccepted.id)];
         }
         return [version, ...prev];
     });
+
+    if (oldestUnacceptedId) {
+        await db.deleteEcho(oldestUnacceptedId).catch(err => console.error("Failed to auto-delete old echo:", err));
+    }
     await db.putEcho(version);
   }, []);
 
@@ -269,9 +293,11 @@ export default function App() {
         return (
           <ManuscriptPanel 
             scenes={scenes}
+            chapters={chapters}
             currentSceneId={currentSceneId}
             setCurrentSceneId={setCurrentSceneId}
             setScenes={setScenes}
+            setChapters={setChapters}
             setDraft={setDraft}
             showToast={showToast}
             versionHistory={versionHistory.filter(v => v.isAccepted)}

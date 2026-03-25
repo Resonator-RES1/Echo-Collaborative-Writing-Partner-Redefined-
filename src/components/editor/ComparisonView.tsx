@@ -48,7 +48,12 @@ export const ComparisonView: React.FC<ComparisonViewProps> = React.memo(({
                                     <span className="flex items-center gap-1 text-green-400"><span className="w-2 h-2 bg-green-500 rounded-full"></span> Polished</span>
                                 </div>
                             </div>
-                            <SideBySideDiff original={original} polished={polished} />
+                            <SideBySideDiff 
+                                original={original} 
+                                polished={polished} 
+                                onSeeReport={onSeeReport}
+                                onAcceptChanges={onAccept}
+                            />
                         </div>
                     </div>
                 </main>
@@ -62,18 +67,6 @@ export const ComparisonView: React.FC<ComparisonViewProps> = React.memo(({
                     </button>
                     
                     <div className="flex items-center gap-3">
-                        <button 
-                            onClick={onSeeReport}
-                            className="px-4 py-2 text-xs font-bold text-primary hover:bg-primary/10 rounded-[0.5rem] transition-colors"
-                        >
-                            See Report
-                        </button>
-                        <button 
-                            onClick={onAccept}
-                            className="px-6 py-2 text-sm font-bold bg-primary text-on-primary rounded-[0.75rem] hover:bg-primary/90 transition-all shadow-lg active:scale-95"
-                        >
-                            Accept Refined Version
-                        </button>
                         <button 
                             onClick={onClose}
                             className="px-4 py-2 text-xs font-bold text-on-surface-variant hover:text-on-surface transition-colors"

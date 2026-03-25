@@ -5,6 +5,8 @@ export type Gender = 'male' | 'female' | 'non-binary' | 'unspecified';
 export interface AuthorVoice {
   id: string;
   name: string;
+  icon?: string;
+  preview?: string;
   narrativeStyle: string;
   proseStructure: string;
   pacingAndRhythm: string;
@@ -30,7 +32,7 @@ export interface MasterVoice {
 export interface LoreEntry {
   id: string;
   title: string;
-  category: 'World Mechanics' | 'Geography & Ecology' | 'Societal Strata' | 'Historical Context' | 'Current State';
+  category: 'World Mechanics' | 'Geography & Ecology' | 'Societal Strata' | 'Historical Context' | 'Current State' | string;
   content: string;
   aliases?: string[];
   lastModified: string;
@@ -40,6 +42,8 @@ export interface LoreEntry {
 export interface VoiceProfile {
   id: string;
   name: string;
+  icon?: string;
+  preview?: string;
   gender: Gender | 'other';
   archetype: string;
   soulPattern: string;
@@ -137,12 +141,20 @@ export interface WritingGoal {
   dailyTarget?: number;
 }
 
+export interface Chapter {
+  id: string;
+  title: string;
+  order: number;
+}
+
 export interface Scene {
   id: string;
+  chapterId?: string;
   title: string;
   content: string;
   order: number;
   lastModified: string;
+  hasEcho?: boolean;
 }
 
 export type Screen = 'welcome' | 'workspace' | 'lore' | 'voices' | 'manuscript' | 'settings';

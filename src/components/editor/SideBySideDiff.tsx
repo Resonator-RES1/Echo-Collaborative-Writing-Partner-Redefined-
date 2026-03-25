@@ -2,7 +2,12 @@ import React, { useMemo } from 'react';
 import { diffWordsWithSpace } from 'diff';
 
 // --- Component ---
-export const SideBySideDiff: React.FC<{ original: string; polished: string }> = React.memo(({ original, polished }) => {
+export const SideBySideDiff: React.FC<{ 
+    original: string; 
+    polished: string;
+    onSeeReport?: () => void;
+    onAcceptChanges?: () => void;
+}> = React.memo(({ original, polished, onSeeReport, onAcceptChanges }) => {
     const diffResult = useMemo(() => {
         return diffWordsWithSpace(original, polished);
     }, [original, polished]);
@@ -32,12 +37,33 @@ export const SideBySideDiff: React.FC<{ original: string; polished: string }> = 
                     <h4 className="text-xs font-label uppercase tracking-wider text-on-surface-variant m-0">Polished Version</h4>
                 </div>
             </div>
-            <div className="flex w-full overflow-y-auto custom-scrollbar">
+            <div className="flex w-full overflow-y-auto custom-scrollbar flex-1">
                 <div className="w-1/2 p-6 whitespace-pre-wrap font-headline text-sm leading-relaxed border-r border-outline-variant/20 text-on-surface/80">
                     <p>{leftPane}</p>
                 </div>
-                <div className="w-1/2 p-6 whitespace-pre-wrap font-headline text-sm leading-relaxed text-on-surface/80">
+                <div className="w-1/2 p-6 whitespace-pre-wrap font-headline text-sm leading-relaxed text-on-surface/80 flex flex-col justify-between">
                     <p>{rightPane}</p>
+                    
+                    {(onSeeReport || onAcceptChanges) && (
+                        <div className="mt-8 pt-6 border-t border-outline-variant/20 flex flex-col sm:flex-row items-center justify-end gap-4">
+                            {onSeeReport && (
+                                <button 
+                                    onClick={onSeeReport}
+                                    className="px-6 py-2.5 rounded-full border border-outline-variant/30 text-on-surface-variant font-label text-xs uppercase tracking-widest hover:bg-surface-container-highest hover:text-primary transition-all w-full sm:w-auto text-center"
+                                >
+                                    See Editorial Report
+                                </button>
+                            )}
+                            {onAcceptChanges && (
+                                <button 
+                                    onClick={onAcceptChanges}
+                                    className="px-6 py-2.5 rounded-full bg-primary text-on-primary font-label text-xs uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 w-full sm:w-auto text-center"
+                                >
+                                    Accept These Changes
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
