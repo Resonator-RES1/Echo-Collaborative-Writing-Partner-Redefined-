@@ -2,23 +2,61 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+:root {
+  --surface: #0b1325;
+  --surface-rgb: 11, 19, 37;
+  --on-surface: #dae2fc;
+  --on-surface-rgb: 218, 226, 252;
+  --primary: #d0c0ff;
+  --primary-container: #b79fff;
+  --on-primary-fixed: #21005e;
+  --surface-container-lowest: #060e20;
+  --surface-container-low: #131b2e;
+  --surface-container: #171f32;
+  --surface-container-high: #222a3d;
+  --surface-container-highest: #2d3448;
+  --surface-container-highest-rgb: 45, 52, 72;
+  --outline-variant: #494551;
+  --tertiary: #d9cc4d;
+  --tertiary-container: #bdb033;
+  --on-surface-variant: #cac4d3;
+}
+
+.parchment {
+  --surface: #fdfaf3;
+  --surface-rgb: 253, 250, 243;
+  --on-surface: #3c3836;
+  --on-surface-rgb: 60, 56, 54;
+  --primary: #8b5e3c;
+  --primary-container: #d7ba8d;
+  --on-primary-fixed: #ffffff;
+  --surface-container-lowest: #fffcf5;
+  --surface-container-low: #f7f2e8;
+  --surface-container: #f1ebd7;
+  --surface-container-high: #e8dfc5;
+  --surface-container-highest: #dfd4b3;
+  --surface-container-highest-rgb: 223, 212, 179;
+  --outline-variant: #d5c4a1;
+  --on-surface-variant: #665c54;
+}
+
 @theme {
-  --color-surface: #0b1325;
-  --color-on-surface: #dae2fc;
-  --color-primary: #d0c0ff;
-  --color-primary-container: #b79fff;
-  --color-on-primary-fixed: #21005e;
-  --color-surface-container-lowest: #060e20;
-  --color-surface-container-low: #131b2e;
-  --color-surface-container: #171f32;
-  --color-surface-container-high: #222a3d;
-  --color-surface-container-highest: #2d3448;
-  --color-outline-variant: #494551;
-  --color-tertiary: #d9cc4d;
-  --color-tertiary-container: #bdb033;
-  --color-on-surface-variant: #cac4d3;
+  --color-surface: var(--surface);
+  --color-on-surface: var(--on-surface);
+  --color-primary: var(--primary);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary-fixed: var(--on-primary-fixed);
+  --color-surface-container-lowest: var(--surface-container-lowest);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-outline-variant: var(--outline-variant);
+  --color-tertiary: var(--tertiary);
+  --color-tertiary-container: var(--tertiary-container);
+  --color-on-surface-variant: var(--on-surface-variant);
   
-  /* Parchment Theme Variables */
+  /* Parchment Theme Variables (Static for special components) */
   --color-parchment: #f4f1ea;
   --color-parchment-ink: #2c2c2c;
   --color-parchment-border: #d4cfc3;
@@ -75,15 +113,34 @@
     background: linear-gradient(45deg, var(--color-primary), var(--color-primary-container));
   }
   
+  .prose-theme {
+    --tw-prose-body: var(--color-on-surface);
+    --tw-prose-headings: var(--color-primary);
+    --tw-prose-lead: var(--color-on-surface-variant);
+    --tw-prose-links: var(--color-primary);
+    --tw-prose-bold: var(--color-on-surface);
+    --tw-prose-counters: var(--color-on-surface-variant);
+    --tw-prose-bullets: var(--color-outline-variant);
+    --tw-prose-hr: var(--color-outline-variant);
+    --tw-prose-quotes: var(--color-on-surface-variant);
+    --tw-prose-quote-borders: var(--color-primary);
+    --tw-prose-captions: var(--color-on-surface-variant);
+    --tw-prose-code: var(--color-on-surface);
+    --tw-prose-pre-code: var(--color-on-surface);
+    --tw-prose-pre-bg: var(--color-surface-container);
+    --tw-prose-th-borders: var(--color-outline-variant);
+    --tw-prose-td-borders: var(--color-outline-variant);
+  }
+  
   .glass-panel {
     backdrop-filter: blur(12px);
-    background-color: rgba(45, 52, 72, 0.4); /* surface-container-highest with opacity */
+    background-color: var(--surface-container-low);
   }
   
   .glass-slab {
-    background: rgba(45, 52, 72, 0.4);
+    background: rgba(var(--surface-container-highest-rgb), 0.4);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(218, 226, 252, 0.15);
+    border: 1px solid rgba(var(--on-surface-rgb), 0.15);
   }
 
   .ghost-border {

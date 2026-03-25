@@ -123,7 +123,7 @@ export const ReportPanel: React.FC<ReportPanelProps> = ({
             <div className="mt-8 mb-8 flex justify-center">
                 <button 
                     onClick={() => onAccept(version)}
-                    className="flex items-center justify-center gap-3 sm:gap-4 px-6 py-4 sm:px-12 sm:py-6 bg-primary-saturated text-on-primary-saturated font-label uppercase tracking-[0.15em] sm:tracking-[0.25em] text-xs sm:text-base font-black rounded-[2rem] hover:bg-primary-saturated/90 transition-all shadow-primary-glow hover:shadow-2xl hover:-translate-y-1.5 active:translate-y-0 active:scale-95 group relative overflow-hidden text-shadow-lavender border-b-4 border-primary-saturated/30 w-full sm:w-auto"
+                    className="flex items-center justify-center gap-3 sm:gap-4 px-6 py-4 sm:px-12 sm:py-6 bg-primary text-on-primary-fixed font-label uppercase tracking-[0.15em] sm:tracking-[0.25em] text-xs sm:text-base font-black rounded-[2rem] hover:bg-primary/90 transition-all shadow-lg hover:shadow-2xl hover:-translate-y-1.5 active:translate-y-0 active:scale-95 group relative overflow-hidden border-b-4 border-primary/30 w-full sm:w-auto"
                 >
                     <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
                     <CheckCircle2 className="w-5 h-5 sm:w-7 sm:h-7 group-hover:scale-110 transition-transform" />

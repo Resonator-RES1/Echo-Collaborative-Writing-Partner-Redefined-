@@ -64,7 +64,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     },
     editorProps: {
       attributes: {
-        class: `prose prose-invert max-w-none focus:outline-none min-h-full ${className}`,
+        class: `prose prose-theme max-w-none focus:outline-none min-h-full ${className}`,
       },
     },
   });

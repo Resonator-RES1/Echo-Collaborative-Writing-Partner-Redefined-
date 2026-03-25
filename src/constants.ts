@@ -5,6 +5,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     id: 'sanctuary',
     title: 'The Sanctuary',
     icon: 'Info',
+    hideFromQuickGuide: false,
     description: 'The foundation of Echo. A space designed to protect your creative spark from the noise of generic AI.',
     features: [
       'Voice Preservation: Built to solve the problem of AI "over-polishing" and losing the author\'s unique style.',
@@ -38,9 +39,10 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   },
   {
     id: 'watcher',
-    title: 'The Silent Watcher',
+    title: 'Continuity Guard',
     icon: 'Fingerprint',
-    description: 'The Identity Guard. A local intelligence that monitors your draft for continuity without ever sending a single word to the cloud.',
+    hideFromQuickGuide: false,
+    description: 'A local intelligence that monitors your draft for continuity without ever sending a single word to the cloud.',
     features: [
       'Local Continuity: Runs entirely in your browser to protect pronouns, aliases, and gender consistency.',
       'Privacy First: Your raw drafts stay local; only surgical refinement requests reach the engine.',
@@ -49,26 +51,26 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     ],
     categories: [
       {
-        title: 'Identity Protection',
+        title: 'The Logic',
         items: [
           {
-            title: 'The Silent Watcher',
+            title: 'Continuity Guard',
             description: 'It runs locally to protect pronouns and aliases, ensuring your character\'s identity remains consistent throughout the scene.',
             example: {
               before: 'John walked in. She sat down.',
               after: 'John walked in. He sat down.'
             },
             proTips: [
-              'Pro Tip: The Watcher uses your Lore entries as its source of truth. If a name isn\'t being flagged, check your Lore.',
-              'Pro Tip: You can toggle the Watcher off in Settings if you\'re intentionally playing with shifting identities.'
+              'Pro Tip: Continuity Guard is your immediate safety net, catching errors before they reach the refinement stage.',
+              'Pro Tip: It uses your Lore entries as its source of truth. If a name isn\'t being flagged, check your Lore.'
             ]
           },
           {
-            title: 'Alias Sync',
-            description: 'Tracks nicknames and titles to ensure "The Captain" and "Marcus" are recognized as the same entity.',
+            title: 'Lore Correction Detector',
+            description: 'An AI-driven system in the Archive panel that cross-references your draft with your Lore database.',
             proTips: [
-              'Pro Tip: Add aliases in the Lore entry for a character to help the Watcher connect the dots.',
-              'Pro Tip: The Watcher is case-sensitive for names to avoid flagging common words.'
+              'Pro Tip: This system acts as a high-level auditor, ensuring your world-building remains internally consistent.',
+              'Pro Tip: Unlike Continuity Guard, this uses AI to understand complex narrative relationships.'
             ]
           }
         ]
@@ -77,82 +79,284 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   },
   {
     id: 'engine',
-    title: 'The Refinement Engine',
+    title: 'Refinement Focus',
     icon: 'Sparkles',
-    description: 'The Scalpel, not the Sledgehammer. Surgical refinement that polishes specific sentences without touching the rest of your draft.',
+    description: 'Direct the engine to prioritize specific narrative layers. Grouped here for quick reference.',
     features: [
-      'Surgical Refinement: Polish specific sentences without touching the rest of the draft, keeping the soul of your prose intact.',
-      'Focus Lenses: Direct the engine to prioritize specific narrative layers like Tone, Rhythm, or Sensory Details.',
-      'Polish Depth: Choose between Casual (light touch), Balanced (standard), or In-depth (comprehensive) layers.',
-      'Aura Analysis: Real-time feedback on the emotional and stylistic "Aura" of your refined text.'
+      'Atmosphere & Emotion: Tone, Sensory Detail, and Emotional Resonance.',
+      'Narrative & Flow: Rhythm, Structural Coherence, and Plot Logic.',
+      'Voice & Identity: Dialogue, Voice Integrity, and Mythic Weight.'
     ],
     categories: [
       {
-        title: 'Surgical Precision',
+        title: 'Atmosphere & Emotion',
         items: [
           {
-            title: 'The Scalpel',
-            description: 'Surgical Refinement allows you to polish specific sentences without touching the rest of the draft. Echo focuses its entire intelligence on that specific snippet.',
-            example: {
-              before: 'The forest was nice.',
-              after: 'The scent of damp cedar and crushed pine needles hung heavy in the mist.'
-            },
-            proTips: [
-              'Pro Tip: Select exactly what you want to change. Including too much surrounding text can dilute the focus.',
-              'Pro Tip: Use the "Mirror Report" to see how the engine interpreted your original "Aura" before accepting.'
-            ]
-          }
-        ]
-      },
-      {
-        title: 'Focus Areas (The Lenses)',
-        items: [
-          {
-            title: 'Tone & Atmosphere',
-            description: 'Clarify and reinforce the existing emotional atmosphere. Adjust diction only where the intended mood is present but obscured.',
+            title: 'The Emotional Climate',
+            description: 'Focuses on the "weather" of the scene. Combines Tone, Sensory Detail, and Resonance to create an immersive experience.',
             example: {
               before: 'The room was scary and dark. I walked in slowly.',
               after: 'Shadows pooled in the corners like spilled ink. Every step felt like a trespass.'
             },
             proTips: [
-              'Pro Tip: Echo analyzes your sentence length distribution to ensure the refined version doesn\'t "smooth out" intentional staccato pacing.',
-              'Pro Tip: If the tone feels off, check if you have a conflicting "Author Voice" active in the sidebar.'
+              'Pro Tip: Use this when you want to "show" the mood rather than "tell" the reader how to feel.'
             ]
-          },
+          }
+        ]
+      },
+      {
+        title: 'Narrative & Flow',
+        items: [
           {
-            title: 'Rhythm & Pacing',
-            description: 'Refine sentence flow to better express the author’s natural cadence. Break or restructure only where rhythm disrupts clarity.',
+            title: 'The Prose Heartbeat',
+            description: 'Focuses on the rhythm and logic of your writing. Combines Rhythm, Structure, and Plot to ensure a smooth, coherent journey.',
             example: {
               before: 'He ran. He was fast. He didn\'t stop.',
               after: 'He ran—a blur of desperate motion that refused to yield.'
             },
             proTips: [
-              'Pro Tip: Use this lens when a scene feels "clunky" but the words themselves are correct.',
-              'Pro Tip: Echo preserves intentional fragments when Rhythm is the primary focus.'
+              'Pro Tip: Use this to break up monotonous sentence structures and fix "choppy" transitions.'
             ]
-          },
+          }
+        ]
+      },
+      {
+        title: 'Voice & Identity',
+        items: [
+          {
+            title: 'The Character Soul',
+            description: 'Focuses on the unique linguistic DNA of your characters. Combines Dialogue, Integrity, and Mythic Weight.',
+            example: {
+              before: '"I am very angry with you," the pirate said.',
+              after: '"Ye\'ve crossed a line I don\'t let men cross twice," he growled.'
+            },
+            proTips: [
+              'Pro Tip: Ensure your Voice Profiles are active to get the most out of this focus area.'
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'focus-tone',
+    title: 'Focus: Tone & Atmosphere',
+    icon: 'Cloud',
+    hideFromQuickGuide: true,
+    description: 'Theory: Atmosphere is the "weather" of a scene. This lens reinforces the emotional climate by adjusting diction and sensory emphasis.',
+    categories: [
+      {
+        title: 'Deep Dive',
+        items: [
+          {
+            title: 'Tone & Atmosphere',
+            description: 'Reinforces the emotional climate by adjusting diction and sensory emphasis to match the intended mood.',
+            example: {
+              before: 'The room was scary and dark. I walked in slowly.',
+              after: 'Shadows pooled in the corners like spilled ink. Every step felt like a trespass.'
+            },
+            proTips: [
+              'Pro Tip: Echo analyzes your sentence length distribution to ensure the refined version doesn\'t "smooth out" intentional staccato pacing.'
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'focus-sensory',
+    title: 'Focus: Sensory Detail',
+    icon: 'Eye',
+    hideFromQuickGuide: true,
+    description: 'Theory: Show, don\'t tell. This lens amplifies sensory details already present or implied, converting abstract adjectives into concrete nouns.',
+    categories: [
+      {
+        title: 'Deep Dive',
+        items: [
           {
             title: 'Sensory Detail',
-            description: 'Amplify sensory details only where they are already present or implied. Do not add new sensory dimensions that alter the stylistic baseline.',
+            description: 'Amplifies sensory details already present or implied, converting abstract adjectives into concrete nouns and visceral verbs.',
             example: {
               before: 'The kitchen smelled like bread.',
               after: 'The air was thick with the yeasty warmth of rising dough and the sharp tang of cooling iron.'
             },
             proTips: [
-              'Pro Tip: This lens works best when paired with a Sensory Palette in Lore.',
-              'Pro Tip: It focuses on "Show, Don\'t Tell" by converting abstract adjectives into concrete nouns.'
+              'Pro Tip: This lens works best when you have a "Geography & Ecology" entry active in your context.'
             ]
-          },
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'focus-emotion',
+    title: 'Focus: Emotional Resonance',
+    icon: 'Heart',
+    hideFromQuickGuide: true,
+    description: 'Theory: Emotion is felt in the gaps. This lens focuses on the subtext of a scene, ensuring internal states are reflected externally.',
+    categories: [
+      {
+        title: 'Deep Dive',
+        items: [
+          {
+            title: 'Emotional Resonance',
+            description: 'Focuses on the subtext of a scene, ensuring that the internal state of the character is reflected in their external observations.',
+            example: {
+              before: 'She was sad as she looked at the old photo.',
+              after: 'The edges of the photograph were frayed, much like the memory it held—a ghost of a smile she could no longer quite reach.'
+            },
+            proTips: [
+              'Pro Tip: Pair this with "Core Motivation" in a Voice Profile to drive deeper subtext.'
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'focus-rhythm',
+    title: 'Focus: Rhythm & Pacing',
+    icon: 'Activity',
+    hideFromQuickGuide: true,
+    description: 'Theory: Prose has a heartbeat. This lens refines sentence flow to better express the author’s natural cadence.',
+    categories: [
+      {
+        title: 'Deep Dive',
+        items: [
+          {
+            title: 'Rhythm & Pacing',
+            description: 'Refines sentence flow to better express the author’s natural cadence, breaking or restructuring only where rhythm disrupts clarity.',
+            example: {
+              before: 'He ran. He was fast. He didn\'t stop.',
+              after: 'He ran—a blur of desperate motion that refused to yield.'
+            },
+            proTips: [
+              'Pro Tip: Use the Rhythm lens to break up "monotonous prose" where every sentence is the same length.'
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'focus-structural',
+    title: 'Focus: Structural Coherence',
+    icon: 'Layout',
+    hideFromQuickGuide: true,
+    description: 'Theory: The whole is greater than the sum of its parts. This lens looks at paragraph structure and transitions.',
+    categories: [
+      {
+        title: 'Deep Dive',
+        items: [
+          {
+            title: 'Structural Coherence',
+            description: 'Looks at paragraph structure and transitions, ensuring that ideas flow logically from one to the next.',
+            example: {
+              before: 'The battle was over. Then they went home. It was raining.',
+              after: 'As the last echoes of the battle faded into the mud, the sky finally broke, weeping a cold rain over the long march home.'
+            },
+            proTips: [
+              'Pro Tip: Use this when a scene feels "choppy" or the transitions between ideas feel forced.'
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'focus-plot',
+    title: 'Focus: Plot & Narrative Logic',
+    icon: 'GitBranch',
+    hideFromQuickGuide: true,
+    description: 'Theory: Causality is the engine of story. This lens ensures that actions and reactions follow a logical sequence.',
+    categories: [
+      {
+        title: 'Deep Dive',
+        items: [
+          {
+            title: 'Plot & Narrative Logic',
+            description: 'Ensures that actions and reactions follow a logical sequence and that world-building constraints are respected.',
+            example: {
+              before: 'He used his magic to fly away even though he was out of mana.',
+              after: 'He reached for the spark of magic, but found only the cold ash of exhaustion. He would have to run.'
+            },
+            proTips: [
+              'Pro Tip: This lens is heavily dependent on your "World Mechanics" Lore entries.'
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'focus-dialogue',
+    title: 'Focus: Dialogue Authenticity',
+    icon: 'MessageSquare',
+    hideFromQuickGuide: true,
+    description: 'Theory: Speech is character. This lens refines dialogue to match the specific "Soul Pattern" of the active character.',
+    categories: [
+      {
+        title: 'Deep Dive',
+        items: [
+          {
+            title: 'Dialogue Authenticity',
+            description: 'Refines dialogue to match the specific "Soul Pattern" and "Speech Patterns" of the active character voice.',
+            example: {
+              before: '"I am very angry with you," the pirate said.',
+              after: '"Ye\'ve crossed a line I don\'t let men cross twice," he growled, hand hovering over the hilt of his cutlass.'
+            },
+            proTips: [
+              'Pro Tip: Ensure you have the correct Character Voice active before using this lens.'
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'focus-integrity',
+    title: 'Focus: Voice Integrity',
+    icon: 'ShieldCheck',
+    hideFromQuickGuide: true,
+    description: 'Theory: The author\'s voice is sacred. This lens acts as a "Silent Watcher" for style, ensuring refinements don\'t drift into generic AI territory.',
+    categories: [
+      {
+        title: 'Deep Dive',
+        items: [
           {
             title: 'Voice Integrity',
-            description: 'The "Silent Watcher." This lens ensures that the engine does not drift into generic AI prose, strictly preserving your unique linguistic fingerprints.',
+            description: 'Ensures that refinements don\'t drift into generic AI territory, prioritizing your specific sentence structures.',
             example: {
               before: 'I was really happy that I finally got to see the ocean for the first time in my life.',
               after: 'The ocean, at last. A vast, salt-heavy promise finally kept.'
             },
             proTips: [
-              'Pro Tip: Use this when you feel the engine is making your writing sound too "perfect" or "robotic".',
-              'Pro Tip: It prioritizes your specific sentence structures over "standard" grammar rules.'
+              'Pro Tip: Use this when you feel the engine is making your writing sound too "perfect" or "robotic".'
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'focus-mythic',
+    title: 'Focus: Mythic Weight',
+    icon: 'Crown',
+    hideFromQuickGuide: true,
+    description: 'Theory: Every story is a myth in the making. This lens elevates the prose to a more timeless, archetypal level.',
+    categories: [
+      {
+        title: 'Deep Dive',
+        items: [
+          {
+            title: 'Mythic Weight',
+            description: 'Elevates the prose to a more timeless, archetypal level, focusing on thematic resonance and symbolic depth.',
+            example: {
+              before: 'The king was old and dying.',
+              after: 'The crown sat heavy on a brow etched with the history of a thousand battles, a golden cage for a fading sun.'
+            },
+            proTips: [
+              'Pro Tip: Use this for "Hero Moments" or pivotal thematic turning points.'
             ]
           }
         ]
@@ -165,6 +369,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     icon: 'Brain',
     description: 'Choose the brain that powers your refinement. Different tasks require different levels of cognitive depth.',
     features: [
+      'Gemini Flash Lite: The fastest model, perfect for high-volume surface-level checks and simple rhythmic flow.',
       'Gemini Flash: Optimized for speed and efficiency. Best for quick polishes and dialogue tweaks.',
       'Gemini Pro: Deep reasoning and complex narrative understanding. Best for structural shifts and thematic depth.',
       'Model Switching: Toggle between models instantly based on the complexity of the current selection.'
@@ -173,6 +378,18 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       {
         title: 'The Brains',
         items: [
+          {
+            title: 'Gemini Flash Lite (The Scout)',
+            description: 'Flash Lite is the most efficient model. It excels at identifying surface-level inconsistencies and providing rapid, low-cost feedback on basic prose flow.',
+            example: {
+              before: "He go to the store. He buy milk.",
+              after: "He went to the store. He bought milk."
+            },
+            proTips: [
+              'Pro Tip: Use Flash Lite for the Watcher\'s real-time checks and initial drafting passes.',
+              'Pro Tip: It is the best choice when you want the absolute minimum latency.'
+            ]
+          },
           {
             title: 'Gemini Flash (The Sprinter)',
             description: 'Flash is built for low-latency, high-speed refinement. It excels at maintaining surface-level style and fixing rhythmic clunks.',
@@ -259,6 +476,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     id: 'soul',
     title: 'The World Soul',
     icon: 'BookOpen',
+    hideFromQuickGuide: false,
     description: 'The Advanced Layer. Inject the DNA of your world mechanics and character psyches into every refinement.',
     features: [
       'Sensory Palettes: Define the "DNA of a location" (scents, sounds, textures) to be injected into descriptions.',
@@ -297,14 +515,82 @@ export const GUIDE_SECTIONS: GuideSection[] = [
         ]
       }
     ]
+  },
+  {
+    id: 'workspace',
+    title: 'Workspace & Interface',
+    icon: 'Monitor',
+    hideFromQuickGuide: true,
+    description: 'A deep dive into the Echo cockpit. Understanding the layout and how to navigate the creative environment.',
+    categories: [
+      {
+        title: 'The Logic',
+        items: [
+          {
+            title: 'The Workspace Panels',
+            description: 'Lore, Manuscript, Workspace, Voices, Settings, Home. Each serves a specific cognitive function.',
+            proTips: ['The Workspace panel is the engine of refinement, while Lore and Voices provide the necessary context.']
+          },
+          {
+            title: 'Workspace Tabs',
+            description: 'Draft, Context, Refine, Archive, Report. A linear progression from raw thought to polished output.',
+            proTips: ['Use the Report tab to analyze your progress and ensure voice consistency.']
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'settings-guide',
+    title: 'Settings & Configuration',
+    icon: 'Settings',
+    hideFromQuickGuide: true,
+    description: 'Customizing Echo to fit your workflow. From API keys to visual themes.',
+    categories: [
+      {
+        title: 'The Logic',
+        items: [
+          {
+            title: 'API Management',
+            description: 'Echo requires a Gemini API key to power its refinement engine. You can manage your keys in the Settings panel.',
+            proTips: ['Keep your API keys secure; they are the fuel for the refinement engine.']
+          },
+          {
+            title: 'Visual Themes',
+            description: 'Midnight Lavender and Parchment. Minimalist palettes designed for long-form focus.',
+            proTips: ['Midnight Lavender reduces eye strain during late-night sessions, while Parchment mimics the tactile feel of paper.']
+          },
+          {
+            title: 'Data Portability',
+            description: 'Export your full project data (Drafts, Lore, Voices) as a JSON file for backup or to move between devices.',
+            proTips: ['Regular exports are recommended to ensure your creative DNA is never lost.']
+          }
+        ]
+      }
+    ]
   }
 ];
 
 export const ECHO_MANUAL_CONTENT = [
   {
-    feature: 'The Silent Watcher (Identity Guard)',
+    feature: 'The Workspace Panels',
+    philosophy: 'A writer needs a cockpit, not just a page. Each panel represents a different cognitive layer of the creative process.',
+    technicalConstraints: 'Lore, Manuscript, Workspace, Voices, Settings, Home.'
+  },
+  {
+    feature: 'Workspace Tabs',
+    philosophy: 'Refinement is a process of distillation. The tabs guide you through each stage of that distillation.',
+    technicalConstraints: 'Draft, Context, Refine, Archive, Report.'
+  },
+  {
+    feature: 'Continuity Guard',
     philosophy: 'Privacy and continuity are the bedrock of trust. By running locally, we ensure your most raw, unpolished thoughts never leave your machine until you are ready.',
     technicalConstraints: 'Operates on a regex-based local engine. Limited to pattern matching for names, pronouns, and explicit aliases. Does not "understand" subtext, only surface-level consistency.'
+  },
+  {
+    feature: 'Lore Correction Detector',
+    philosophy: 'High-level auditing of world-building integrity.',
+    technicalConstraints: 'AI-driven, Archive-based, cross-references Lore database.'
   },
   {
     feature: 'Surgical Refinement',
@@ -325,6 +611,11 @@ export const ECHO_MANUAL_CONTENT = [
     feature: 'Mirror Reports',
     philosophy: 'Feedback should be objective, not judgmental. Mirror reports provide a neutral interpretation of your writing, helping you see your work through fresh eyes.',
     technicalConstraints: 'Scores are relative to the "Author Voice" DNA. A low score doesn\'t mean "bad writing," it means "low alignment" with the established style.'
+  },
+  {
+    feature: 'Settings & Configuration',
+    philosophy: 'The tool should adapt to the writer, not the other way around.',
+    technicalConstraints: 'Manage API keys, toggle Continuity Guard, adjust UI themes (Midnight Lavender, Parchment), and export/import full project data.'
   }
 ];
 

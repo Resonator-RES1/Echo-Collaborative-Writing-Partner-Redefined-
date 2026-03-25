@@ -52,6 +52,14 @@ export default function App() {
   useEffect(() => {
     const loadData = async () => {
       try {
+        // Load theme first to prevent flash
+        const savedTheme = await db.getSetting('app_theme');
+        if (savedTheme === 'parchment') {
+          document.documentElement.classList.add('parchment');
+        } else {
+          document.documentElement.classList.remove('parchment');
+        }
+
         const [loadedEchoes, loadedScenes, loadedChapters] = await Promise.all([
           db.getEchoes(),
           db.getScenes(),
@@ -150,7 +158,7 @@ export default function App() {
     
     if (currentSceneId) {
       setScenes(prev => {
-        const updated = prev.map(s => s.id === currentSceneId ? { ...s, hasEcho: true } : s);
+        const updated = prev.map(s => s.id === currentSceneId ? { ...s, content: version.text, hasEcho: true, lastModified: new Date().toISOString() } : s);
         const activeScene = updated.find(s => s.id === currentSceneId);
         if (activeScene) {
           db.putScene(activeScene);

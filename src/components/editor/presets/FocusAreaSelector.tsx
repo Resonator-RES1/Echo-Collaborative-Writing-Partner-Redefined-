@@ -49,15 +49,15 @@ const FocusAreaButton: React.FC<FocusAreaButtonProps> = React.memo(({ opt, isSel
         onClick={onClick} 
         title={opt.title} 
         className={`
-            flex items-center justify-center gap-3 p-4 text-[10px] font-label uppercase tracking-[0.15em] font-black rounded-2xl border transition-all duration-300 relative group overflow-hidden
+            flex items-center justify-center gap-3 p-4 text-[10px] font-label uppercase tracking-[0.15em] font-black rounded-2xl border-2 transition-all duration-300 relative group overflow-hidden
             ${isSelected 
-                ? 'bg-primary text-on-primary-fixed border-primary shadow-lg scale-[1.02] z-10' 
+                ? 'bg-primary text-on-primary-fixed border-primary shadow-xl scale-[1.05] z-10 ring-2 ring-primary/30 ring-offset-2 ring-offset-surface-container-low' 
                 : 'bg-surface-container-highest/20 border-outline-variant/10 text-on-surface-variant hover:bg-surface-container-highest/40 hover:border-outline-variant/30 hover:text-on-surface'
             }
         `}
     >
         {isSelected && (
-            <div className="absolute inset-0 bg-white/10 animate-pulse" />
+            <div className="absolute inset-0 bg-white/20 animate-pulse" />
         )}
         <span className={`transition-transform duration-300 group-hover:scale-110 ${isSelected ? 'text-on-primary-fixed' : 'text-primary'}`}>
             {opt.icon}

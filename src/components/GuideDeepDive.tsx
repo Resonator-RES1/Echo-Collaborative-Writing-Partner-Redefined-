@@ -14,30 +14,28 @@ import {
 } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { GUIDE_SECTIONS, ECHO_MANUAL_CONTENT } from '../constants';
+import { copyFullGuideToClipboard } from '../utils/guideUtils';
 
 export const GuideDeepDive: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>('introduction');
+  const [searchQuery, setSearchQuery] = useState('');
   const [copied, setCopied] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const copyFullCodex = () => {
-    const sections = GUIDE_SECTIONS.map(s => {
-      const categories = s.categories.map(c => {
-        const items = c.items.map(i => {
-          return `### ${i.title}\n${i.description}\n\nExample:\nBefore: ${i.example?.before || 'N/A'}\nAfter: ${i.example?.after || 'N/A'}\n\nPro Tips:\n${i.proTips?.join('\n') || 'N/A'}`;
-        }).join('\n\n');
-        return `## ${c.title}\n${items}`;
-      }).join('\n\n');
-      return `# ${s.title}\n${s.description}\n\n${categories}`;
-    }).join('\n\n---\n\n');
+  const filteredSections = GUIDE_SECTIONS.filter(section => 
+    section.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    section.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    section.categories.some(cat => 
+      cat.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      cat.items.some(item => 
+        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.description.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    )
+  );
 
-    const manual = ECHO_MANUAL_CONTENT.map(m => {
-      return `### ${m.feature}\nPhilosophy: ${m.philosophy}\nConstraints: ${m.technicalConstraints}`;
-    }).join('\n\n');
-
-    const fullText = `ECHO CODEX\n\n${sections}\n\n---\n\nTHE MANUAL\n\n${manual}`;
-    
-    navigator.clipboard.writeText(fullText);
+  const handleCopy = () => {
+    copyFullGuideToClipboard();
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -45,7 +43,14 @@ export const GuideDeepDive: React.FC = () => {
   const scrollToSection = (id: string) => {
     const element = document.getElementById(`section-${id}`);
     if (element && scrollContainerRef.current) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const containerTop = scrollContainerRef.current.getBoundingClientRect().top;
+      const elementTop = element.getBoundingClientRect().top;
+      const scrollPos = elementTop - containerTop + scrollContainerRef.current.scrollTop;
+      
+      scrollContainerRef.current.scrollTo({
+        top: scrollPos - 20,
+        behavior: 'smooth'
+      });
       setActiveSection(id);
     }
   };
@@ -60,26 +65,38 @@ export const GuideDeepDive: React.FC = () => {
           }
         });
       },
-      { threshold: 0.5, root: scrollContainerRef.current }
+      { threshold: 0.2, root: scrollContainerRef.current }
     );
 
     const sections = document.querySelectorAll('[id^="section-"]');
     sections.forEach((section) => observer.observe(section));
 
     return () => observer.disconnect();
-  }, []);
+  }, [searchQuery]);
 
   return (
-    <div className="flex h-full bg-surface-container-lowest text-on-surface overflow-hidden font-body selection:bg-primary/30 selection:text-primary">
+    <div className="flex h-full bg-surface-container-low text-on-surface overflow-hidden font-body selection:bg-primary/30 selection:text-primary">
       {/* Sidebar */}
-      <aside className="w-64 border-r border-outline-variant/10 flex flex-col h-full bg-surface-container-low z-10">
-        <div className="p-6 border-b border-outline-variant/10">
-          <div className="flex items-center gap-2 mb-4">
+      <aside className="w-72 border-r border-outline-variant/10 flex flex-col h-full bg-surface-container-high/30 z-10">
+        <div className="p-6 space-y-4 border-b border-outline-variant/10">
+          <div className="flex items-center gap-2">
             <Scroll className="w-5 h-5 text-primary" />
             <h2 className="text-xl font-headline font-light tracking-tight uppercase">The Codex</h2>
           </div>
+          
+          <div className="relative">
+            <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/40" />
+            <input 
+              type="text"
+              placeholder="Search the manual..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-surface-container-highest/30 border border-outline-variant/10 rounded-lg pl-9 pr-4 py-2 text-[10px] font-label uppercase tracking-widest focus:outline-none focus:border-primary/30 transition-colors"
+            />
+          </div>
+
           <button
-            onClick={copyFullCodex}
+            onClick={handleCopy}
             className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-primary text-on-primary rounded-xl text-[10px] font-black hover:opacity-90 transition-opacity uppercase tracking-widest shadow-lg shadow-primary/20"
           >
             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -91,11 +108,11 @@ export const GuideDeepDive: React.FC = () => {
           <div>
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60 mb-4 px-2">Focus Areas</h3>
             <ul className="space-y-1">
-              {GUIDE_SECTIONS.map((section) => (
+              {filteredSections.map((section) => (
                 <li key={section.id}>
                   <button
                     onClick={() => scrollToSection(section.id)}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-colors flex items-center gap-2 ${
+                    className={`w-full text-left px-3 py-2 rounded-lg text-[10px] uppercase tracking-widest transition-all flex items-center gap-2 ${
                       activeSection === section.id 
                         ? 'bg-primary/10 text-primary font-bold' 
                         : 'text-on-surface-variant hover:bg-surface-container-highest/50'
@@ -115,7 +132,7 @@ export const GuideDeepDive: React.FC = () => {
               <li>
                 <button
                   onClick={() => scrollToSection('manual')}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-colors flex items-center gap-2 ${
+                  className={`w-full text-left px-3 py-2 rounded-lg text-[10px] uppercase tracking-widest transition-all flex items-center gap-2 ${
                     activeSection === 'manual' 
                       ? 'bg-primary/10 text-primary font-bold' 
                       : 'text-on-surface-variant hover:bg-surface-container-highest/50'
@@ -133,7 +150,7 @@ export const GuideDeepDive: React.FC = () => {
       {/* Content Area */}
       <main 
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto p-12 scroll-smooth bg-surface-container-lowest relative"
+        className="flex-1 overflow-y-auto p-12 scroll-smooth bg-surface-container-low relative"
       >
         <div className="max-w-3xl mx-auto space-y-24 pb-32 relative z-10">
           {/* Introduction */}
@@ -152,7 +169,7 @@ export const GuideDeepDive: React.FC = () => {
           </section>
 
           {/* Focus Areas */}
-          {GUIDE_SECTIONS.map((section) => {
+          {filteredSections.map((section) => {
             const IconComponent = (Icons as any)[section.icon] || Sparkles;
             return (
               <section key={section.id} id={`section-${section.id}`} className="space-y-12">
@@ -302,11 +319,11 @@ export const GuideDeepDive: React.FC = () => {
           background: transparent;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(157, 122, 255, 0.2);
+          background: rgba(208, 192, 255, 0.2);
           border-radius: 2px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(157, 122, 255, 0.4);
+          background: rgba(208, 192, 255, 0.4);
         }
       `}} />
     </div>

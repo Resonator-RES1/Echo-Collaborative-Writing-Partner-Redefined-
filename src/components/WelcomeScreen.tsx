@@ -451,7 +451,7 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             className="w-full max-w-6xl h-[90vh] md:h-[85vh] relative z-10 flex flex-col"
           >
-            <div className="glass-panel bg-surface-container-low rounded-none md:rounded-[2rem] border-0 md:border border-outline-variant/20 shadow-2xl flex flex-col h-full overflow-hidden">
+            <div className="glass-panel rounded-none md:rounded-[2rem] border-0 md:border border-outline-variant/20 shadow-2xl flex flex-col h-full overflow-hidden">
               {/* Top Navigation & Progress */}
               <div className="flex-shrink-0 bg-surface-container-high/50 border-b border-outline-variant/10">
                 <div className="h-1 bg-surface-container-highest w-full">
@@ -515,16 +515,16 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
               <div className={`flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent ${activeTab === 'codex' ? 'p-0' : 'p-6 md:p-12'}`}>
                 <AnimatePresence mode="wait">
                   {activeTab === 'handbook' ? (
-                    <motion.div
-                      key="handbook"
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 20 }}
-                      className="h-full"
-                    >
+                      <motion.div
+                        key="handbook"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        className="w-full"
+                      >
                       {viewMode === 'grid' ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
-                          {GUIDE_SECTIONS.map((section, idx) => {
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {GUIDE_SECTIONS.filter(s => !s.hideFromQuickGuide).map((section, idx) => {
                             const IconComponent = (Icons as any)[section.icon] || Sparkles;
                             const isVisited = visitedSections.has(section.id);
                             return (
@@ -534,7 +534,7 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: idx * 0.1 }}
                                 onClick={() => handleSectionSelect(section.id)}
-                                className="group relative p-8 rounded-[2rem] bg-surface-container-highest/20 border border-outline-variant/10 hover:border-primary/30 hover:bg-surface-container-highest/40 transition-all text-left flex flex-col justify-between overflow-hidden"
+                                className="group relative p-8 rounded-[2rem] bg-surface-container-highest/20 border border-outline-variant/10 hover:border-primary/30 hover:bg-surface-container-highest/40 transition-all text-left flex flex-col justify-between overflow-hidden min-h-[280px]"
                               >
                                 <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
                                   <IconComponent className="w-32 h-32" />
@@ -548,7 +548,7 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
                                   </div>
                                   <div className="space-y-1">
                                     <h3 className="font-headline text-2xl font-light group-hover:text-primary transition-colors">{section.title}</h3>
-                                    <p className="text-sm text-on-surface-variant leading-relaxed line-clamp-2">{section.description}</p>
+                                    <p className="text-sm text-on-surface-variant leading-relaxed">{section.description}</p>
                                   </div>
                                 </div>
 

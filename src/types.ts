@@ -190,6 +190,7 @@ export interface GuideSection {
   title: string;
   icon: string;
   description: string;
-  features: string[];
-  categories?: GuideCategory[];
+  features?: string[];
+  categories: GuideCategory[];
+  hideFromQuickGuide?: boolean;
 }

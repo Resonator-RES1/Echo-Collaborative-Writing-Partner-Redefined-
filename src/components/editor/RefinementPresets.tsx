@@ -330,7 +330,7 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
             <button 
                 onClick={handleRefine} 
                 disabled={isRefining} 
-                className="w-full flex items-center justify-center gap-3 px-4 lg:px-6 py-4 lg:py-5 bg-primary-saturated text-on-primary-saturated font-label uppercase tracking-[0.2em] text-xs lg:text-sm font-black rounded-3xl hover:bg-primary-saturated/90 disabled:bg-surface-container-highest disabled:text-on-surface-variant/30 transition-all shadow-primary-glow hover:shadow-2xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] group relative overflow-hidden text-shadow-lavender"
+                className="w-full flex items-center justify-center gap-3 px-4 lg:px-6 py-4 lg:py-5 bg-primary text-on-primary-fixed font-label uppercase tracking-[0.2em] text-xs lg:text-sm font-black rounded-3xl hover:bg-primary/90 disabled:bg-surface-container-highest disabled:text-on-surface-variant/30 transition-all shadow-lg hover:shadow-2xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] group relative overflow-hidden"
             >
                 <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
                 {isRefining ? <Loader2 className="animate-spin w-6 h-6" /> : <Sparkles className="w-6 h-6 group-hover:rotate-12 transition-transform" />}

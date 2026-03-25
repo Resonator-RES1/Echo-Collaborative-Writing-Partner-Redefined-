@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ProjectManager } from './ProjectManager';
-import { Settings, Shield, Database, Info, LogOut, Key } from 'lucide-react';
+import { ThemeManager } from './ThemeManager';
+import { Settings, Shield, Database, Info, LogOut, Key, Palette } from 'lucide-react';
 import * as db from '../services/dbService';
 
 interface SettingsScreenProps {
@@ -62,6 +63,19 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ showToast }) => 
                 Your API key is stored locally in your browser and never sent to our servers. It is used only for refinement requests.
               </p>
             </div>
+          </div>
+        </section>
+
+        <section className="space-y-6">
+          <div className="flex items-center gap-3 border-b border-outline-variant/10 pb-2">
+            <Palette className="w-5 h-5 text-primary" />
+            <h2 className="font-headline text-xl text-on-surface">Appearance</h2>
+          </div>
+          <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl p-8 shadow-sm">
+            <p className="text-sm text-on-surface-variant mb-6">
+              Choose the visual atmosphere that best suits your current writing session.
+            </p>
+            <ThemeManager />
           </div>
         </section>
 
