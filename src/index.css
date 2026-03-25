@@ -18,6 +18,12 @@
   --color-tertiary-container: #bdb033;
   --color-on-surface-variant: #cac4d3;
   
+  /* Parchment Theme Variables */
+  --color-parchment: #f4f1ea;
+  --color-parchment-ink: #2c2c2c;
+  --color-parchment-border: #d4cfc3;
+  --color-parchment-accent: #8c7b6a;
+  
   /* New Accent Colors - Punchy & High Contrast */
   --color-accent-emerald: #059669; /* Slightly darker for better contrast */
   --color-accent-amber: #d97706;   /* Slightly darker */

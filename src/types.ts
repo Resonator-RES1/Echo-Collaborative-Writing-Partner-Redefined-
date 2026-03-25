@@ -177,6 +177,7 @@ export interface GuideItem {
   title: string;
   description: string;
   example?: GuideExample;
+  proTips?: string[];
 }
 
 export interface GuideCategory {

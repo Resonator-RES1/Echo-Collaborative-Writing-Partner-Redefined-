@@ -8,6 +8,8 @@ import { copyFullGuideToClipboard } from '../utils/guideUtils';
 import { refineDraft } from '../services/gemini/refine';
 import * as Icons from 'lucide-react';
 
+import { GuideDeepDive } from './GuideDeepDive';
+
 interface WelcomeScreenProps {
   onStart: () => void;
 }
@@ -304,7 +306,7 @@ const Playground = () => {
 
 export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
   const [showGuide, setShowGuide] = useState(false);
-  const [activeTab, setActiveTab] = useState<'handbook' | 'playground'>('handbook');
+  const [activeTab, setActiveTab] = useState<'handbook' | 'codex' | 'playground'>('handbook');
   const [activeSection, setActiveSection] = useState(GUIDE_SECTIONS[0].id);
   const [viewMode, setViewMode] = useState<'grid' | 'detail'>('grid');
   const [visitedSections, setVisitedSections] = useState<Set<string>>(new Set([GUIDE_SECTIONS[0].id]));
@@ -479,7 +481,15 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
                           activeTab === 'handbook' ? 'bg-surface-container-low text-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'
                         }`}
                       >
-                        The Handbook
+                        Quick Start
+                      </button>
+                      <button
+                        onClick={() => setActiveTab('codex')}
+                        className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${
+                          activeTab === 'codex' ? 'bg-surface-container-low text-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'
+                        }`}
+                      >
+                        The Codex
                       </button>
                       <button
                         onClick={() => setActiveTab('playground')}
@@ -502,14 +512,14 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
               </div>
 
               {/* Main Content Area */}
-              <div className="flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent p-6 md:p-12">
+              <div className={`flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent ${activeTab === 'codex' ? 'p-0' : 'p-6 md:p-12'}`}>
                 <AnimatePresence mode="wait">
                   {activeTab === 'handbook' ? (
                     <motion.div
                       key="handbook"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
                       className="h-full"
                     >
                       {viewMode === 'grid' ? (
@@ -632,12 +642,22 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
                         </div>
                       )}
                     </motion.div>
+                  ) : activeTab === 'codex' ? (
+                    <motion.div
+                      key="codex"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      className="h-full"
+                    >
+                      <GuideDeepDive />
+                    </motion.div>
                   ) : (
                     <motion.div
                       key="playground"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
                       className="h-full"
                     >
                       <Playground />
