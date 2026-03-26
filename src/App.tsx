@@ -360,7 +360,8 @@ export default function App() {
       case 'welcome':
         return (
           <WelcomeScreen 
-            onStart={() => setCurrentScreen('workspace')} 
+            onEnterWorkspace={() => setCurrentScreen('workspace')} 
+            onViewManuscript={() => setCurrentScreen('manuscript')}
             wordCount={totalWordCount}
             goal={writingGoal}
             scenes={scenes}
@@ -396,6 +397,8 @@ export default function App() {
             versionHistory={versionHistory.filter(v => v.isAccepted)}
             onDeleteVersion={deleteVersion}
             onClearAcceptedVersions={clearAcceptedVersions}
+            goal={writingGoal}
+            setGoal={setWritingGoal}
           />
         );
       case 'settings':

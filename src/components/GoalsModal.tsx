@@ -14,6 +14,14 @@ export function GoalsModal({ isOpen, onClose, goal, onSave }: GoalsModalProps) {
   const [dailyTarget, setDailyTarget] = useState(goal.dailyTarget?.toString() || '');
   const [deadline, setDeadline] = useState(goal.deadline || '');
 
+  React.useEffect(() => {
+    if (isOpen) {
+      setTargetWords(goal.targetWords.toString());
+      setDailyTarget(goal.dailyTarget?.toString() || '');
+      setDeadline(goal.deadline || '');
+    }
+  }, [isOpen, goal]);
+
   if (!isOpen) return null;
 
   const handleSave = () => {
@@ -44,9 +52,14 @@ export function GoalsModal({ isOpen, onClose, goal, onSave }: GoalsModalProps) {
           <div className="space-y-2">
             <label className="font-label text-xs uppercase tracking-widest text-on-surface-variant">Manuscript Target (Words)</label>
             <input 
-              type="number" 
+              type="text" 
               value={targetWords}
-              onChange={(e) => setTargetWords(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (/^\d*$/.test(val)) {
+                  setTargetWords(val);
+                }
+              }}
               className="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-xl px-4 py-3 text-on-surface focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all"
               placeholder="e.g., 50000"
             />
@@ -55,9 +68,14 @@ export function GoalsModal({ isOpen, onClose, goal, onSave }: GoalsModalProps) {
           <div className="space-y-2">
             <label className="font-label text-xs uppercase tracking-widest text-on-surface-variant">Daily Target (Words)</label>
             <input 
-              type="number" 
+              type="text" 
               value={dailyTarget}
-              onChange={(e) => setDailyTarget(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (/^\d*$/.test(val)) {
+                  setDailyTarget(val);
+                }
+              }}
               className="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-xl px-4 py-3 text-on-surface focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all"
               placeholder="e.g., 1000"
             />

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, ArrowRight, BookOpen, Wand2, Mic2, BarChart3, ChevronRight, X, Download, Upload, ChevronDown, Info, Copy, Fingerprint, Cpu, Layout, Play, Zap } from 'lucide-react';
+import { NewProjectModal } from './NewProjectModal';
+import { Sparkles, ArrowRight, BookOpen, Wand2, Mic2, BarChart3, ChevronRight, X, Download, Upload, ChevronDown, Info, Copy, Fingerprint, Cpu, Layout, Play, Zap, Plus } from 'lucide-react';
 import { Screen, Scene, WritingGoal, GuideCategory, GuideItem, FocusArea } from '../types';
 import { GUIDE_SECTIONS } from '../constants';
 import { useProject } from '../contexts/ProjectContext';
@@ -11,7 +12,8 @@ import * as Icons from 'lucide-react';
 import { GuideDeepDive } from './GuideDeepDive';
 
 interface WelcomeScreenProps {
-  onStart: () => void;
+  onEnterWorkspace: () => void;
+  onViewManuscript: () => void;
   wordCount: number;
   goal: WritingGoal;
   scenes: Scene[];
@@ -317,8 +319,9 @@ const Playground = () => {
   );
 };
 
-export function WelcomeScreen({ onStart, wordCount, goal, scenes, onJumpToScene }: WelcomeScreenProps) {
+export function WelcomeScreen({ onEnterWorkspace, onViewManuscript, wordCount, goal, scenes, onJumpToScene }: WelcomeScreenProps) {
   const [showGuide, setShowGuide] = useState(false);
+  const [showNewProject, setShowNewProject] = useState(false);
   const [activeTab, setActiveTab] = useState<'handbook' | 'codex' | 'playground'>('handbook');
   const [activeSection, setActiveSection] = useState(GUIDE_SECTIONS[0].id);
   const [viewMode, setViewMode] = useState<'grid' | 'detail'>('grid');
@@ -451,12 +454,12 @@ export function WelcomeScreen({ onStart, wordCount, goal, scenes, onJumpToScene 
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 md:pt-8">
               <button
-                onClick={onStart}
+                onClick={() => scenes.length > 0 ? onViewManuscript() : setShowNewProject(true)}
                 className="w-full sm:w-auto group relative px-8 md:px-12 py-4 md:py-5 rounded-full bg-primary text-on-primary-fixed font-label text-xs uppercase tracking-[0.2em] overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-xl shadow-primary/20"
               >
                 <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
                 <span className="relative flex items-center justify-center gap-3">
-                  Enter Workspace <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  {scenes.length > 0 ? 'Enter Manuscript' : 'Create New Project'} {scenes.length === 0 && <Plus className="w-4 h-4" />}
                 </span>
               </button>
 
@@ -467,6 +470,16 @@ export function WelcomeScreen({ onStart, wordCount, goal, scenes, onJumpToScene 
                 Explore the Guide
               </button>
             </div>
+
+            <NewProjectModal 
+              isOpen={showNewProject} 
+              onClose={() => setShowNewProject(false)} 
+              onCreate={(name, desc, goal) => {
+                setShowNewProject(false);
+                // Logic to create new project would go here
+                onEnterWorkspace();
+              }}
+            />
 
             <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 pt-4">
               <button

@@ -16,6 +16,8 @@ interface ManuscriptPanelProps {
   versionHistory: RefinedVersion[];
   onDeleteVersion: (id: string) => void;
   onClearAcceptedVersions: () => void;
+  goal: WritingGoal;
+  setGoal: React.Dispatch<React.SetStateAction<WritingGoal>>;
 }
 
 export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
@@ -29,14 +31,12 @@ export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
   showToast,
   versionHistory,
   onDeleteVersion,
-  onClearAcceptedVersions
+  onClearAcceptedVersions,
+  goal,
+  setGoal
 }) => {
   const [activeTab, setActiveTab] = useState<'scenes' | 'accepted' | 'goals'>('scenes');
   const [showGoalModal, setShowGoalModal] = useState(false);
-  const [goal, setGoal] = useState<WritingGoal>(() => {
-    const saved = localStorage.getItem('echo-writing-goal');
-    return saved ? JSON.parse(saved) : { targetWords: 50000 };
-  });
 
   const totalWordCount = useMemo(() => {
     return scenes.reduce((acc, scene) => {
@@ -343,18 +343,28 @@ export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
                   <div className="space-y-2">
                     <label className="font-label text-xs uppercase tracking-widest text-on-surface-variant">Manuscript Target (Words)</label>
                     <input 
-                      type="number" 
-                      value={goal.targetWords}
-                      onChange={(e) => handleSaveGoal({ ...goal, targetWords: parseInt(e.target.value) || 0 })}
+                      type="text" 
+                      value={goal.targetWords === 0 ? '' : goal.targetWords}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (/^\d*$/.test(val)) {
+                          setGoal(prev => ({ ...prev, targetWords: val === '' ? 0 : parseInt(val, 10) }));
+                        }
+                      }}
                       className="w-full bg-surface-container-highest border border-outline-variant/10 rounded-xl px-4 py-3 text-on-surface focus:outline-none focus:border-primary/50 transition-all"
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="font-label text-xs uppercase tracking-widest text-on-surface-variant">Daily Target (Words)</label>
                     <input 
-                      type="number" 
+                      type="text" 
                       value={goal.dailyTarget || ''}
-                      onChange={(e) => handleSaveGoal({ ...goal, dailyTarget: parseInt(e.target.value) || undefined })}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (/^\d*$/.test(val)) {
+                          setGoal(prev => ({ ...prev, dailyTarget: val === '' ? undefined : parseInt(val, 10) }));
+                        }
+                      }}
                       className="w-full bg-surface-container-highest border border-outline-variant/10 rounded-xl px-4 py-3 text-on-surface focus:outline-none focus:border-primary/50 transition-all"
                     />
                   </div>
@@ -363,10 +373,19 @@ export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
                     <input 
                       type="date" 
                       value={goal.deadline || ''}
-                      onChange={(e) => handleSaveGoal({ ...goal, deadline: e.target.value || undefined })}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setGoal(prev => ({ ...prev, deadline: val || undefined }));
+                      }}
                       className="w-full bg-surface-container-highest border border-outline-variant/10 rounded-xl px-4 py-3 text-on-surface focus:outline-none focus:border-primary/50 transition-all"
                     />
                   </div>
+                  <button
+                    onClick={() => handleSaveGoal(goal)}
+                    className="w-full py-3 rounded-xl bg-primary text-on-primary-fixed font-label text-xs uppercase tracking-widest hover:bg-primary/90 transition-all shadow-sm"
+                  >
+                    Save Goals
+                  </button>
                 </div>
               </div>
             </div>
