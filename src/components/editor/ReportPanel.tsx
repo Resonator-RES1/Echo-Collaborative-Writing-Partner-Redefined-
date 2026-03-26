@@ -85,16 +85,16 @@ export const ReportPanel: React.FC<ReportPanelProps> = ({
                     </button>
                 </div>
                 
-                <div className="relative p-6 sm:p-8 bg-amber-500/10 rounded-2xl border border-amber-500/20">
+                <div className="relative p-6 sm:p-8 bg-surface-container-high rounded-2xl border border-outline-variant/20">
                     <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
-                            <Sparkles className="w-6 h-6 text-amber-600" />
+                        <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                            <Sparkles className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                            <h4 className="text-amber-700 font-headline text-lg sm:text-xl font-bold mb-2">
+                            <h4 className="text-on-surface font-headline text-lg sm:text-xl font-bold mb-2">
                                 Echo's Verdict: High Fidelity Refinement.
                             </h4>
-                            <p className="text-amber-900/80 text-sm sm:text-base leading-relaxed">
+                            <p className="text-on-surface-variant text-sm sm:text-base leading-relaxed">
                                 Your unique voice was preserved{version.loreCorrections && version.loreCorrections.length > 0 ? `, and ${version.loreCorrections.length} lore conflicts were corrected` : ''}{version.loreFraying && version.loreFraying.length > 0 ? `, and ${version.loreFraying.length} lore fraying points were identified for review` : ''}. Ready for review.
                             </p>
                         </div>
