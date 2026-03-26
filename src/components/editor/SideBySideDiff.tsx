@@ -1,29 +1,114 @@
 import React, { useMemo } from 'react';
 import { diffWordsWithSpace } from 'diff';
+import { getHighlightRanges } from '../../utils/highlightUtils';
+import { RefineDraftResult } from '../../services/gemini/refine';
 
 // --- Component ---
 export const SideBySideDiff: React.FC<{ 
     original: string; 
     polished: string;
+    report?: RefineDraftResult;
     onSeeReport?: () => void;
     onAcceptChanges?: () => void;
-}> = React.memo(({ original, polished, onSeeReport, onAcceptChanges }) => {
+}> = React.memo(({ original, polished, report, onSeeReport, onAcceptChanges }) => {
     const diffResult = useMemo(() => {
         return diffWordsWithSpace(original, polished);
     }, [original, polished]);
 
+    const highlightRanges = useMemo(() => {
+        if (!report) return [];
+        return getHighlightRanges(polished, report);
+    }, [polished, report]);
+
     const leftPane: React.ReactNode[] = [];
     const rightPane: React.ReactNode[] = [];
+
+    let polishedIndex = 0;
 
     diffResult.forEach((part, index) => {
         const key = `diff-${index}`;
         if (part.added) {
-            rightPane.push(<span key={key} className="bg-emerald-500/20 text-emerald-300 rounded px-1">{part.value}</span>);
+            const start = polishedIndex;
+            const end = polishedIndex + part.value.length;
+            
+            // Find lore highlights in this added part
+            const partRanges = highlightRanges.filter(r => r.type === 'lore' && r.start >= start && r.end <= end);
+            
+            if (partRanges.length > 0) {
+                let currentPos = start;
+                const segments: React.ReactNode[] = [];
+                
+                partRanges.forEach((range, rIdx) => {
+                    if (range.start > currentPos) {
+                        segments.push(
+                            <span key={`${key}-s-${rIdx}`} className="bg-emerald-500/20 text-emerald-300 rounded px-1">
+                                {polished.substring(currentPos, range.start)}
+                            </span>
+                        );
+                    }
+                    segments.push(
+                        <span 
+                            key={`${key}-l-${rIdx}`} 
+                            className="bg-red-500/30 text-red-200 rounded px-1 border-b border-red-400 cursor-help transition-colors hover:bg-red-500/40"
+                            title={`Lore Correction: ${range.metadata.reason}`}
+                        >
+                            {polished.substring(range.start, range.end)}
+                        </span>
+                    );
+                    currentPos = range.end;
+                });
+                
+                if (currentPos < end) {
+                    segments.push(
+                        <span key={`${key}-s-end`} className="bg-emerald-500/20 text-emerald-300 rounded px-1">
+                            {polished.substring(currentPos, end)}
+                        </span>
+                    );
+                }
+                rightPane.push(<span key={key}>{segments}</span>);
+            } else {
+                rightPane.push(<span key={key} className="bg-emerald-500/20 text-emerald-300 rounded px-1">{part.value}</span>);
+            }
+            polishedIndex += part.value.length;
         } else if (part.removed) {
             leftPane.push(<span key={key} className="bg-error/20 text-error rounded px-1">{part.value}</span>);
         } else {
-            leftPane.push(<span key={key}>{part.value}</span>);
-            rightPane.push(<span key={key}>{part.value}</span>);
+            const start = polishedIndex;
+            const end = polishedIndex + part.value.length;
+            
+            // Find restraint highlights in this unchanged part
+            const partRanges = highlightRanges.filter(r => r.type === 'restraint' && r.start >= start && r.end <= end);
+            
+            if (partRanges.length > 0) {
+                let currentPos = start;
+                const segments: React.ReactNode[] = [];
+                
+                partRanges.forEach((range, rIdx) => {
+                    if (range.start > currentPos) {
+                        segments.push(<span key={`${key}-n-${rIdx}`}>{polished.substring(currentPos, range.start)}</span>);
+                    }
+                    segments.push(
+                        <span 
+                            key={`${key}-r-${rIdx}`} 
+                            className="bg-blue-500/20 text-blue-200 rounded px-1 border-b border-blue-400 cursor-help transition-colors hover:bg-blue-500/30"
+                            title={`Preserved: ${range.metadata.justification}`}
+                        >
+                            {polished.substring(range.start, range.end)}
+                        </span>
+                    );
+                    currentPos = range.end;
+                });
+                
+                if (currentPos < end) {
+                    segments.push(<span key={`${key}-n-end`}>{polished.substring(currentPos, end)}</span>);
+                }
+                leftPane.push(<span key={`${key}-left`}>{part.value}</span>);
+                rightPane.push(<span key={key}>{segments}</span>);
+            } else {
+                leftPane.push(<span key={key}>{part.value}</span>);
+                rightPane.push(<span key={key}>{part.value}</span>);
+            }
+            polishedIndex += part.value.length;
         }
     });
 

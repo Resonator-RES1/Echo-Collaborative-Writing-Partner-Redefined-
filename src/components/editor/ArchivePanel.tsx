@@ -86,14 +86,25 @@ export const ArchivePanel: React.FC<ArchivePanelProps> = ({
                                 <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                                 Comparison View
                             </h4>
-                            <div className="flex items-center gap-2 sm:gap-4 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">
-                                <span className="flex items-center gap-1 text-error/70"><span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-error/50 rounded-full"></span> Original</span>
-                                <span className="flex items-center gap-1 text-accent-emerald/70"><span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-accent-emerald/50 rounded-full"></span> Polished</span>
+                            <div className="flex flex-wrap items-center gap-4 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">
+                                <span className="flex items-center gap-1.5 text-on-surface-variant/60">
+                                    <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500/40 border border-emerald-400/50 rounded-sm"></span> 
+                                    Style
+                                </span>
+                                <span className="flex items-center gap-1.5 text-on-surface-variant/60">
+                                    <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500/40 border border-blue-400/50 rounded-sm"></span> 
+                                    Preserved
+                                </span>
+                                <span className="flex items-center gap-1.5 text-on-surface-variant/60">
+                                    <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-red-500/40 border border-red-400/50 rounded-sm"></span> 
+                                    Lore
+                                </span>
                             </div>
                         </div>
                         <SideBySideDiff 
                             original={originalDraft} 
                             polished={version.text} 
+                            report={version as any}
                             onSeeReport={() => {
                                 onSelectVersion(selectedIdx);
                                 setActiveTab('report');

@@ -2,10 +2,13 @@ import React from 'react';
 import { X, Activity, Sparkles } from 'lucide-react';
 import { SideBySideDiff } from './SideBySideDiff';
 
+import { RefineDraftResult } from '../../services/gemini/refine';
+
 interface ComparisonViewProps {
     isOpen: boolean;
     original: string;
     polished: string;
+    report?: RefineDraftResult;
     onClose: () => void;
     onRevertLore: () => void;
     onAccept: () => void;
@@ -13,7 +16,7 @@ interface ComparisonViewProps {
 }
 
 export const ComparisonView: React.FC<ComparisonViewProps> = React.memo(({ 
-    isOpen, original, polished, onClose, onRevertLore, onAccept, onSeeReport
+    isOpen, original, polished, report, onClose, onRevertLore, onAccept, onSeeReport
 }) => {
     if (!isOpen) return null;
 
@@ -43,14 +46,25 @@ export const ComparisonView: React.FC<ComparisonViewProps> = React.memo(({
                                     <Activity className="w-5 h-5 text-primary" />
                                     Side-by-Side Comparison
                                 </h3>
-                                <div className="flex items-center gap-4 text-xs">
-                                    <span className="flex items-center gap-1 text-red-400"><span className="w-2 h-2 bg-red-500 rounded-full"></span> Original</span>
-                                    <span className="flex items-center gap-1 text-green-400"><span className="w-2 h-2 bg-green-500 rounded-full"></span> Polished</span>
+                                <div className="flex flex-wrap items-center gap-4 text-[10px] uppercase tracking-wider font-label">
+                                    <span className="flex items-center gap-1.5 text-on-surface-variant/60">
+                                        <span className="w-2 h-2 bg-emerald-500/40 border border-emerald-400/50 rounded-sm"></span> 
+                                        Style
+                                    </span>
+                                    <span className="flex items-center gap-1.5 text-on-surface-variant/60">
+                                        <span className="w-2 h-2 bg-blue-500/40 border border-blue-400/50 rounded-sm"></span> 
+                                        Preserved
+                                    </span>
+                                    <span className="flex items-center gap-1.5 text-on-surface-variant/60">
+                                        <span className="w-2 h-2 bg-red-500/40 border border-red-400/50 rounded-sm"></span> 
+                                        Lore
+                                    </span>
                                 </div>
                             </div>
                             <SideBySideDiff 
                                 original={original} 
                                 polished={polished} 
+                                report={report}
                                 onSeeReport={onSeeReport}
                                 onAcceptChanges={onAccept}
                             />

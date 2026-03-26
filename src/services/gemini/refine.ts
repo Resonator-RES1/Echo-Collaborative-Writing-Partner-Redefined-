@@ -36,7 +36,7 @@ export interface RefineDraftResult {
     voice_consistency: { score: number; note: string; qualifier: 'By Design' };
   };
   expressionProfile: { vibe: string; score: number; qualifier: 'By Design' | 'Opportunity'; note: string }[];
-  loreCorrections: { original: string; refined: string; reason: string }[];
+  loreCorrections: { original: string; refined: string; reason: string; snippet: string }[];
   audit: {
     voiceFidelityScore: number;
     voiceFidelityReasoning: string;
@@ -47,7 +47,7 @@ export interface RefineDraftResult {
     focusAreaAlignment: number;
     focusAreaAlignmentReasoning: string;
   };
-  restraintLog: { category: string; target: string; justification: string }[];
+  restraintLog: { category: string; target: string; justification: string; snippet: string }[];
   activeContext: {
     authorVoice?: string;
     characterVoices: string[];
@@ -195,13 +195,13 @@ Return the following structure:
     "focusAreaAlignmentReasoning": "string"
   },
   "restraint_log": [
-    { "category": "string", "target": "string", "justification": "string" }
+    { "category": "string", "target": "string", "justification": "string", "snippet": "The EXACT snippet of text from the refined_text that was preserved/protected from change." }
   ],
   "conflicts": [
     { "sentence": "Original sentence with conflict", "reason": "Why it conflicts with lore" }
   ],
   "lore_corrections": [
-    { "original": "Original term/fact", "refined": "Corrected term/fact", "reason": "Lore reference" }
+    { "original": "Original term/fact", "refined": "Corrected term/fact", "reason": "Lore reference", "snippet": "The EXACT snippet of text as it appears in the refined_text after correction." }
   ]
 }
 `;
@@ -319,9 +319,10 @@ Return the following structure:
                         properties: {
                             category: { type: Type.STRING },
                             target: { type: Type.STRING },
-                            justification: { type: Type.STRING }
+                            justification: { type: Type.STRING },
+                            snippet: { type: Type.STRING }
                         },
-                        required: ["category", "target", "justification"]
+                        required: ["category", "target", "justification", "snippet"]
                     }
                 },
                 conflicts: {
@@ -342,9 +343,10 @@ Return the following structure:
                         properties: {
                             original: { type: Type.STRING },
                             refined: { type: Type.STRING },
-                            reason: { type: Type.STRING }
+                            reason: { type: Type.STRING },
+                            snippet: { type: Type.STRING }
                         },
-                        required: ["original", "refined", "reason"]
+                        required: ["original", "refined", "reason", "snippet"]
                     }
                 }
             },

@@ -343,6 +343,7 @@ const Editor: React.FC<EditorProps> = ({
                               <SideBySideDiff 
                                   original={draftState.original} 
                                   polished={draftState.present} 
+                                  report={currentVersion as any}
                                   onSeeReport={() => setActiveTab('report')}
                                   onAcceptChanges={() => {
                                       // In polishing mode, the changes are already in draftState.present

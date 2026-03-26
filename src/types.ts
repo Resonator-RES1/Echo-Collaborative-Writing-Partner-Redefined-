@@ -99,6 +99,7 @@ export interface LoreCorrection {
   original: string;
   refined: string;
   reason: string;
+  snippet?: string;
 }
 
 export interface RefinedVersion {
@@ -117,7 +118,7 @@ export interface RefinedVersion {
   metrics?: ProseMetrics;
   loreCorrections?: LoreCorrection[];
   audit?: RefinementAudit;
-  restraintLog?: { category: string; target: string; justification: string }[];
+  restraintLog?: { category: string; target: string; justification: string; snippet?: string }[];
   expressionProfile?: { vibe: string; score: number; qualifier: 'By Design' | 'Opportunity'; note: string }[];
   activeContext?: {
     authorVoice?: string;
