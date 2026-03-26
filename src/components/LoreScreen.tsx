@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { Search, Filter, BookOpen, Plus, Download, Upload, Trash2, ChevronRight } from 'lucide-react';
 import { LoreEntry, Screen } from '../types';
 import { LoreEntryForm } from './forms/LoreEntryForm';
@@ -17,6 +17,14 @@ export function LoreScreen({ setCurrentScreen }: LoreScreenProps) {
   const [editingEntry, setEditingEntry] = useState<LoreEntry | undefined>(undefined);
   const [isCreating, setIsCreating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleSaveEntry = async (entry: LoreEntry) => {
     await addLoreEntry(entry);
@@ -93,11 +101,11 @@ export function LoreScreen({ setCurrentScreen }: LoreScreenProps) {
   return (
     <div className="flex-1 min-h-0 flex flex-col animate-in fade-in duration-700">
       {/* Header Section */}
-      <section className="shrink-0 mb-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-2">
-            <h2 className="font-headline text-4xl md:text-5xl font-light text-on-surface">Lore Codex</h2>
-            <p className="font-label text-xs uppercase tracking-[0.3em] text-primary/60">World Bible & Context</p>
+      <section className="shrink-0 mb-4 md:mb-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
+          <div className="space-y-1 md:space-y-2">
+            <h2 className="font-headline text-3xl md:text-5xl font-light text-on-surface">Lore Codex</h2>
+            <p className="font-label text-[10px] md:text-xs uppercase tracking-[0.3em] text-primary/60">World Bible & Context</p>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
@@ -128,9 +136,9 @@ export function LoreScreen({ setCurrentScreen }: LoreScreenProps) {
       </section>
 
       {/* Main Content Split Pane */}
-      <div className="flex-1 min-h-0 flex gap-8">
+      <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-8">
         {/* Left Pane: List (1/3) */}
-        <div className="w-1/3 flex flex-col gap-6 min-h-0">
+        <div className={`w-full lg:w-1/3 flex flex-col gap-6 min-h-0 ${isMobile && (isCreating || editingEntry) ? 'hidden' : 'flex'}`}>
           {/* Search Bar */}
           <div className="relative w-full shrink-0">
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
@@ -225,14 +233,25 @@ export function LoreScreen({ setCurrentScreen }: LoreScreenProps) {
         </div>
 
         {/* Right Pane: Edit Form (2/3) */}
-        <div className="w-2/3 h-full">
+        <div className={`w-full lg:w-2/3 h-full ${isMobile && !(isCreating || editingEntry) ? 'hidden' : 'block'}`}>
           {isCreating || editingEntry ? (
-            <LoreEntryForm 
-              onClose={handleCloseForm}
-              onSave={handleSaveEntry}
-              initialData={editingEntry}
-              isModal={false}
-            />
+            <div className="flex flex-col h-full">
+              {isMobile && (
+                <button 
+                  onClick={handleCloseForm}
+                  className="flex items-center gap-2 mb-4 text-primary font-label text-[10px] uppercase tracking-widest"
+                >
+                  <ChevronRight className="w-4 h-4 rotate-180" />
+                  Back to List
+                </button>
+              )}
+              <LoreEntryForm 
+                onClose={handleCloseForm}
+                onSave={handleSaveEntry}
+                initialData={editingEntry}
+                isModal={false}
+              />
+            </div>
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-center p-12 bg-surface-container-lowest/50 rounded-3xl border border-outline-variant/10">
               <div className="w-24 h-24 rounded-full bg-surface-container flex items-center justify-center mb-6">

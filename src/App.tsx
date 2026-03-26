@@ -363,26 +363,18 @@ export default function App() {
   };
 
   return (
-    <div className={`h-[100dvh] bg-surface text-on-surface flex flex-col font-body overflow-hidden ${isMobile ? 'pb-16' : ''}`}>
+    <div className={`h-[100dvh] bg-surface text-on-surface flex flex-col font-body overflow-hidden ${isMobile ? 'pb-20' : ''}`}>
       {toast && <Toast key={toast.id} message={toast.message} onClose={() => setToast(null)} />}
       
-      {currentScreen !== 'welcome' && !isFocusMode && !isMobile && (
+      {currentScreen !== 'welcome' && !isFocusMode && (
         <TopAppBar 
           currentScreen={currentScreen} 
           setCurrentScreen={setCurrentScreen} 
           versionCount={versionCount} 
           showToast={showToast} 
           wordCount={totalWordCount}
+          isMobile={isMobile}
         />
-      )}
-
-      {isMobile && currentScreen !== 'welcome' && (
-          <div className="flex items-center justify-between p-4 border-b border-outline-variant/10 bg-surface/80 backdrop-blur-xl sticky top-0 z-50">
-              <h1 className="font-headline text-primary italic tracking-tighter text-xl">Echo</h1>
-              <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-label uppercase tracking-widest text-on-surface/40">v1.0.{versionCount}</span>
-              </div>
-          </div>
       )}
       
       <GlobalSearchModal
@@ -400,11 +392,11 @@ export default function App() {
       {isMobile && currentScreen !== 'welcome' && (
           <nav className="fixed bottom-0 left-0 right-0 z-50 bg-surface-container-low/95 backdrop-blur-xl border-t border-outline-variant/10 px-2 py-2 pb-safe flex items-center justify-around shadow-2xl">
               {[
+                  { id: 'welcome', label: 'Home', icon: Home },
                   { id: 'lore', label: 'Lore', icon: Book },
-                  { id: 'manuscript', label: 'Manuscript', icon: Library },
                   { id: 'workspace', label: 'Workspace', icon: PenTool },
                   { id: 'voices', label: 'Voices', icon: BookOpen },
-                  { id: 'settings', label: 'Settings', icon: Settings }
+                  { id: 'manuscript', label: 'Manuscript', icon: Library }
               ].map(item => (
                   <button
                       key={item.id}

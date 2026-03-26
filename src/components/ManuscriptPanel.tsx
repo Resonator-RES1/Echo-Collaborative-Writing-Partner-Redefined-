@@ -109,49 +109,49 @@ export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-surface overflow-hidden">
-      <div className="p-6 border-b border-outline-variant/10">
-        <div className="flex items-center justify-between mb-6">
+      <div className="p-4 md:p-6 border-b border-outline-variant/10">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-6 gap-3 md:gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-xl">
-              <Book className="w-6 h-6 text-primary" />
+              <Book className="w-5 h-5 md:w-6 md:h-6 text-primary" />
             </div>
             <div>
-              <h1 className="font-headline text-2xl text-on-surface">Manuscript</h1>
-              <p className="text-sm text-on-surface-variant">Manage your story structure and progress</p>
+              <h1 className="font-headline text-xl md:text-2xl text-on-surface">Manuscript</h1>
+              <p className="text-xs md:text-sm text-on-surface-variant">Manage your story structure and progress</p>
             </div>
           </div>
-          <div className="flex gap-2">
-            <label className="flex items-center gap-2 px-4 py-2 rounded-full bg-surface-container-highest border border-outline-variant/20 hover:bg-surface-container-high transition-colors cursor-pointer">
-              <Upload className="w-4 h-4" />
-              <span className="font-label text-xs uppercase tracking-widest">Import</span>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <label className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-surface-container-highest border border-outline-variant/20 hover:bg-surface-container-high transition-colors cursor-pointer">
+              <Upload className="w-3.5 h-3.5 md:w-4 md:h-4" />
+              <span className="font-label text-[10px] md:text-xs uppercase tracking-widest">Import</span>
               <input type="file" accept=".md,.txt" onChange={handleImport} className="hidden" />
             </label>
             <button 
               onClick={handleExport}
-              className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-on-primary hover:bg-primary/90 transition-colors shadow-sm"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-primary text-on-primary hover:bg-primary/90 transition-colors shadow-sm"
             >
-              <Download className="w-4 h-4" />
-              <span className="font-label text-xs uppercase tracking-widest">Export</span>
+              <Download className="w-3.5 h-3.5 md:w-4 md:h-4" />
+              <span className="font-label text-[10px] md:text-xs uppercase tracking-widest">Export</span>
             </button>
           </div>
         </div>
 
-        <div className="flex gap-1 p-1 bg-surface-container-lowest rounded-xl border border-outline-variant/10 w-fit">
+        <div className="flex gap-1 p-1 bg-surface-container-lowest rounded-xl border border-outline-variant/10 w-full sm:w-fit overflow-x-auto no-scrollbar">
           <button 
             onClick={() => setActiveTab('scenes')}
-            className={`px-6 py-2 rounded-lg font-label text-xs uppercase tracking-widest transition-all ${activeTab === 'scenes' ? 'bg-primary text-on-primary shadow-md' : 'hover:bg-surface-container-highest text-on-surface-variant'}`}
+            className={`flex-1 sm:flex-none px-6 py-2 rounded-lg font-label text-xs uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'scenes' ? 'bg-primary text-on-primary shadow-md' : 'hover:bg-surface-container-highest text-on-surface-variant'}`}
           >
             Scenes
           </button>
           <button 
             onClick={() => setActiveTab('accepted')}
-            className={`px-6 py-2 rounded-lg font-label text-xs uppercase tracking-widest transition-all ${activeTab === 'accepted' ? 'bg-primary text-on-primary shadow-md' : 'hover:bg-surface-container-highest text-on-surface-variant'}`}
+            className={`flex-1 sm:flex-none px-6 py-2 rounded-lg font-label text-xs uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'accepted' ? 'bg-primary text-on-primary shadow-md' : 'hover:bg-surface-container-highest text-on-surface-variant'}`}
           >
             Accepted Versions
           </button>
           <button 
             onClick={() => setActiveTab('goals')}
-            className={`px-6 py-2 rounded-lg font-label text-xs uppercase tracking-widest transition-all ${activeTab === 'goals' ? 'bg-primary text-on-primary shadow-md' : 'hover:bg-surface-container-highest text-on-surface-variant'}`}
+            className={`flex-1 sm:flex-none px-6 py-2 rounded-lg font-label text-xs uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'goals' ? 'bg-primary text-on-primary shadow-md' : 'hover:bg-surface-container-highest text-on-surface-variant'}`}
           >
             Goals
           </button>

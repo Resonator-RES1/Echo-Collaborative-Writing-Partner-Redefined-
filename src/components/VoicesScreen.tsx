@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { Download, Upload, Search, PenTool, Users, Plus, Trash2, Sparkles, User } from 'lucide-react';
 import { VoiceProfile, Screen, AuthorVoice } from '../types';
 import { VoiceProfileForm } from './forms/VoiceProfileForm';
@@ -31,6 +31,14 @@ export function VoicesScreen({
   const [editingAuthorVoice, setEditingAuthorVoice] = useState<AuthorVoice | undefined>(undefined);
   const [isCreating, setIsCreating] = useState(false);
   
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSaveProfile = async (profile: VoiceProfile) => {
@@ -118,10 +126,10 @@ export function VoicesScreen({
       <div className="fixed bottom-0 left-0 w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px] -z-10 pointer-events-none"></div>
 
       {/* Header Section */}
-      <section className="mb-8 flex flex-col md:flex-row justify-between items-end gap-8 shrink-0">
+      <section className="mb-4 md:mb-8 flex flex-col md:flex-row justify-between items-end gap-4 md:gap-8 shrink-0">
         <div className="max-w-2xl">
-          <h2 className="font-headline text-5xl md:text-7xl font-light tracking-tight mb-4">Voice Profiles</h2>
-          <p className="font-headline italic text-xl text-on-surface-variant max-w-lg">
+          <h2 className="font-headline text-3xl md:text-7xl font-light tracking-tight mb-2 md:mb-4">Voice Profiles</h2>
+          <p className="font-headline italic text-base md:text-xl text-on-surface-variant max-w-lg">
             Soul-Patterns and Dialogue DNA to anchor your narrative's distinct personality.
           </p>
         </div>
@@ -151,9 +159,9 @@ export function VoicesScreen({
       </section>
 
       {/* Main Content Split Pane */}
-      <div className="flex-1 min-h-0 flex gap-8">
+      <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-8">
         {/* Left Pane: List (1/3) */}
-        <div className="w-1/3 flex flex-col gap-6 min-h-0">
+        <div className={`w-full lg:w-1/3 flex flex-col gap-6 min-h-0 ${isMobile && (editingProfile || editingAuthorVoice || isCreating) ? 'hidden' : 'flex'}`}>
           {/* Search Bar */}
           <div className="relative w-full shrink-0">
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
@@ -169,10 +177,10 @@ export function VoicesScreen({
           </div>
 
           {/* Category Tabs */}
-          <div className="flex overflow-x-auto custom-scrollbar pb-2 shrink-0 gap-2">
+          <div className="flex overflow-x-auto custom-scrollbar pb-2 shrink-0 gap-2 w-full">
             <button 
               onClick={() => { setActiveTab('author'); handleCloseForm(); }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full border whitespace-nowrap font-label text-[10px] uppercase tracking-widest transition-all duration-300 ${
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-full border whitespace-nowrap font-label text-[10px] uppercase tracking-widest transition-all duration-300 ${
                 activeTab === 'author' ? 'bg-secondary text-on-secondary border-secondary' : 'border-outline-variant/30 hover:bg-secondary/10 text-on-surface-variant'
               }`}
             >
@@ -181,7 +189,7 @@ export function VoicesScreen({
             </button>
             <button 
               onClick={() => { setActiveTab('character'); handleCloseForm(); }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full border whitespace-nowrap font-label text-[10px] uppercase tracking-widest transition-all duration-300 ${
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-full border whitespace-nowrap font-label text-[10px] uppercase tracking-widest transition-all duration-300 ${
                 activeTab === 'character' ? 'bg-primary text-on-primary border-primary' : 'border-outline-variant/30 hover:bg-primary/10 text-on-surface-variant'
               }`}
             >
@@ -289,23 +297,34 @@ export function VoicesScreen({
         </div>
 
         {/* Right Pane: Edit Form (2/3) */}
-        <div className="w-2/3 h-full">
+        <div className={`w-full lg:w-2/3 h-full ${isMobile && !(editingProfile || editingAuthorVoice || isCreating) ? 'hidden' : 'block'}`}>
           {isCreating || editingAuthorVoice || editingProfile ? (
-            activeTab === 'author' ? (
-              <AuthorVoiceForm
-                onClose={handleCloseForm}
-                onSave={handleSaveAuthorVoice}
-                initialData={editingAuthorVoice}
-                isModal={false}
-              />
-            ) : (
-              <VoiceProfileForm 
-                onClose={handleCloseForm}
-                onSave={handleSaveProfile}
-                initialData={editingProfile}
-                isModal={false}
-              />
-            )
+            <div className="flex flex-col h-full">
+              {isMobile && (
+                <button 
+                  onClick={handleCloseForm}
+                  className={`flex items-center gap-2 mb-4 font-label text-[10px] uppercase tracking-widest ${activeTab === 'author' ? 'text-secondary' : 'text-primary'}`}
+                >
+                  <Plus className="w-4 h-4 rotate-45" />
+                  Back to List
+                </button>
+              )}
+              {activeTab === 'author' ? (
+                <AuthorVoiceForm
+                  onClose={handleCloseForm}
+                  onSave={handleSaveAuthorVoice}
+                  initialData={editingAuthorVoice}
+                  isModal={false}
+                />
+              ) : (
+                <VoiceProfileForm 
+                  onClose={handleCloseForm}
+                  onSave={handleSaveProfile}
+                  initialData={editingProfile}
+                  isModal={false}
+                />
+              )}
+            </div>
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-center p-12 bg-surface-container-lowest/50 rounded-3xl border border-outline-variant/10">
               <div className="w-24 h-24 rounded-full bg-surface-container flex items-center justify-center mb-6">
