@@ -34,6 +34,7 @@ interface RefinementPresetsProps {
     onAddVoiceProfile: (profile: VoiceProfile) => void;
     onAddAuthorVoice: (voice: AuthorVoice) => void;
     currentSceneId: string | null;
+    storyDay?: number;
     editorRef?: React.MutableRefObject<any>;
     setActiveTab?: (tab: WorkspaceTab) => void;
 }
@@ -67,7 +68,7 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
         getDraft, selection, isRefining, setIsRefining, showToast, onNewVersion,
         loreEntries, voiceProfiles, authorVoices,
         onAddLoreEntry, onAddVoiceProfile, onAddAuthorVoice,
-        currentSceneId, editorRef, setActiveTab
+        currentSceneId, storyDay, editorRef, setActiveTab
     } = props;
 
     const [presetsOpen, setPresetsOpen] = useState(true);
@@ -145,7 +146,8 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
           generationConfig: { model, temperature: currentTemperature },
           focusAreas,
           loreEntries, voiceProfiles, authorVoices,
-          feedbackDepth
+          feedbackDepth,
+          storyDay
         };
 
         const result = await refineDraft(options);

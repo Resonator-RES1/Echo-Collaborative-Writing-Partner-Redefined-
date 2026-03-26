@@ -91,6 +91,7 @@ export function LoreScreen({ setCurrentScreen }: LoreScreenProps) {
     'Locations',
     'Items',
     'World Mechanics',
+    'Timeline',
     'Geography & Ecology',
     'Societal Strata',
     'Historical Context',

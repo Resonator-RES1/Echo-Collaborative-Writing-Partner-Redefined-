@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Scene, Chapter, RefinedVersion } from '../../types';
-import { Plus, Trash2, Edit2, Check, X, Folder, FileText, GripVertical, ChevronRight, ChevronDown } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, X, Folder, FileText, GripVertical, ChevronRight, ChevronDown, Clock } from 'lucide-react';
 import * as db from '../../services/dbService';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
@@ -317,7 +317,19 @@ export const SceneManager: React.FC<SceneManagerProps> = ({
                   <GripVertical size={14} />
                 </div>
                 <FileText size={14} className="opacity-50 flex-shrink-0" />
-                <span className="text-sm truncate select-none font-medium">{scene.title}</span>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-sm truncate select-none font-medium">{scene.title}</span>
+                  {(scene.storyDay !== undefined || scene.storyTime) && (
+                    <div className="flex items-center gap-1 text-[10px] text-on-surface-variant/60">
+                      <Clock size={10} />
+                      <span>
+                        {scene.storyDay !== undefined ? `Day ${scene.storyDay}` : ''}
+                        {scene.storyDay !== undefined && scene.storyTime ? ' • ' : ''}
+                        {scene.storyTime || ''}
+                      </span>
+                    </div>
+                  )}
+                </div>
                 {(scene.hasEcho || hasAcceptedVersion(scene.id)) && (
                   <span title="Has accepted refinement" className="flex-shrink-0 flex items-center">
                     <Check size={12} className="text-emerald-500 ml-1" />

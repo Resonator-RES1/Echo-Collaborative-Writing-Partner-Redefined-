@@ -15,6 +15,7 @@ export interface RefineDraftOptions {
   authorVoices?: AuthorVoice[];
   customInstruction?: string;
   chapterNumber?: number;
+  storyDay?: number;
   previousEchoes?: RefinedVersion[];
   feedbackDepth?: FeedbackDepth;
 }
@@ -70,6 +71,7 @@ export const refineDraft = async (options: RefineDraftOptions): Promise<RefineDr
       voiceProfiles = [],
       authorVoices = [],
       chapterNumber,
+      storyDay,
       previousEchoes = [],
       feedbackDepth = 'balanced'
     } = options;
@@ -83,9 +85,23 @@ export const refineDraft = async (options: RefineDraftOptions): Promise<RefineDr
         const systemicRules = activeLore.filter(l => 
           ['World Mechanics', 'Geography & Ecology', 'Societal Strata'].includes(l.category)
         );
+        const timelineEntries = activeLore.filter(l => l.category === 'Timeline');
         const worldContext = activeLore.filter(l => 
-          !['World Mechanics', 'Geography & Ecology', 'Societal Strata'].includes(l.category)
+          !['World Mechanics', 'Geography & Ecology', 'Societal Strata', 'Timeline'].includes(l.category)
         );
+
+        if (storyDay !== undefined) {
+            preamble += `*** CHRONOLOGICAL ANCHOR ***\n`;
+            preamble += `Current Scene Time: Day ${storyDay}.\n`;
+            
+            const pastEvents = timelineEntries.filter(e => e.storyDay !== undefined && e.storyDay < storyDay);
+            if (pastEvents.length > 0) {
+                preamble += `Past Events (Chronological Context):\n`;
+                preamble += pastEvents.sort((a, b) => (a.storyDay || 0) - (b.storyDay || 0))
+                    .map(e => `- [Day ${e.storyDay}] ${e.title}: ${e.content}`).join('\n') + '\n';
+            }
+            preamble += `CHRONOLOGICAL GUARD: If the draft contradicts the established timeline (e.g., a dead character appearing or a wound being forgotten), flag this as Lore Fraying (Amber).\n\n`;
+        }
 
         preamble += '*** ACTIVE LORE (PRIMARY TRUTH) ***\n';
         

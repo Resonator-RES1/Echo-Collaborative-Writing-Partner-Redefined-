@@ -16,6 +16,7 @@ interface RefinePanelProps {
     onAddVoiceProfile: (profile: VoiceProfile) => void;
     onAddAuthorVoice: (voice: AuthorVoice) => void;
     currentSceneId: string | null;
+    storyDay?: number;
     selection?: { text: string; start: number; end: number } | null;
     editorRef?: React.MutableRefObject<any>;
     setActiveTab?: (tab: WorkspaceTab) => void;

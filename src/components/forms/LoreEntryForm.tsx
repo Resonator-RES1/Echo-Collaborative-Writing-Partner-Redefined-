@@ -18,6 +18,8 @@ export function LoreEntryForm({ onClose, onSave, initialData, isModal = true, lo
   const [gender, setGender] = useState<Gender>(initialData?.gender || 'unspecified');
   const [sensoryPalette, setSensoryPalette] = useState(initialData?.sensoryPalette || '');
   const [relationships, setRelationships] = useState<Relationship[]>(initialData?.relationships || []);
+  const [storyDay, setStoryDay] = useState<number | undefined>(initialData?.storyDay);
+  const [linkedEntityIds, setLinkedEntityIds] = useState<string[]>(initialData?.linkedEntityIds || []);
 
   useEffect(() => {
     setTitle(initialData?.title || '');
@@ -27,6 +29,8 @@ export function LoreEntryForm({ onClose, onSave, initialData, isModal = true, lo
     setGender(initialData?.gender || 'unspecified');
     setSensoryPalette(initialData?.sensoryPalette || '');
     setRelationships(initialData?.relationships || []);
+    setStoryDay(initialData?.storyDay);
+    setLinkedEntityIds(initialData?.linkedEntityIds || []);
   }, [initialData]);
 
   const placeholders: Record<string, string> = {
@@ -38,6 +42,7 @@ export function LoreEntryForm({ onClose, onSave, initialData, isModal = true, lo
     'Societal Strata': "Class structures, political systems, cultural norms, and hierarchies...",
     'Historical Context': "Key events, eras, legends, and the weight of the past...",
     'Current State': "Present-day conflicts, active threats, and the immediate world status...",
+    'Timeline': "Describe the event, its significance, and its impact on the world...",
     'Other': "Any other worldbuilding details..."
   };
 
@@ -56,6 +61,8 @@ export function LoreEntryForm({ onClose, onSave, initialData, isModal = true, lo
       gender: category === 'Characters' ? gender : undefined,
       sensoryPalette,
       relationships: category === 'Characters' ? relationships : undefined,
+      storyDay: category === 'Timeline' ? storyDay : undefined,
+      linkedEntityIds: category === 'Timeline' ? linkedEntityIds : undefined,
       lastModified: new Date().toISOString(),
     });
   };
@@ -148,6 +155,7 @@ export function LoreEntryForm({ onClose, onSave, initialData, isModal = true, lo
                   <option value="Items">Items</option>
                 </optgroup>
                 <optgroup label="Engine (AI Refinement)">
+                  <option value="Timeline">Timeline</option>
                   <option value="World Mechanics">World Mechanics</option>
                   <option value="Geography & Ecology">Geography & Ecology</option>
                   <option value="Societal Strata">Societal Strata</option>
@@ -158,6 +166,51 @@ export function LoreEntryForm({ onClose, onSave, initialData, isModal = true, lo
               </select>
             </div>
           </div>
+
+          {category === 'Timeline' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
+                  Story Day
+                </label>
+                <input 
+                  type="number"
+                  value={storyDay || ''}
+                  onChange={(e) => setStoryDay(e.target.value ? parseInt(e.target.value) : undefined)}
+                  placeholder="e.g., 1, 42, 100"
+                  className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface"
+                />
+                <p className="text-[10px] text-on-surface-variant/50 italic ml-1">The relative day this event occurs.</p>
+              </div>
+              <div className="space-y-2">
+                <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
+                  Linked Entities
+                </label>
+                <div className="flex flex-wrap gap-2 p-2 bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl min-h-[58px]">
+                  {loreEntries.filter(e => e.category === 'Characters' || e.category === 'Locations').map(entity => (
+                    <button
+                      key={entity.id}
+                      type="button"
+                      onClick={() => {
+                        if (linkedEntityIds.includes(entity.id)) {
+                          setLinkedEntityIds(linkedEntityIds.filter(id => id !== entity.id));
+                        } else {
+                          setLinkedEntityIds([...linkedEntityIds, entity.id]);
+                        }
+                      }}
+                      className={`px-3 py-1 rounded-full text-[10px] font-label uppercase tracking-wider transition-all ${
+                        linkedEntityIds.includes(entity.id)
+                          ? 'bg-primary text-on-primary-fixed'
+                          : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high'
+                      }`}
+                    >
+                      {entity.title}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {category === 'Characters' && (
             <div className="space-y-2">

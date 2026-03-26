@@ -404,6 +404,7 @@ const Editor: React.FC<EditorProps> = ({
                     onAddVoiceProfile={onAddVoiceProfile}
                     onAddAuthorVoice={onAddAuthorVoice}
                     currentSceneId={currentSceneId}
+                    storyDay={currentScene?.storyDay}
                     selection={selection}
                     editorRef={editorRef}
                     setActiveTab={setActiveTab}
@@ -435,6 +436,10 @@ const Editor: React.FC<EditorProps> = ({
           </>
       );
   };
+
+  const currentScene = useMemo(() => 
+    scenes.find(s => s.id === currentSceneId),
+  [scenes, currentSceneId]);
 
   return (
     <div className={`flex flex-col lg:flex-row gap-4 lg:gap-8 flex-1 min-h-0 animate-in fade-in duration-700 ${isFocusMode && activeTab === 'draft' ? 'focus-mode' : ''}`}>

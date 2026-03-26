@@ -39,7 +39,7 @@ export interface MasterVoice {
 export interface LoreEntry {
   id: string;
   title: string;
-  category: 'Characters' | 'Locations' | 'Items' | 'World Mechanics' | 'Geography & Ecology' | 'Societal Strata' | 'Historical Context' | 'Current State' | 'Other';
+  category: 'Characters' | 'Locations' | 'Items' | 'World Mechanics' | 'Geography & Ecology' | 'Societal Strata' | 'Historical Context' | 'Current State' | 'Timeline' | 'Other';
   content: string;
   aliases?: string[];
   gender?: Gender;
@@ -47,6 +47,8 @@ export interface LoreEntry {
   relationships?: Relationship[];
   lastModified: string;
   isActive?: boolean;
+  storyDay?: number;
+  linkedEntityIds?: string[];
 }
 
 export interface VoiceProfile {
@@ -181,6 +183,8 @@ export interface Scene {
   order: number;
   lastModified: string;
   hasEcho?: boolean;
+  storyDay?: number;
+  storyTime?: string;
 }
 
 export type Screen = 'welcome' | 'workspace' | 'lore' | 'voices' | 'manuscript' | 'settings';
