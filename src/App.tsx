@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, Suspense, lazy } from 'react';
 import { 
     Book, 
     Sparkles, 
@@ -16,22 +16,37 @@ import {
     Library,
     Home,
     Mic2,
-    Layout
+    Layout,
+    Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import Editor from './components/Editor.tsx';
 import { Toast } from './components/Toast';
 import { TopAppBar } from './components/TopAppBar';
-import { LoreScreen } from './components/LoreScreen';
-import { VoicesScreen } from './components/VoicesScreen';
 import { WelcomeScreen } from './components/WelcomeScreen';
-import { ManuscriptPanel } from './components/ManuscriptPanel';
 import { SettingsScreen } from './components/SettingsScreen';
 import { GlobalSearchModal } from './components/GlobalSearchModal';
 import { Screen, RefinedVersion, Scene, Chapter, WritingGoal } from './types';
 import * as db from './services/dbService';
 import { useLore } from './contexts/LoreContext';
 import { useProject } from './contexts/ProjectContext';
+
+// Lazy load main screens
+const Editor = lazy(() => import('./components/Editor.tsx'));
+const LoreScreen = lazy(() => import('./components/LoreScreen').then(m => ({ default: m.LoreScreen })));
+const VoicesScreen = lazy(() => import('./components/VoicesScreen').then(m => ({ default: m.VoicesScreen })));
+const ManuscriptPanel = lazy(() => import('./components/ManuscriptPanel').then(m => ({ default: m.ManuscriptPanel })));
+
+const LoadingState = () => (
+  <div className="flex-1 flex flex-col items-center justify-center gap-4 animate-in fade-in duration-500">
+    <div className="relative">
+      <div className="w-12 h-12 border-4 border-primary/10 border-t-primary rounded-full animate-spin" />
+      <Loader2 className="w-6 h-6 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+    </div>
+    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60 animate-pulse">
+      Synchronizing Echoes...
+    </p>
+  </div>
+);
 
 export default function App() {
   const { isZenMode, setIsZenMode } = useProject();
@@ -455,7 +470,9 @@ export default function App() {
       />
       
       <main className={`${currentScreen === 'welcome' ? 'flex-1 min-h-0 flex flex-col overflow-hidden' : `flex-1 min-h-0 flex flex-col overflow-hidden ${isZenMode ? 'zen-container' : 'px-2 sm:px-4 md:px-6 pb-2 sm:pb-4 max-w-7xl mx-auto w-full'} ${isMobile && !isZenMode ? 'pb-20' : ''}`}`}>
-        {renderScreen()}
+        <Suspense fallback={<LoadingState />}>
+          {renderScreen()}
+        </Suspense>
       </main>
 
       <AnimatePresence>

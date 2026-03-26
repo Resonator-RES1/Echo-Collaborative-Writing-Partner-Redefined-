@@ -236,9 +236,9 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = React.memo(({
                         onClick={handleManualScan}
                         disabled={isScanning}
                         className="px-2 py-1 rounded-full bg-primary/10 text-primary text-[9px] font-black uppercase tracking-tighter hover:bg-primary/20 transition-all disabled:opacity-50"
-                        title="Run deep conceptual scan"
+                        title="Run deep conceptual audit"
                     >
-                        {isScanning ? 'Scanning...' : 'Deep Scan'}
+                        {isScanning ? 'Auditing...' : 'Deep Audit'}
                     </button>
                     {(inactiveMentions.lore.length > 0 || inactiveMentions.voices.length > 0) && (
                         <button 

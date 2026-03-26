@@ -1,5 +1,4 @@
 import { ProseMetrics, FocusArea, RefinedVersion } from '../../../../types';
-import { marked } from 'marked';
 
 export const getRecommendations = (metrics: ProseMetrics) => {
     const sortedMetrics = Object.entries(metrics)
@@ -95,24 +94,10 @@ export const copyReportToClipboard = async (currentVersion: RefinedVersion, show
     }
 
     try {
-        const htmlContent = await marked.parse(reportMarkdown);
-        const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
-        const textBlob = new Blob([reportMarkdown], { type: 'text/plain' });
-
-        const data = [new ClipboardItem({
-            'text/html': htmlBlob,
-            'text/plain': textBlob
-        })];
-
-        await navigator.clipboard.write(data);
-        showToast("Report copied with formatting!");
+        await navigator.clipboard.writeText(reportMarkdown);
+        showToast("Report copied to clipboard!");
     } catch (err) {
         console.error('Failed to copy report: ', err);
-        navigator.clipboard.writeText(reportMarkdown).then(() => {
-            showToast("Report copied as plain text.");
-        }).catch(fallbackErr => {
-            console.error('Fallback copy failed: ', fallbackErr);
-            showToast("Failed to copy report.");
-        });
+        showToast("Failed to copy report.");
     }
 };

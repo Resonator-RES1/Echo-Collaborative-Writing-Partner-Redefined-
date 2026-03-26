@@ -31,8 +31,9 @@ export default defineConfig(({ mode }) => {
         rollupOptions: {
           output: {
             manualChunks: {
+              'editor-core': ['@tiptap/react', '@tiptap/starter-kit', 'tiptap-markdown'],
               'ai-engine': ['@google/genai', 'voy-search', 'minisearch'],
-              'vendor': ['react', 'react-dom', 'lucide-react', 'motion']
+              'ui-framework': ['motion', 'lucide-react', 'recharts']
             }
           }
         }

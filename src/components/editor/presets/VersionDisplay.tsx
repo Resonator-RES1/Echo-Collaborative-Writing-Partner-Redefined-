@@ -7,7 +7,6 @@ import {
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
-import { marked } from 'marked';
 import { RefinedVersion, FocusArea } from '../../../types';
 
 interface VersionDisplayProps {
@@ -57,30 +56,11 @@ export const VersionDisplay: React.FC<VersionDisplayProps> = React.memo(({
         if (!textToCopy) return;
 
         try {
-            // Convert markdown to HTML for rich text copying
-            const htmlContent = await marked.parse(textToCopy);
-            
-            // Create a blob for HTML and plain text
-            const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
-            const textBlob = new Blob([textToCopy], { type: 'text/plain' });
-
-            // Use ClipboardItem to copy both formats
-            const data = [new ClipboardItem({
-                'text/html': htmlBlob,
-                'text/plain': textBlob
-            })];
-
-            await navigator.clipboard.write(data);
-            showToast("Copied with formatting!");
+            await navigator.clipboard.writeText(textToCopy);
+            showToast("Copied to clipboard!");
         } catch (err) {
-            console.error('Failed to copy rich text: ', err);
-            // Fallback to plain text copy if rich text fails
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                showToast("Copied as plain text.");
-            }).catch(fallbackErr => {
-                console.error('Fallback copy failed: ', fallbackErr);
-                showToast("Failed to copy text.");
-            });
+            console.error('Failed to copy text: ', err);
+            showToast("Failed to copy text.");
         }
     };
 
