@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Wand2, ChevronDown, ShieldCheck, FileText, BookOpen, History, BarChart3, Sparkles, GitCompare, PenTool, Sun } from 'lucide-react';
 import { RefinedVersion, LoreEntry, VoiceProfile, AuthorVoice, Scene, WorkspaceTab } from '../types';
 import { scanForContext } from '../utils/contextScanner';
@@ -350,7 +351,7 @@ const Editor: React.FC<EditorProps> = ({
                   />
               </div>
               <div className={`flex-1 min-h-0 flex flex-col overflow-hidden ${activeTab === 'draft' ? 'flex' : 'hidden'}`}>
-                  <div className={`flex-1 min-h-0 flex flex-col mt-2 overflow-hidden ${isZenMode ? 'max-w-3xl mx-auto w-full' : ''}`}>
+                  <div className={`flex-1 min-h-0 flex flex-col overflow-hidden ${isZenMode ? 'w-full mx-auto' : 'mt-2'}`}>
                       <RichTextEditor
                           editorRef={editorRef}
                           content={draftState.present}
@@ -486,38 +487,84 @@ const Editor: React.FC<EditorProps> = ({
         setActiveTab={setActiveTab}
       />
       
-      <section className={`flex-1 flex flex-col min-h-0 transition-all duration-500 ${isZenMode ? 'zen-container' : ''}`}>
-        <div className={`bg-surface-container-low/50 backdrop-blur-sm rounded-[0.75rem] shadow-2xl ghost-border flex flex-col flex-1 relative min-h-0 overflow-hidden transition-all duration-500 p-4 lg:p-6 ${isZenMode ? 'border-none bg-transparent shadow-none' : ''}`}>
+      <section className={`flex-1 flex flex-col min-h-0 transition-all duration-500`}>
+        <div className={`bg-surface-container-low/50 backdrop-blur-sm rounded-[0.75rem] shadow-2xl ghost-border flex flex-col flex-1 relative min-h-0 overflow-hidden transition-all duration-500 ${isZenMode ? 'border-none bg-transparent shadow-none p-0' : 'p-4 lg:p-6'}`}>
           
-          {/* Workspace Tab Bar */}
+          {/* Workspace Process Flow Rail */}
           {!isZenMode && (
-              <div className="sticky top-0 z-20 bg-surface-container-low/90 backdrop-blur-md py-2 -mx-4 px-4 lg:-mx-6 lg:px-6 mb-2 border-b border-outline-variant/10 overflow-x-auto hide-scrollbar">
-                  <div className="flex items-center gap-1 sm:gap-1.5 bg-surface-container-highest/50 p-1 rounded-full w-max mx-auto border border-outline-variant/10 shadow-sm">
+              <div className="sticky top-0 z-20 bg-surface-container-low/95 backdrop-blur-md py-3 sm:py-5 -mx-4 px-4 lg:-mx-6 lg:px-6 mb-3 sm:mb-5 border-b border-outline-variant/10 overflow-hidden">
+                  <div className="relative flex items-center justify-between max-w-3xl mx-auto px-2 sm:px-12">
+                      {/* Connecting Line Background */}
+                      <div className="absolute left-8 right-8 sm:left-12 sm:right-12 h-[1px] bg-outline-variant/20 top-[16px] sm:top-[20px] z-0" />
+                      
+                      {/* Progress Line */}
+                      <motion.div 
+                        className="absolute left-8 sm:left-12 h-[1px] bg-primary z-0 top-[16px] sm:top-[20px]" 
+                        initial={false}
+                        animate={{ 
+                          width: `calc(${(['draft', 'context', 'refine', 'archive', 'report'].indexOf(activeTab) / 4) * 100}% - 0px)` 
+                        }}
+                        transition={{ duration: 0.8, ease: "easeInOut" }}
+                      />
+                      
                       {[
-                          { id: 'draft', label: 'Draft', icon: FileText },
-                          { id: 'context', label: 'Context', icon: BookOpen },
-                          { id: 'refine', label: 'Refine', icon: Sparkles },
-                          { id: 'archive', label: 'Archive', icon: History },
-                          { id: 'report', label: 'Report', icon: BarChart3 }
-                      ].map(tab => (
-                          <button
-                              key={tab.id}
-                              onClick={() => {
-                                  setActiveTab(tab.id as WorkspaceTab);
-                              }}
-                              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === tab.id ? 'bg-primary text-on-primary-fixed shadow-lg shadow-primary/20' : 'text-on-surface-variant hover:text-primary hover:bg-primary/5'}`}
-                          >
-                              <tab.icon className="w-3.5 h-3.5" />
-                              {tab.label}
-                          </button>
-                      ))}
+                          { id: 'draft', label: 'Draft', icon: FileText, step: '01' },
+                          { id: 'context', label: 'Context', icon: BookOpen, step: '02' },
+                          { id: 'refine', label: 'Refine', icon: Sparkles, step: '03' },
+                          { id: 'archive', label: 'Archive', icon: History, step: '04' },
+                          { id: 'report', label: 'Report', icon: BarChart3, step: '05' }
+                      ].map((tab, index, array) => {
+                          const isActive = activeTab === tab.id;
+                          const isPast = array.findIndex(t => t.id === activeTab) > index;
+                          
+                          return (
+                              <button
+                                  key={tab.id}
+                                  onClick={() => setActiveTab(tab.id as WorkspaceTab)}
+                                  className="relative z-10 flex flex-col items-center group transition-all duration-300"
+                              >
+                                  {/* Node */}
+                                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-500 border ${
+                                      isActive 
+                                          ? 'bg-primary border-primary text-on-primary-fixed shadow-[0_0_20px_rgba(208,192,255,0.3)] scale-110' 
+                                          : isPast
+                                              ? 'bg-surface-container-highest border-primary/40 text-primary'
+                                              : 'bg-surface-container-low border-outline-variant/30 text-on-surface-variant hover:border-primary/50'
+                                  }`}>
+                                      <tab.icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isActive ? 'animate-pulse' : ''}`} />
+                                  </div>
+                                  
+                                  {/* Label Container */}
+                                  <div className="absolute -bottom-6 sm:-bottom-8 flex flex-col items-center whitespace-nowrap">
+                                      <span className={`hidden sm:block text-[8px] font-mono tracking-tighter transition-opacity duration-300 mb-0.5 ${isActive ? 'opacity-100 text-primary' : 'opacity-30'}`}>
+                                          {tab.step}
+                                      </span>
+                                      <span className={`text-[8px] sm:text-[10px] font-label font-bold uppercase tracking-[0.1em] sm:tracking-[0.2em] transition-all duration-300 ${
+                                          isActive 
+                                            ? 'text-primary scale-105' 
+                                            : 'text-on-surface-variant/40 group-hover:text-primary/60'
+                                      }`}>
+                                          {tab.label}
+                                      </span>
+                                  </div>
+
+                                  {/* Active Indicator Glow */}
+                                  {isActive && (
+                                    <motion.div 
+                                      layoutId="active-flow-glow"
+                                      className="absolute -inset-2 bg-primary/5 rounded-full blur-xl -z-10"
+                                    />
+                                  )}
+                              </button>
+                          );
+                      })}
                   </div>
               </div>
           )}
 
           {/* Main Editor Top Bar */}
           {activeTab === 'draft' && (
-              <div className={`relative bg-surface-container-low/95 backdrop-blur-sm pb-2 border-b border-outline-variant/20 mb-2 sm:mb-3 -mx-4 px-4 lg:-mx-6 lg:px-6 flex items-center justify-between gap-2 sm:gap-4 min-h-[40px] transition-all duration-500 ${isZenMode ? 'zen-ui-element' : ''} ${isZenMode && !isUIVisible ? 'zen-ui-hidden' : 'zen-ui-visible'}`}>
+              <div className={`relative bg-surface-container-low/95 backdrop-blur-sm pb-2 border-b border-outline-variant/20 mb-2 sm:mb-3 -mx-4 px-4 lg:-mx-6 lg:px-6 flex items-center justify-between gap-2 sm:gap-4 min-h-[40px] transition-all duration-500 ${isZenMode ? 'zen-ui-element !mx-0 !px-0 mb-8' : ''} ${isZenMode && !isUIVisible ? 'zen-ui-hidden' : 'zen-ui-visible'}`}>
                   {/* Left: Formatting Toolbar */}
                   <div className="flex-1 min-w-0 overflow-x-auto hide-scrollbar z-10 pr-[100px] sm:pr-[150px]">
                       <FormattingToolbar 

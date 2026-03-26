@@ -463,7 +463,7 @@ export default function App() {
         showToast={showToast}
       />
       
-      <main className={`${currentScreen === 'welcome' ? 'flex-1 min-h-0 flex flex-col overflow-hidden' : `px-2 sm:px-4 md:px-6 pb-2 sm:pb-4 max-w-7xl mx-auto w-full flex-1 min-h-0 flex flex-col overflow-hidden ${isMobile ? 'pb-20' : ''} ${isZenMode ? 'zen-container' : ''}`}`}>
+      <main className={`${currentScreen === 'welcome' ? 'flex-1 min-h-0 flex flex-col overflow-hidden' : `flex-1 min-h-0 flex flex-col overflow-hidden ${isZenMode ? 'zen-container' : 'px-2 sm:px-4 md:px-6 pb-2 sm:pb-4 max-w-7xl mx-auto w-full'} ${isMobile && !isZenMode ? 'pb-20' : ''}`}`}>
         {renderScreen()}
       </main>
 
