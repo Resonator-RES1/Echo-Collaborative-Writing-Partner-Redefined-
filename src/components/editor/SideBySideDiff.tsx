@@ -38,139 +38,142 @@ export const SideBySideDiff: React.FC<{
         return getHighlightRanges(polished, report);
     }, [polished, report]);
 
-    const leftPane: React.ReactNode[] = [];
-    const rightPane: React.ReactNode[] = [];
+    const { leftPane, rightPane } = useMemo(() => {
+        const left: React.ReactNode[] = [];
+        const right: React.ReactNode[] = [];
+        let polishedIndex = 0;
 
-    let polishedIndex = 0;
-
-    diffResult.forEach((part, index) => {
-        const key = `diff-${index}`;
-        if (part.added) {
-            const start = polishedIndex;
-            const end = polishedIndex + part.value.length;
-            
-            // Find lore highlights in this added part
-            const partRanges = highlightRanges.filter(r => 
-                (r.type === 'lore' || r.type === 'restraint' || r.type === 'fraying') && 
-                Math.max(r.start, start) < Math.min(r.end, end)
-            );
-            
-            if (partRanges.length > 0) {
-                let currentPos = start;
-                const segments: React.ReactNode[] = [];
+        diffResult.forEach((part, index) => {
+            const key = `diff-${index}`;
+            if (part.added) {
+                const start = polishedIndex;
+                const end = polishedIndex + part.value.length;
                 
-                partRanges.forEach((range, rIdx) => {
-                    const rangeStart = Math.max(range.start, start);
-                    const rangeEnd = Math.min(range.end, end);
+                // Find lore highlights in this added part
+                const partRanges = highlightRanges.filter(r => 
+                    (r.type === 'lore' || r.type === 'restraint' || r.type === 'fraying') && 
+                    Math.max(r.start, start) < Math.min(r.end, end)
+                );
+                
+                if (partRanges.length > 0) {
+                    let currentPos = start;
+                    const segments: React.ReactNode[] = [];
+                    
+                    partRanges.forEach((range, rIdx) => {
+                        const rangeStart = Math.max(range.start, start);
+                        const rangeEnd = Math.min(range.end, end);
 
-                    if (rangeStart > currentPos) {
+                        if (rangeStart > currentPos) {
+                            segments.push(
+                                <span key={`${key}-s-${rIdx}`} className="bg-[var(--highlight-emerald-bg)] text-[var(--highlight-emerald-text)] rounded px-1">
+                                    {polished.substring(currentPos, rangeStart)}
+                                </span>
+                            );
+                        }
+
+                        let className = "";
+                        let tooltip = "";
+
+                        if (range.type === 'lore') {
+                            className = "bg-[var(--highlight-red-bg)] text-[var(--highlight-red-text)] rounded px-1 border-b border-red-400 cursor-pointer transition-colors hover:bg-red-500/40";
+                            tooltip = `Lore Correction: ${range.metadata.reason}`;
+                        } else if (range.type === 'fraying') {
+                            className = "bg-[var(--highlight-amber-bg)] text-[var(--highlight-amber-text)] rounded px-1 border-b border-amber-400 cursor-pointer transition-colors hover:bg-amber-500/40";
+                            tooltip = `Lore Fraying: ${range.metadata.conflict}\nSuggestion: ${range.metadata.suggestion}`;
+                        } else {
+                            className = "bg-[var(--highlight-blue-bg)] text-[var(--highlight-blue-text)] rounded px-1 border-b border-blue-400 cursor-pointer transition-colors hover:bg-blue-500/30";
+                            tooltip = `Restrained: ${range.metadata.justification}`;
+                        }
+
                         segments.push(
-                            <span key={`${key}-s-${rIdx}`} className="bg-emerald-500/20 text-emerald-300 rounded px-1">
-                                {polished.substring(currentPos, rangeStart)}
+                            <span 
+                                key={`${key}-l-${rIdx}`} 
+                                className={className}
+                                onClick={() => setActiveTooltip({ id: `${key}-l-${rIdx}`, text: tooltip })}
+                            >
+                                {polished.substring(rangeStart, rangeEnd)}
+                            </span>
+                        );
+                        currentPos = rangeEnd;
+                    });
+                    
+                    if (currentPos < end) {
+                        segments.push(
+                            <span key={`${key}-s-end`} className="bg-[var(--highlight-emerald-bg)] text-[var(--highlight-emerald-text)] rounded px-1">
+                                {polished.substring(currentPos, end)}
                             </span>
                         );
                     }
-
-                    let className = "";
-                    let tooltip = "";
-
-                    if (range.type === 'lore') {
-                        className = "bg-red-500/30 text-red-200 rounded px-1 border-b border-red-400 cursor-pointer transition-colors hover:bg-red-500/40";
-                        tooltip = `Lore Correction: ${range.metadata.reason}`;
-                    } else if (range.type === 'fraying') {
-                        className = "bg-amber-500/30 text-amber-200 rounded px-1 border-b border-amber-400 cursor-pointer transition-colors hover:bg-amber-500/40";
-                        tooltip = `Lore Fraying: ${range.metadata.conflict}\nSuggestion: ${range.metadata.suggestion}`;
-                    } else {
-                        className = "bg-blue-500/20 text-blue-200 rounded px-1 border-b border-blue-400 cursor-pointer transition-colors hover:bg-blue-500/30";
-                        tooltip = `Restrained: ${range.metadata.justification}`;
-                    }
-
-                    segments.push(
-                        <span 
-                            key={`${key}-l-${rIdx}`} 
-                            className={className}
-                            onClick={() => setActiveTooltip({ id: `${key}-l-${rIdx}`, text: tooltip })}
-                        >
-                            {polished.substring(rangeStart, rangeEnd)}
-                        </span>
-                    );
-                    currentPos = rangeEnd;
-                });
-                
-                if (currentPos < end) {
-                    segments.push(
-                        <span key={`${key}-s-end`} className="bg-emerald-500/20 text-emerald-300 rounded px-1">
-                            {polished.substring(currentPos, end)}
-                        </span>
-                    );
+                    right.push(<span key={key}>{segments}</span>);
+                } else {
+                    right.push(<span key={key} className="bg-[var(--highlight-emerald-bg)] text-[var(--highlight-emerald-text)] rounded px-1">{part.value}</span>);
                 }
-                rightPane.push(<span key={key}>{segments}</span>);
+                polishedIndex += part.value.length;
+            } else if (part.removed) {
+                left.push(<span key={key} className="bg-[var(--highlight-error-bg)] text-[var(--highlight-error-text)] rounded px-1">{part.value}</span>);
             } else {
-                rightPane.push(<span key={key} className="bg-emerald-500/20 text-emerald-300 rounded px-1">{part.value}</span>);
-            }
-            polishedIndex += part.value.length;
-        } else if (part.removed) {
-            leftPane.push(<span key={key} className="bg-error/20 text-error rounded px-1">{part.value}</span>);
-        } else {
-            const start = polishedIndex;
-            const end = polishedIndex + part.value.length;
-            
-            // Find restraint highlights in this unchanged part
-            const partRanges = highlightRanges.filter(r => 
-                (r.type === 'lore' || r.type === 'restraint' || r.type === 'fraying') && 
-                Math.max(r.start, start) < Math.min(r.end, end)
-            );
-            
-            if (partRanges.length > 0) {
-                let currentPos = start;
-                const segments: React.ReactNode[] = [];
+                const start = polishedIndex;
+                const end = polishedIndex + part.value.length;
                 
-                partRanges.forEach((range, rIdx) => {
-                    const rangeStart = Math.max(range.start, start);
-                    const rangeEnd = Math.min(range.end, end);
-
-                    if (rangeStart > currentPos) {
-                        segments.push(<span key={`${key}-n-${rIdx}`}>{polished.substring(currentPos, rangeStart)}</span>);
-                    }
-
-                    let className = "";
-                    let tooltip = "";
-
-                    if (range.type === 'lore') {
-                        className = "bg-red-500/30 text-red-200 rounded px-1 border-b border-red-400 cursor-pointer transition-colors hover:bg-red-500/40";
-                        tooltip = `Lore Correction: ${range.metadata.reason}`;
-                    } else if (range.type === 'fraying') {
-                        className = "bg-amber-500/30 text-amber-200 rounded px-1 border-b border-amber-400 cursor-pointer transition-colors hover:bg-amber-500/40";
-                        tooltip = `Lore Fraying: ${range.metadata.conflict}\nSuggestion: ${range.metadata.suggestion}`;
-                    } else {
-                        className = "bg-blue-500/20 text-blue-200 rounded px-1 border-b border-blue-400 cursor-pointer transition-colors hover:bg-blue-500/30";
-                        tooltip = `Preserved: ${range.metadata.justification}`;
-                    }
-
-                    segments.push(
-                        <span 
-                            key={`${key}-r-${rIdx}`} 
-                            className={className}
-                            onClick={() => setActiveTooltip({ id: `${key}-r-${rIdx}`, text: tooltip })}
-                        >
-                            {polished.substring(rangeStart, rangeEnd)}
-                        </span>
-                    );
-                    currentPos = rangeEnd;
-                });
+                // Find restraint highlights in this unchanged part
+                const partRanges = highlightRanges.filter(r => 
+                    (r.type === 'lore' || r.type === 'restraint' || r.type === 'fraying') && 
+                    Math.max(r.start, start) < Math.min(r.end, end)
+                );
                 
-                if (currentPos < end) {
-                    segments.push(<span key={`${key}-n-end`}>{polished.substring(currentPos, end)}</span>);
+                if (partRanges.length > 0) {
+                    let currentPos = start;
+                    const segments: React.ReactNode[] = [];
+                    
+                    partRanges.forEach((range, rIdx) => {
+                        const rangeStart = Math.max(range.start, start);
+                        const rangeEnd = Math.min(range.end, end);
+
+                        if (rangeStart > currentPos) {
+                            segments.push(<span key={`${key}-n-${rIdx}`}>{polished.substring(currentPos, rangeStart)}</span>);
+                        }
+
+                        let className = "";
+                        let tooltip = "";
+
+                        if (range.type === 'lore') {
+                            className = "bg-[var(--highlight-red-bg)] text-[var(--highlight-red-text)] rounded px-1 border-b border-red-400 cursor-pointer transition-colors hover:bg-red-500/40";
+                            tooltip = `Lore Correction: ${range.metadata.reason}`;
+                        } else if (range.type === 'fraying') {
+                            className = "bg-[var(--highlight-amber-bg)] text-[var(--highlight-amber-text)] rounded px-1 border-b border-amber-400 cursor-pointer transition-colors hover:bg-amber-500/40";
+                            tooltip = `Lore Fraying: ${range.metadata.conflict}\nSuggestion: ${range.metadata.suggestion}`;
+                        } else {
+                            className = "bg-[var(--highlight-blue-bg)] text-[var(--highlight-blue-text)] rounded px-1 border-b border-blue-400 cursor-pointer transition-colors hover:bg-blue-500/30";
+                            tooltip = `Preserved: ${range.metadata.justification}`;
+                        }
+
+                        segments.push(
+                            <span 
+                                key={`${key}-r-${rIdx}`} 
+                                className={className}
+                                onClick={() => setActiveTooltip({ id: `${key}-r-${rIdx}`, text: tooltip })}
+                            >
+                                {polished.substring(rangeStart, rangeEnd)}
+                            </span>
+                        );
+                        currentPos = rangeEnd;
+                    });
+                    
+                    if (currentPos < end) {
+                        segments.push(<span key={`${key}-n-end`}>{polished.substring(currentPos, end)}</span>);
+                    }
+                    left.push(<span key={`${key}-left`}>{part.value}</span>);
+                    right.push(<span key={key}>{segments}</span>);
+                } else {
+                    left.push(<span key={key}>{part.value}</span>);
+                    right.push(<span key={key}>{part.value}</span>);
                 }
-                leftPane.push(<span key={`${key}-left`}>{part.value}</span>);
-                rightPane.push(<span key={key}>{segments}</span>);
-            } else {
-                leftPane.push(<span key={key}>{part.value}</span>);
-                rightPane.push(<span key={key}>{part.value}</span>);
+                polishedIndex += part.value.length;
             }
-            polishedIndex += part.value.length;
-        }
-    });
+        });
+
+        return { leftPane: left, rightPane: right };
+    }, [diffResult, highlightRanges, polished]);
 
     return (
         <div className="flex flex-col w-full bg-surface-container-low border border-outline-variant/20 rounded-[0.75rem] overflow-hidden max-h-[60vh]">

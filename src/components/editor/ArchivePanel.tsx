@@ -46,6 +46,20 @@ export const ArchivePanel: React.FC<ArchivePanelProps> = ({
         );
     }
 
+    const handleSeeReport = React.useCallback(() => {
+        if (selectedIdx !== null) {
+            onSelectVersion(selectedIdx);
+            setActiveTab('report');
+        }
+    }, [selectedIdx, onSelectVersion, setActiveTab]);
+
+    const handleAcceptChanges = React.useCallback(() => {
+        if (selectedIdx !== null && onAcceptVersion) {
+            onAcceptVersion(versionHistory[selectedIdx]);
+            setViewMode('list');
+        }
+    }, [selectedIdx, onAcceptVersion, versionHistory]);
+
     if (viewMode === 'detail' && selectedIdx !== null) {
         const version = versionHistory[selectedIdx];
         return (
@@ -109,16 +123,8 @@ export const ArchivePanel: React.FC<ArchivePanelProps> = ({
                             original={originalDraft} 
                             polished={version.text} 
                             report={version as any}
-                            onSeeReport={() => {
-                                onSelectVersion(selectedIdx);
-                                setActiveTab('report');
-                            }}
-                            onAcceptChanges={() => {
-                                if (onAcceptVersion) {
-                                    onAcceptVersion(version);
-                                    setViewMode('list');
-                                }
-                            }}
+                            onSeeReport={handleSeeReport}
+                            onAcceptChanges={handleAcceptChanges}
                         />
                     </div>
 

@@ -1,13 +1,14 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { ShieldCheck, AlertTriangle, CheckCircle, Info, Zap, Search, Undo2, Check, Clock, Users } from 'lucide-react';
 import { LoreEntry, VoiceProfile, Scene } from '../../types';
-import { scanForContext, detectPotentialInconsistencies, ContinuityIssue, performDeepScan, initializeScanner } from '../../utils/contextScanner';
+import { scanForContext, detectPotentialInconsistencies, ContinuityIssue, localScan, conceptualScan, ScannerInstances } from '../../utils/contextScanner';
 
 interface ContinuityGuardProps {
     draft: string;
     loreEntries: LoreEntry[];
     voiceProfiles: VoiceProfile[];
     currentScene?: Scene;
+    scanner: ScannerInstances;
     onActivateLore: (id: string) => void;
     onActivateVoice: (id: string) => void;
     onViewLore?: (id: string) => void;
@@ -16,11 +17,23 @@ interface ContinuityGuardProps {
     onIssuesUpdate?: (count: number) => void;
 }
 
-export const ContinuityGuard: React.FC<ContinuityGuardProps> = ({
+const getIssueIcon = (type: string) => {
+    switch (type) {
+        case 'timeline': return <Clock className="w-3.5 h-3.5 text-amber-500 mt-0.5 flex-shrink-0" />;
+        case 'social': return <Users className="w-3.5 h-3.5 text-amber-500 mt-0.5 flex-shrink-0" />;
+        case 'conceptual': return <Zap className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />;
+        case 'lore':
+        case 'general': return <AlertTriangle className="w-3.5 h-3.5 text-amber-500 mt-0.5 flex-shrink-0" />;
+        default: return <Info className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />;
+    }
+};
+
+export const ContinuityGuard: React.FC<ContinuityGuardProps> = React.memo(({
     draft,
     loreEntries,
     voiceProfiles,
     currentScene,
+    scanner,
     onActivateLore,
     onActivateVoice,
     onViewLore,
@@ -32,14 +45,9 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = ({
     const [deepIssues, setDeepIssues] = useState<ContinuityIssue[]>([]);
     const [isScanning, setIsScanning] = useState(false);
 
-    // Initialize scanner when lore or voices change
-    useEffect(() => {
-        initializeScanner(loreEntries, voiceProfiles);
-    }, [loreEntries, voiceProfiles]);
-
     // 1. Detect Mentions (Hard Matches)
-    const detectedLoreIds = useMemo(() => scanForContext(draft, loreEntries), [draft, loreEntries]);
-    const detectedVoiceIds = useMemo(() => scanForContext(draft, voiceProfiles), [draft, voiceProfiles]);
+    const detectedLoreIds = useMemo(() => scanForContext(draft, scanner.miniSearch), [draft, scanner]);
+    const detectedVoiceIds = useMemo(() => scanForContext(draft, scanner.miniSearch), [draft, scanner]);
 
     const detectedLore = useMemo(() => 
         loreEntries.filter(e => detectedLoreIds.includes(e.id)), 
@@ -51,7 +59,7 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = ({
         [voiceProfiles, detectedVoiceIds]
     );
 
-    // 2. Perform Deep Scan (Debounced)
+    // 2. Perform Conceptual Scan (Debounced 3000ms - Long Idle)
     useEffect(() => {
         const timer = setTimeout(async () => {
             if (!draft.trim()) {
@@ -60,24 +68,41 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = ({
             }
             setIsScanning(true);
             try {
-                const issues = await performDeepScan(draft, loreEntries, voiceProfiles, currentScene);
+                const issues = await conceptualScan(draft, loreEntries, scanner.voyInstance, scanner.miniSearch);
                 setDeepIssues(issues);
             } catch (error) {
-                console.error("Deep scan failed:", error);
+                console.error("Conceptual scan failed:", error);
             } finally {
                 setIsScanning(false);
             }
-        }, 800); // 800ms debounce
+        }, 3000); // 3000ms debounce for conceptual scan
 
         return () => clearTimeout(timer);
-    }, [draft, loreEntries, voiceProfiles, currentScene]);
+    }, [draft, loreEntries, scanner]);
+
+    const handleManualScan = useCallback(async () => {
+        if (!draft.trim()) return;
+        setIsScanning(true);
+        try {
+            const issues = await conceptualScan(draft, loreEntries, scanner.voyInstance, scanner.miniSearch);
+            setDeepIssues(issues);
+            showToast("Deep conceptual scan complete.");
+        } catch (error) {
+            console.error("Conceptual scan failed:", error);
+            showToast("Deep scan failed.");
+        } finally {
+            setIsScanning(false);
+        }
+    }, [draft, loreEntries, scanner, showToast]);
 
     // 3. Local Heuristic Warnings (Fast)
     const localWarnings = useMemo(() => {
         const activeLore = loreEntries.filter(e => e.isActive);
         const activeVoices = voiceProfiles.filter(v => v.isActive);
-        return detectPotentialInconsistencies(draft, activeLore, activeVoices);
-    }, [draft, loreEntries, voiceProfiles]);
+        const inconsistencies = detectPotentialInconsistencies(draft, activeLore, activeVoices);
+        const localScanIssues = localScan(draft, loreEntries, voiceProfiles, currentScene, scanner.miniSearch);
+        return [...inconsistencies, ...localScanIssues];
+    }, [draft, loreEntries, voiceProfiles, currentScene, scanner]);
 
     // Raw issues before filtering resolved ones
     const rawIssues = useMemo(() => [...localWarnings, ...deepIssues], [localWarnings, deepIssues]);
@@ -120,33 +145,24 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = ({
         });
     }, [rawIssues]);
 
-    const handleApplyFix = (issue: ContinuityIssue) => {
+    const handleApplyFix = useCallback((issue: ContinuityIssue) => {
         if (!issue.actionable) return;
         onFix(issue.actionable.original, issue.actionable.replacement);
         setResolvedFixes(prev => [...prev, { id: issue.id, original: issue.actionable!.original, replacement: issue.actionable!.replacement }]);
         showToast(`Replaced "${issue.actionable.original}" with "${issue.actionable.replacement}"`);
-    };
+    }, [onFix, showToast]);
 
-    const handleRevertFix = (resolvedId: string) => {
-        const fix = resolvedFixes.find(r => r.id === resolvedId);
-        if (!fix) return;
-        onFix(fix.replacement, fix.original);
-        setResolvedFixes(prev => prev.filter(r => r.id !== resolvedId));
-        showToast(`Reverted "${fix.replacement}" back to "${fix.original}"`);
-    };
+    const handleRevertFix = useCallback((resolvedId: string) => {
+        setResolvedFixes(prev => {
+            const fix = prev.find(r => r.id === resolvedId);
+            if (!fix) return prev;
+            onFix(fix.replacement, fix.original);
+            showToast(`Reverted "${fix.replacement}" back to "${fix.original}"`);
+            return prev.filter(r => r.id !== resolvedId);
+        });
+    }, [onFix, showToast]);
 
-    const getIssueIcon = (type: string) => {
-        switch (type) {
-            case 'timeline': return <Clock className="w-3.5 h-3.5 text-amber-500 mt-0.5 flex-shrink-0" />;
-            case 'social': return <Users className="w-3.5 h-3.5 text-amber-500 mt-0.5 flex-shrink-0" />;
-            case 'conceptual': return <Zap className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />;
-            case 'lore':
-            case 'general': return <AlertTriangle className="w-3.5 h-3.5 text-amber-500 mt-0.5 flex-shrink-0" />;
-            default: return <Info className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />;
-        }
-    };
-
-    const renderIssueList = (issues: ContinuityIssue[], title: string, icon: React.ReactNode) => {
+    const renderIssueList = useCallback((issues: ContinuityIssue[], title: string, icon: React.ReactNode) => {
         if (issues.length === 0) return null;
         return (
             <div className="space-y-3">
@@ -200,7 +216,7 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = ({
                 </div>
             </div>
         );
-    };
+    }, [handleApplyFix, onActivateLore, showToast, onViewLore]);
 
     return (
         <div className="bg-surface-container-low rounded-2xl border border-outline-variant/20 overflow-hidden flex flex-col shadow-sm mt-4 animate-in slide-in-from-top-2 fade-in duration-300">
@@ -215,6 +231,14 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = ({
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
+                    <button 
+                        onClick={handleManualScan}
+                        disabled={isScanning}
+                        className="px-2 py-1 rounded-full bg-primary/10 text-primary text-[9px] font-black uppercase tracking-tighter hover:bg-primary/20 transition-all disabled:opacity-50"
+                        title="Run deep conceptual scan"
+                    >
+                        {isScanning ? 'Scanning...' : 'Deep Scan'}
+                    </button>
                     {(inactiveMentions.lore.length > 0 || inactiveMentions.voices.length > 0) && (
                         <button 
                             onClick={() => {
@@ -322,4 +346,4 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = ({
             </div>
         </div>
     );
-};
+});

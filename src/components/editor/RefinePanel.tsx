@@ -2,6 +2,7 @@ import React from 'react';
 import { Sparkles, Loader2, Zap, AlertCircle, PlusCircle, Settings, FileText } from 'lucide-react';
 import { RefinementPresets } from './RefinementPresets';
 import { Scene, RefinedVersion, LoreEntry, VoiceProfile, AuthorVoice, FeedbackDepth, FocusArea, WorkspaceTab } from '../../types';
+import { ScannerInstances } from '../../utils/contextScanner';
 
 interface RefinePanelProps {
     draft: string;
@@ -20,6 +21,7 @@ interface RefinePanelProps {
     selection?: { text: string; start: number; end: number } | null;
     editorRef?: React.MutableRefObject<any>;
     setActiveTab?: (tab: WorkspaceTab) => void;
+    scanner: ScannerInstances;
 }
 
 export const RefinePanel: React.FC<RefinePanelProps> = (props) => {

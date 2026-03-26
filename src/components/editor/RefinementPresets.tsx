@@ -11,7 +11,7 @@ import { VoiceProfileManager } from './presets/VoiceProfileManager';
 import { FocusArea, FeedbackDepth, RefinedVersion, LoreEntry, VoiceProfile, AuthorVoice, WorkspaceTab } from '../../types';
 import { refineDraft } from '../../services/geminiService';
 import { LoreContextManager } from './LoreContextManager';
-import { scanForContext } from '../../utils/contextScanner';
+import { scanForContext, ScannerInstances } from '../../utils/contextScanner';
 import { SettingsModal } from '../SettingsModal';
 
 const DEPTH_CONFIG: Record<FeedbackDepth, { label: string; temperature: number }> = {
@@ -37,6 +37,7 @@ interface RefinementPresetsProps {
     storyDay?: number;
     editorRef?: React.MutableRefObject<any>;
     setActiveTab?: (tab: WorkspaceTab) => void;
+    scanner: ScannerInstances;
 }
 
 function replaceClosestOccurrence(fullText: string, searchText: string, replacementText: string, estimatedIndex: number): string {
@@ -68,7 +69,7 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
         getDraft, selection, isRefining, setIsRefining, showToast, onNewVersion,
         loreEntries, voiceProfiles, authorVoices,
         onAddLoreEntry, onAddVoiceProfile, onAddAuthorVoice,
-        currentSceneId, storyDay, editorRef, setActiveTab
+        currentSceneId, storyDay, editorRef, setActiveTab, scanner
     } = props;
 
     const [presetsOpen, setPresetsOpen] = useState(true);
@@ -89,18 +90,18 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
                 return;
             }
 
-            const foundLoreIds = scanForContext(draft, loreEntries.filter(e => !e.isActive));
-            const foundVoiceIds = scanForContext(draft, voiceProfiles.filter(p => !p.isActive));
+            const foundLoreIds = scanForContext(draft, scanner.miniSearch);
+            const foundVoiceIds = scanForContext(draft, scanner.miniSearch);
 
             const newSuggestions = [
                 ...foundLoreIds.map(id => {
-                    const entry = loreEntries.find(e => e.id === id);
-                    return { type: 'lore' as const, id, name: entry?.title || 'Unknown' };
-                }),
+                    const entry = loreEntries.find(e => e.id === id && !e.isActive);
+                    return entry ? { type: 'lore' as const, id, name: entry.title } : null;
+                }).filter(Boolean) as { type: 'lore', id: string, name: string }[],
                 ...foundVoiceIds.map(id => {
-                    const profile = voiceProfiles.find(p => p.id === id);
-                    return { type: 'voice' as const, id, name: profile?.name || 'Unknown' };
-                })
+                    const profile = voiceProfiles.find(p => p.id === id && !p.isActive);
+                    return profile ? { type: 'voice' as const, id, name: profile.name } : null;
+                }).filter(Boolean) as { type: 'voice', id: string, name: string }[]
             ];
 
             setSuggestions(newSuggestions);

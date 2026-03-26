@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, useMemo, useReducer, useRef } 
 import { motion, AnimatePresence } from 'motion/react';
 import { Wand2, ChevronDown, ShieldCheck, FileText, BookOpen, History, BarChart3, Sparkles, GitCompare, PenTool, Sun } from 'lucide-react';
 import { RefinedVersion, LoreEntry, VoiceProfile, AuthorVoice, Scene, WorkspaceTab } from '../types';
-import { scanForContext } from '../utils/contextScanner';
+import { scanForContext, createScanner } from '../utils/contextScanner';
 import { draftReducer, initialDraftState } from './editor/draftReducer';
 import { FormattingToolbar, FormatType } from './editor/FormattingToolbar';
 import { RichTextEditor } from './editor/RichTextEditor';
@@ -145,6 +145,8 @@ const Editor: React.FC<EditorProps> = ({
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('draft');
   const [suggestions, setSuggestions] = useState<{ id: string; name: string; type: 'lore' | 'voice' }[]>([]);
   
+  const scanner = useMemo(() => createScanner(loreEntries, voiceProfiles), [loreEntries, voiceProfiles]);
+  
   const editorRef = useRef<any>(null);
 
   // Smart Context Detection
@@ -156,8 +158,8 @@ const Editor: React.FC<EditorProps> = ({
             return;
         }
 
-        const foundLoreIds = scanForContext(text, loreEntries);
-        const foundVoiceIds = scanForContext(text, voiceProfiles);
+        const foundLoreIds = scanForContext(text, scanner.miniSearch);
+        const foundVoiceIds = scanForContext(text, scanner.miniSearch);
 
         const newSuggestions: { id: string; name: string; type: 'lore' | 'voice' }[] = [];
 
@@ -176,7 +178,7 @@ const Editor: React.FC<EditorProps> = ({
         });
 
         setSuggestions(newSuggestions);
-    }, 100);
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, [draftState.present, loreEntries, voiceProfiles]);
@@ -339,6 +341,7 @@ const Editor: React.FC<EditorProps> = ({
                       loreEntries={loreEntries}
                       voiceProfiles={voiceProfiles}
                       currentScene={currentScene}
+                      scanner={scanner}
                       onActivateLore={handleActivateLore}
                       onActivateVoice={handleActivateVoice}
                       onViewLore={(id) => {
@@ -365,14 +368,8 @@ const Editor: React.FC<EditorProps> = ({
                                   original={draftState.original} 
                                   polished={draftState.present} 
                                   report={currentVersion as any}
-                                  onSeeReport={() => setActiveTab('report')}
-                                  onAcceptChanges={() => {
-                                      // In polishing mode, the changes are already in draftState.present
-                                      // We just need to save them and maybe switch back to drafting mode
-                                      setEditorMode('drafting');
-                                      setShowDiff(false);
-                                      showToast("Changes accepted and saved to draft.");
-                                  }}
+                                  onSeeReport={handleSeeReport}
+                                  onAcceptChanges={handleAcceptChanges}
                               />
                           </div>
                       )}
@@ -431,6 +428,7 @@ const Editor: React.FC<EditorProps> = ({
                     selection={selection}
                     editorRef={editorRef}
                     setActiveTab={setActiveTab}
+                    scanner={scanner}
                   />
               )}
               {activeTab === 'archive' && (
@@ -463,6 +461,13 @@ const Editor: React.FC<EditorProps> = ({
   const currentScene = useMemo(() => 
     scenes.find(s => s.id === currentSceneId),
   [scenes, currentSceneId]);
+
+  const handleSeeReport = useCallback(() => setActiveTab('report'), []);
+  const handleAcceptChanges = useCallback(() => {
+      setEditorMode('drafting');
+      setShowDiff(false);
+      showToast("Changes accepted and saved to draft.");
+  }, [showToast]);
 
   return (
     <div 

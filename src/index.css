@@ -20,6 +20,18 @@
   --tertiary: #d9cc4d;
   --tertiary-container: #bdb033;
   --on-surface-variant: #cac4d3;
+
+  /* Highlight colors */
+  --highlight-emerald-bg: rgba(16, 185, 129, 0.2);
+  --highlight-emerald-text: #6ee7b7;
+  --highlight-red-bg: rgba(239, 68, 68, 0.3);
+  --highlight-red-text: #fca5a5;
+  --highlight-amber-bg: rgba(245, 158, 11, 0.3);
+  --highlight-amber-text: #fcd34d;
+  --highlight-blue-bg: rgba(59, 130, 246, 0.2);
+  --highlight-blue-text: #93c5fd;
+  --highlight-error-bg: rgba(239, 68, 68, 0.2);
+  --highlight-error-text: #fca5a5;
 }
 
 .parchment {
@@ -38,6 +50,18 @@
   --surface-container-highest-rgb: 223, 212, 179;
   --outline-variant: #d5c4a1;
   --on-surface-variant: #665c54;
+
+  /* Highlight colors for parchment - lighter/more transparent */
+  --highlight-emerald-bg: rgba(5, 150, 105, 0.15);
+  --highlight-emerald-text: #065f46;
+  --highlight-red-bg: rgba(220, 38, 38, 0.15);
+  --highlight-red-text: #991b1b;
+  --highlight-amber-bg: rgba(217, 119, 6, 0.15);
+  --highlight-amber-text: #92400e;
+  --highlight-blue-bg: rgba(2, 132, 199, 0.15);
+  --highlight-blue-text: #075985;
+  --highlight-error-bg: rgba(220, 38, 38, 0.15);
+  --highlight-error-text: #991b1b;
 }
 
 @theme {

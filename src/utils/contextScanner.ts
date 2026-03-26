@@ -15,23 +15,22 @@ export interface ContinuityIssue {
     linkedEntryId?: string;
 }
 
-// MiniSearch instance for hard matches
-let miniSearch = new MiniSearch({
-    fields: ['title', 'name', 'aliases', 'content'],
-    storeFields: ['id', 'type'],
-    searchOptions: {
-        boost: { title: 2, name: 2, aliases: 1.5 },
-        fuzzy: 0.2,
-        prefix: true
-    }
-});
+export interface ScannerInstances {
+    miniSearch: MiniSearch;
+    voyInstance: any;
+}
 
-// Voy instance for thematic matches
-let voyInstance: any = null;
-let voyEntries: LoreEntry[] = [];
+export const createScanner = (entries: LoreEntry[], voices: VoiceProfile[]): ScannerInstances => {
+    const miniSearch = new MiniSearch({
+        fields: ['title', 'name', 'aliases', 'content'],
+        storeFields: ['id', 'type'],
+        searchOptions: {
+            boost: { title: 2, name: 2, aliases: 1.5 },
+            fuzzy: 0.2,
+            prefix: true
+        }
+    });
 
-export const initializeScanner = async (entries: LoreEntry[], voices: VoiceProfile[]) => {
-    // Index for MiniSearch
     const documents = [
         ...entries.map(e => ({
             id: e.id,
@@ -49,13 +48,9 @@ export const initializeScanner = async (entries: LoreEntry[], voices: VoiceProfi
         }))
     ];
     
-    miniSearch.removeAll();
     miniSearch.addAll(documents);
     
-    // Store entries for Voy (conceptual search)
-    voyEntries = entries;
-
-    // Initialize Voy if we have embeddings
+    let voyInstance: any = null;
     const entriesWithEmbeddings = entries.filter(e => e.embedding && e.embedding.length > 0);
     if (entriesWithEmbeddings.length > 0) {
         try {
@@ -71,9 +66,9 @@ export const initializeScanner = async (entries: LoreEntry[], voices: VoiceProfi
             console.error("Failed to initialize Voy:", error);
             voyInstance = null;
         }
-    } else {
-        voyInstance = null;
     }
+
+    return { miniSearch, voyInstance };
 };
 
 // Helper to get embeddings from Gemini
@@ -93,8 +88,8 @@ export const getEmbedding = async (text: string): Promise<number[]> => {
     }
 };
 
-export const scanForContext = (text: string, entries: (LoreEntry | VoiceProfile)[]) => {
-    if (!text.trim()) return [];
+export const scanForContext = (text: string, miniSearch: MiniSearch) => {
+    if (!text.trim() || !miniSearch) return [];
     
     const results = miniSearch.search(text);
     return results.map(r => r.id);
@@ -160,63 +155,80 @@ export const checkSocialConsistency = (text: string, activeVoices: VoiceProfile[
     return issues;
 };
 
-export const performDeepScan = async (text: string, loreEntries: LoreEntry[], activeVoices: VoiceProfile[], currentScene?: Scene): Promise<ContinuityIssue[]> => {
+export const localScan = (
+    text: string, 
+    loreEntries: LoreEntry[], 
+    activeVoices: VoiceProfile[], 
+    currentScene: Scene | undefined,
+    miniSearch: MiniSearch
+): ContinuityIssue[] => {
     const issues: ContinuityIssue[] = [];
-    if (!text.trim()) return issues;
+    if (!text.trim() || !miniSearch) return issues;
 
     // 1. Hard Matches (MiniSearch)
     const hardMatches = miniSearch.search(text);
     
-    // 2. Conceptual Hits (Voy)
-    if (voyInstance && process.env.GEMINI_API_KEY) {
-        try {
-            const queryVector = await getEmbedding(text);
-            const searchResult = voyInstance.search(new Float32Array(queryVector), 3);
-            const hits = searchResult.neighbors || [];
-            
-            hits.forEach((hit: any) => {
-                const entry = loreEntries.find(e => e.id === hit.id);
-                // Only flag if it's not already a hard match and not active
-                if (entry && !entry.isActive && !hardMatches.find(hm => hm.id === entry.id)) {
-                    issues.push({
-                        id: `conceptual-${entry.id}`,
-                        type: 'conceptual',
-                        severity: 'low',
-                        message: `Thematic Connection: "${entry.title}" seems relevant to this scene's mood or concepts.`,
-                        linkedEntryId: entry.id
-                    });
-                }
-            });
-        } catch (error) {
-            console.error("Voy search error:", error);
-        }
-    } else if (!voyInstance) {
-        // Fallback to fuzzy MiniSearch if Voy isn't ready
-        const conceptualHits = miniSearch.search(text, {
-            fuzzy: 0.4,
-            prefix: false,
-            boost: { content: 2 }
-        }).filter(hit => !hardMatches.find(hm => hm.id === hit.id));
+    // Fallback to fuzzy MiniSearch for conceptual hits if Voy isn't used
+    const conceptualHits = miniSearch.search(text, {
+        fuzzy: 0.4,
+        prefix: false,
+        boost: { content: 2 }
+    }).filter(hit => !hardMatches.find(hm => hm.id === hit.id));
 
-        conceptualHits.slice(0, 2).forEach(hit => {
+    conceptualHits.slice(0, 2).forEach(hit => {
+        const entry = loreEntries.find(e => e.id === hit.id);
+        if (entry && !entry.isActive) {
+            issues.push({
+                id: `conceptual-${hit.id}`,
+                type: 'conceptual',
+                severity: 'low',
+                message: `Thematic Connection: "${entry.title}" seems relevant to this scene's mood or concepts.`,
+                linkedEntryId: entry.id
+            });
+        }
+    });
+
+    // 2. Timeline Guard
+    issues.push(...detectTimelineIssues(text, currentScene, loreEntries));
+
+    // 3. Social dynamics
+    issues.push(...checkSocialConsistency(text, activeVoices, loreEntries));
+
+    return issues;
+};
+
+export const conceptualScan = async (
+    text: string, 
+    loreEntries: LoreEntry[],
+    voyInstance: any,
+    miniSearch: MiniSearch
+): Promise<ContinuityIssue[]> => {
+    const issues: ContinuityIssue[] = [];
+    if (!text.trim() || !voyInstance || !process.env.GEMINI_API_KEY || !miniSearch) return issues;
+
+    try {
+        const queryVector = await getEmbedding(text);
+        const searchResult = voyInstance.search(new Float32Array(queryVector), 3);
+        const hits = searchResult.neighbors || [];
+        
+        const hardMatches = miniSearch.search(text);
+
+        hits.forEach((hit: any) => {
             const entry = loreEntries.find(e => e.id === hit.id);
-            if (entry && !entry.isActive) {
+            // Only flag if it's not already a hard match and not active
+            if (entry && !entry.isActive && !hardMatches.find(hm => hm.id === entry.id)) {
                 issues.push({
-                    id: `conceptual-${hit.id}`,
+                    id: `conceptual-deep-${entry.id}`,
                     type: 'conceptual',
                     severity: 'low',
-                    message: `Thematic Connection: "${entry.title}" seems relevant to this scene's mood or concepts.`,
+                    message: `Deep Thematic Connection: "${entry.title}" strongly resonates with this scene's concepts.`,
                     linkedEntryId: entry.id
                 });
             }
         });
+    } catch (error) {
+        console.error("Voy search error:", error);
     }
-
-    // 3. Timeline Guard
-    issues.push(...detectTimelineIssues(text, currentScene, loreEntries));
-
-    // 4. Social dynamics
-    issues.push(...checkSocialConsistency(text, activeVoices, loreEntries));
 
     return issues;
 };
