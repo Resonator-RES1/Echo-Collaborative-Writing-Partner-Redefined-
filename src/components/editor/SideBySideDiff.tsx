@@ -11,6 +11,22 @@ export const SideBySideDiff: React.FC<{
     onSeeReport?: () => void;
     onAcceptChanges?: () => void;
 }> = React.memo(({ original, polished, report, onSeeReport, onAcceptChanges }) => {
+    const [viewMode, setViewMode] = React.useState<'split' | 'original' | 'polished'>('split');
+    const [isMobile, setIsMobile] = React.useState(false);
+
+    React.useEffect(() => {
+        const checkMobile = () => {
+            const mobile = window.innerWidth < 768;
+            setIsMobile(mobile);
+            if (mobile && viewMode === 'split') {
+                setViewMode('polished');
+            }
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, [viewMode]);
+
     const diffResult = useMemo(() => {
         return diffWordsWithSpace(original, polished);
     }, [original, polished]);
@@ -155,43 +171,75 @@ export const SideBySideDiff: React.FC<{
     });
 
     return (
-        <div className="flex flex-col w-full bg-surface-container-low border border-outline-variant/20 rounded-[0.75rem] overflow-hidden max-h-[50vh]">
-            <div className="flex w-full border-b border-outline-variant/20 bg-surface-container-low sticky top-0 z-10">
-                <div className="w-1/2 p-4 border-r border-outline-variant/20">
-                    <h4 className="text-xs font-label uppercase tracking-wider text-on-surface-variant m-0">Original Draft</h4>
-                </div>
-                <div className="w-1/2 p-4">
-                    <h4 className="text-xs font-label uppercase tracking-wider text-on-surface-variant m-0">Polished Version</h4>
-                </div>
+        <div className="flex flex-col w-full bg-surface-container-low border border-outline-variant/20 rounded-[0.75rem] overflow-hidden max-h-[60vh]">
+            <div className="flex p-1 bg-surface-container-highest/50 border-b border-outline-variant/20 sticky top-0 z-20">
+                {!isMobile && (
+                    <button 
+                        onClick={() => setViewMode('split')}
+                        className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === 'split' ? 'bg-surface text-primary shadow-sm' : 'text-on-surface-variant/60'}`}
+                    >
+                        Side-by-Side
+                    </button>
+                )}
+                <button 
+                    onClick={() => setViewMode('original')}
+                    className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === 'original' ? 'bg-surface text-primary shadow-sm' : 'text-on-surface-variant/60'}`}
+                >
+                    Original
+                </button>
+                <button 
+                    onClick={() => setViewMode('polished')}
+                    className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === 'polished' ? 'bg-primary text-on-primary shadow-lg' : 'text-on-surface-variant/60'}`}
+                >
+                    Polished
+                </button>
             </div>
-            <div className="flex w-full overflow-y-auto custom-scrollbar flex-1">
-                <div className="w-1/2 p-6 whitespace-pre-wrap font-headline text-sm leading-relaxed border-r border-outline-variant/20 text-on-surface/80">
-                    <p>{leftPane}</p>
+            
+            {!isMobile && viewMode === 'split' && (
+                <div className="flex w-full border-b border-outline-variant/20 bg-surface-container-low sticky top-0 z-10">
+                    <div className="w-1/2 p-4 border-r border-outline-variant/20">
+                        <h4 className="text-xs font-label uppercase tracking-wider text-on-surface-variant m-0">Original Draft</h4>
+                    </div>
+                    <div className="w-1/2 p-4">
+                        <h4 className="text-xs font-label uppercase tracking-wider text-on-surface-variant m-0">Polished Version</h4>
+                    </div>
                 </div>
-                <div className="w-1/2 p-6 whitespace-pre-wrap font-headline text-sm leading-relaxed text-on-surface/80 flex flex-col justify-between">
-                    <p>{rightPane}</p>
-                    
-                    {(onSeeReport || onAcceptChanges) && (
-                        <div className="mt-8 pt-6 border-t border-outline-variant/20 flex flex-col sm:flex-row items-center justify-end gap-4">
-                            {onSeeReport && (
-                                <button 
-                                    onClick={onSeeReport}
-                                    className="px-6 py-2.5 rounded-full border border-outline-variant/30 text-on-surface-variant font-label text-xs uppercase tracking-widest hover:bg-surface-container-highest hover:text-primary transition-all w-full sm:w-auto text-center"
-                                >
-                                    See Editorial Report
-                                </button>
-                            )}
-                            {onAcceptChanges && (
-                                <button 
-                                    onClick={onAcceptChanges}
-                                    className="px-6 py-2.5 rounded-full bg-primary text-on-primary font-label text-xs uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 w-full sm:w-auto text-center"
-                                >
-                                    Accept These Changes
-                                </button>
-                            )}
-                        </div>
-                    )}
-                </div>
+            )}
+
+            <div className={`flex w-full overflow-y-auto custom-scrollbar flex-1 ${isMobile || viewMode !== 'split' ? 'flex-col' : ''}`}>
+                {(viewMode === 'split' || viewMode === 'original') && (
+                    <div className={`${viewMode === 'split' ? 'w-1/2' : 'w-full'} p-6 whitespace-pre-wrap font-headline text-sm leading-relaxed border-r border-outline-variant/20 text-on-surface/80`}>
+                        {viewMode !== 'split' && <h4 className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/40 mb-4">Original Draft</h4>}
+                        <p>{leftPane}</p>
+                    </div>
+                )}
+                {(viewMode === 'split' || viewMode === 'polished') && (
+                    <div className={`${viewMode === 'split' ? 'w-1/2' : 'w-full'} p-6 whitespace-pre-wrap font-headline text-sm leading-relaxed text-on-surface/80 flex flex-col justify-between`}>
+                        {viewMode !== 'split' && <h4 className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/40 mb-4">Polished Version</h4>}
+                        <p>{rightPane}</p>
+                        
+                        {(onSeeReport || onAcceptChanges) && (
+                            <div className="mt-8 pt-6 border-t border-outline-variant/20 flex flex-col sm:flex-row items-center justify-end gap-4">
+                                {onSeeReport && (
+                                    <button 
+                                        onClick={onSeeReport}
+                                        className="px-6 py-2.5 rounded-full border border-outline-variant/30 text-on-surface-variant font-label text-xs uppercase tracking-widest hover:bg-surface-container-highest hover:text-primary transition-all w-full sm:w-auto text-center"
+                                    >
+                                        See Editorial Report
+                                    </button>
+                                )}
+                                {onAcceptChanges && (
+                                    <button 
+                                        onClick={onAcceptChanges}
+                                        className="px-6 py-2.5 rounded-full bg-primary text-on-primary font-label text-xs uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 w-full sm:w-auto text-center"
+                                    >
+                                        Accept These Changes
+                                    </button>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -99,6 +99,10 @@ export const ArchivePanel: React.FC<ArchivePanelProps> = ({
                                     <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-red-500/40 border border-red-400/50 rounded-sm"></span> 
                                     Lore
                                 </span>
+                                <span className="flex items-center gap-1.5 text-on-surface-variant/60">
+                                    <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-amber-500/40 border border-amber-400/50 rounded-sm"></span> 
+                                    Fraying
+                                </span>
                             </div>
                         </div>
                         <SideBySideDiff 

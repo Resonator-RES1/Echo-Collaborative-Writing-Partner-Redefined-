@@ -267,7 +267,7 @@ const Editor: React.FC<EditorProps> = ({
 
   const handleSelectArchiveVersion = useCallback((index: number) => {
       setCurrentVersionIndex(index);
-      setActiveTab('report');
+      setShowComparison(true);
   }, []);
 
   const handleActivateLore = useCallback((id: string) => {

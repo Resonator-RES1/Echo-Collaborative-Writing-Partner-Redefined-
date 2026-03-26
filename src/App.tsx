@@ -4,6 +4,18 @@
  */
 
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { 
+    Book, 
+    Sparkles, 
+    History, 
+    FileText, 
+    BookOpen, 
+    BarChart3, 
+    Settings, 
+    PenTool, 
+    Library,
+    Home
+} from 'lucide-react';
 import Editor from './components/Editor.tsx';
 import { Toast } from './components/Toast';
 import { TopAppBar } from './components/TopAppBar';
@@ -29,6 +41,14 @@ export default function App() {
   const [versionHistory, setVersionHistory] = useState<RefinedVersion[]>([]);
   const [currentScreen, setCurrentScreen] = useState<Screen>('welcome');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   const { 
     loreEntries, 
@@ -343,10 +363,10 @@ export default function App() {
   };
 
   return (
-    <div className="h-[100dvh] bg-surface text-on-surface flex flex-col font-body overflow-hidden">
+    <div className={`h-[100dvh] bg-surface text-on-surface flex flex-col font-body overflow-hidden ${isMobile ? 'pb-16' : ''}`}>
       {toast && <Toast key={toast.id} message={toast.message} onClose={() => setToast(null)} />}
       
-      {currentScreen !== 'welcome' && !isFocusMode && (
+      {currentScreen !== 'welcome' && !isFocusMode && !isMobile && (
         <TopAppBar 
           currentScreen={currentScreen} 
           setCurrentScreen={setCurrentScreen} 
@@ -354,6 +374,15 @@ export default function App() {
           showToast={showToast} 
           wordCount={totalWordCount}
         />
+      )}
+
+      {isMobile && currentScreen !== 'welcome' && (
+          <div className="flex items-center justify-between p-4 border-b border-outline-variant/10 bg-surface/80 backdrop-blur-xl sticky top-0 z-50">
+              <h1 className="font-headline text-primary italic tracking-tighter text-xl">Echo</h1>
+              <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-label uppercase tracking-widest text-on-surface/40">v1.0.{versionCount}</span>
+              </div>
+          </div>
       )}
       
       <GlobalSearchModal
@@ -364,9 +393,30 @@ export default function App() {
         showToast={showToast}
       />
       
-      <main className={`${currentScreen === 'welcome' ? 'flex-1 min-h-0 flex flex-col overflow-hidden' : `px-2 sm:px-4 md:px-6 pb-2 sm:pb-4 max-w-7xl mx-auto w-full flex-1 min-h-0 flex flex-col overflow-hidden ${isFocusMode ? 'pt-12' : ''}`}`}>
+      <main className={`${currentScreen === 'welcome' ? 'flex-1 min-h-0 flex flex-col overflow-hidden' : `px-2 sm:px-4 md:px-6 pb-2 sm:pb-4 max-w-7xl mx-auto w-full flex-1 min-h-0 flex flex-col overflow-hidden ${isFocusMode && !isMobile ? 'pt-12' : ''}`}`}>
         {renderScreen()}
       </main>
+
+      {isMobile && currentScreen !== 'welcome' && (
+          <nav className="fixed bottom-0 left-0 right-0 z-50 bg-surface-container-low/95 backdrop-blur-xl border-t border-outline-variant/10 px-2 py-2 pb-safe flex items-center justify-around shadow-2xl">
+              {[
+                  { id: 'lore', label: 'Lore', icon: Book },
+                  { id: 'manuscript', label: 'Manuscript', icon: Library },
+                  { id: 'workspace', label: 'Workspace', icon: PenTool },
+                  { id: 'voices', label: 'Voices', icon: BookOpen },
+                  { id: 'settings', label: 'Settings', icon: Settings }
+              ].map(item => (
+                  <button
+                      key={item.id}
+                      onClick={() => setCurrentScreen(item.id as Screen)}
+                      className={`flex flex-col items-center gap-1 p-2 transition-all ${currentScreen === item.id ? 'text-primary' : 'text-on-surface-variant/60'}`}
+                  >
+                      <item.icon className={`w-5 h-5 ${currentScreen === item.id ? 'drop-shadow-[0_0_8px_rgba(208,192,255,0.5)]' : ''}`} />
+                      <span className="text-[8px] font-bold uppercase tracking-widest">{item.label}</span>
+                  </button>
+              ))}
+          </nav>
+      )}
     </div>
   );
 }

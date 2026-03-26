@@ -8,7 +8,7 @@ export interface HighlightRange {
 }
 
 /**
- * Finds the indices of snippets mentioned in the restraintLog, loreCorrections, and loreQueries
+ * Finds the indices of snippets mentioned in the restraintLog, loreCorrections, and loreFraying
  * within the refined text.
  */
 export const getHighlightRanges = (refinedText: string, result: RefineDraftResult): HighlightRange[] => {
@@ -33,9 +33,9 @@ export const getHighlightRanges = (refinedText: string, result: RefineDraftResul
     }
   });
 
-  // 2. Lore Queries / Fraying (Amber) - Medium Priority
-  if (result.loreQueries) {
-    result.loreQueries.forEach(query => {
+  // 2. Lore Fraying (Amber) - Medium Priority
+  if (result.loreFraying) {
+    result.loreFraying.forEach(query => {
       if (query.snippet && query.snippet.length > 0) {
         let index = refinedText.indexOf(query.snippet);
         while (index !== -1) {

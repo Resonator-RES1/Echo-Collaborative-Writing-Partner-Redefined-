@@ -154,6 +154,14 @@ const Playground = () => {
       pacingAndRhythm: 'Fast, urgent, mechanical.',
       vocabularyAndDiction: 'Technical, sharp, utilitarian.',
       thematicAnchors: 'Duty, precision, steel.'
+    },
+    sensory: {
+      name: 'Vivid & Sensory',
+      narrativeStyle: 'Rich, immersive, and highly descriptive.',
+      proseStructure: 'Fluid, focusing on sensory details.',
+      pacingAndRhythm: 'Steady, allowing the reader to soak in the environment.',
+      vocabularyAndDiction: 'Precise, evocative, and sensory-rich.',
+      thematicAnchors: 'Texture, scent, sound, and light.'
     }
   };
 
@@ -161,6 +169,7 @@ const Playground = () => {
     { id: 'tone', label: 'Dark & Atmospheric', icon: Sparkles },
     { id: 'rhythm', label: 'Lyrical & Flowing', icon: Mic2 },
     { id: 'voiceIntegrity', label: 'Clipped & Military', icon: Fingerprint },
+    { id: 'sensory', label: 'Vivid & Sensory', icon: Zap },
   ];
 
   const handleRefine = async () => {

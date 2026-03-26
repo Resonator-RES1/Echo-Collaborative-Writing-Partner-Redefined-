@@ -7,6 +7,7 @@ import { ReportRestraintLog } from '../report/ReportRestraintLog';
 import { ReportAnalysis } from '../report/ReportAnalysis';
 import { ReportMetrics } from '../report/ReportMetrics';
 import { ReportLoreCorrections } from '../report/ReportLoreCorrections';
+import { ReportLoreFraying } from '../report/ReportLoreFraying';
 import { formatReportForCopy } from '../../utils/reportFormatter';
 
 interface ReportPanelProps {
@@ -94,7 +95,7 @@ export const ReportPanel: React.FC<ReportPanelProps> = ({
                                 Echo's Verdict: High Fidelity Refinement.
                             </h4>
                             <p className="text-amber-900/80 text-sm sm:text-base leading-relaxed">
-                                Your unique voice was preserved{version.loreCorrections && version.loreCorrections.length > 0 ? `, and ${version.loreCorrections.length} lore conflicts were corrected` : ''}. Ready for review.
+                                Your unique voice was preserved{version.loreCorrections && version.loreCorrections.length > 0 ? `, and ${version.loreCorrections.length} lore conflicts were corrected` : ''}{version.loreFraying && version.loreFraying.length > 0 ? `, and ${version.loreFraying.length} lore fraying points were identified for review` : ''}. Ready for review.
                             </p>
                         </div>
                     </div>
@@ -105,6 +106,9 @@ export const ReportPanel: React.FC<ReportPanelProps> = ({
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
                 <div className="lg:col-span-2">
                     <ReportLoreCorrections loreCorrections={version.loreCorrections} onRevertSpecificLore={onRevertSpecificLore} />
+                </div>
+                <div className="lg:col-span-2">
+                    <ReportLoreFraying loreFraying={version.loreFraying} />
                 </div>
                 <div className="lg:col-span-2">
                     <ReportRestraintLog restraintLog={version.restraintLog} />
