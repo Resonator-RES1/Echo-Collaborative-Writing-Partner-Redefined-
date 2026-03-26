@@ -31,15 +31,16 @@ import { GlobalSearchModal } from './components/GlobalSearchModal';
 import { Screen, RefinedVersion, Scene, Chapter, WritingGoal } from './types';
 import * as db from './services/dbService';
 import { useLore } from './contexts/LoreContext';
+import { useProject } from './contexts/ProjectContext';
 
 export default function App() {
+  const { isZenMode, setIsZenMode } = useProject();
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [currentSceneId, setCurrentSceneId] = useState<string | null>(null);
   const [draft, setDraft] = useState<string>('');
   const [toast, setToast] = useState<{ message: string, id: number } | null>(null);
   const [isRefining, setIsRefining] = useState<boolean>(false);
-  const [isFocusMode, setIsFocusMode] = useState<boolean>(false);
   const [versionCount, setVersionCount] = useState<number>(0);
   const [versionHistory, setVersionHistory] = useState<RefinedVersion[]>([]);
   const [currentScreen, setCurrentScreen] = useState<Screen>('welcome');
@@ -56,6 +57,17 @@ export default function App() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Zen Mode Esc listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isZenMode) {
+        setIsZenMode(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isZenMode, setIsZenMode]);
 
   const BottomNavBar = () => {
     const navItems = [
@@ -408,32 +420,40 @@ export default function App() {
               onClearVersionHistory={clearVersionHistory}
               onDeleteVersion={deleteVersion}
               onAcceptVersion={acceptVersion}
-              isFocusMode={isFocusMode}
-              setIsFocusMode={setIsFocusMode}
           />
         );
     }
   };
 
   return (
-    <div className={`h-[100dvh] bg-surface text-on-surface flex flex-col font-body overflow-hidden ${isMobile ? 'pb-20' : ''}`}>
+    <div className={`h-[100dvh] bg-surface text-on-surface flex flex-col font-body overflow-hidden ${isMobile ? 'pb-20' : ''} ${isZenMode ? 'is-zen' : ''}`}>
       {toast && <Toast key={toast.id} message={toast.message} onClose={() => setToast(null)} />}
       
-      {currentScreen !== 'welcome' && !isFocusMode && (
-        <TopAppBar 
-          currentScreen={currentScreen} 
-          setCurrentScreen={setCurrentScreen} 
-          versionCount={versionCount} 
-          showToast={showToast} 
-          wordCount={totalWordCount}
-          isMobile={isMobile}
-          goal={writingGoal}
-          onSaveGoal={(newGoal) => {
-            setWritingGoal(newGoal);
-            localStorage.setItem('echo-writing-goal', JSON.stringify(newGoal));
-          }}
-        />
-      )}
+      <AnimatePresence>
+        {currentScreen !== 'welcome' && !isZenMode && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="z-50"
+          >
+            <TopAppBar 
+              currentScreen={currentScreen} 
+              setCurrentScreen={setCurrentScreen} 
+              versionCount={versionCount} 
+              showToast={showToast} 
+              wordCount={totalWordCount}
+              isMobile={isMobile}
+              goal={writingGoal}
+              onSaveGoal={(newGoal) => {
+                setWritingGoal(newGoal);
+                localStorage.setItem('echo-writing-goal', JSON.stringify(newGoal));
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       <GlobalSearchModal
         isOpen={isSearchOpen}
@@ -443,12 +463,18 @@ export default function App() {
         showToast={showToast}
       />
       
-      <main className={`${currentScreen === 'welcome' ? 'flex-1 min-h-0 flex flex-col overflow-hidden' : `px-2 sm:px-4 md:px-6 pb-2 sm:pb-4 max-w-7xl mx-auto w-full flex-1 min-h-0 flex flex-col overflow-hidden ${isFocusMode && !isMobile ? 'pt-12' : ''} ${isMobile ? 'pb-20' : ''}`}`}>
+      <main className={`${currentScreen === 'welcome' ? 'flex-1 min-h-0 flex flex-col overflow-hidden' : `px-2 sm:px-4 md:px-6 pb-2 sm:pb-4 max-w-7xl mx-auto w-full flex-1 min-h-0 flex flex-col overflow-hidden ${isMobile ? 'pb-20' : ''} ${isZenMode ? 'zen-container' : ''}`}`}>
         {renderScreen()}
       </main>
 
-      {isMobile && (
-          <nav className="fixed bottom-0 left-0 right-0 z-50 bg-surface-container-low/95 backdrop-blur-xl border-t border-outline-variant/10 px-2 py-2 pb-safe flex items-center justify-around shadow-2xl md:hidden">
+      <AnimatePresence>
+        {isMobile && !isZenMode && (
+            <motion.nav 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="fixed bottom-0 left-0 right-0 z-50 bg-surface-container-low/95 backdrop-blur-xl border-t border-outline-variant/10 px-2 py-2 pb-safe flex items-center justify-around shadow-2xl md:hidden"
+            >
               {[
                   { id: 'welcome', label: 'Home', icon: Home },
                   { id: 'lore', label: 'Lore', icon: BookOpen },
@@ -471,8 +497,9 @@ export default function App() {
                       )}
                   </button>
               ))}
-          </nav>
+          </motion.nav>
       )}
+      </AnimatePresence>
     </div>
   );
 }

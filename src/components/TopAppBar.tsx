@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Target, Settings } from 'lucide-react';
+import { Target } from 'lucide-react';
 import { Screen, WritingGoal } from '../types';
 import { ProjectManager } from './ProjectManager';
 import { GoalsModal } from './GoalsModal';
@@ -61,13 +61,6 @@ export function TopAppBar({
                 </span>
               </button>
             )}
-            
-            <button 
-              onClick={() => setCurrentScreen('settings')}
-              className={`p-1.5 md:p-2 rounded-full transition-all ${currentScreen === 'settings' ? 'bg-primary/10 text-primary' : 'text-on-surface-variant hover:bg-surface-container-highest'}`}
-            >
-              <Settings className="w-4 h-4" />
-            </button>
           </div>
 
           <nav className="hidden md:flex gap-4 md:gap-8 font-label text-[10px] md:text-xs uppercase tracking-wider text-on-surface/60 overflow-x-auto scrollbar-hide no-scrollbar py-1">

@@ -200,3 +200,64 @@
 .focus-mode {
   background-color: var(--color-surface-container-lowest);
 }
+
+/* Zen Mode Styles */
+.is-zen {
+  background-color: #0f1115; /* Default dark background */
+  transition: background-color 1.2s ease;
+}
+
+.parchment .is-zen {
+  background-color: #fdfaf3; /* Parchment background */
+}
+
+.zen-container {
+  max-width: 850px !important;
+  margin: 0 auto !important;
+  padding-top: 8vh !important;
+  padding-bottom: 10vh !important;
+  transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.is-zen .prose {
+  font-size: 1.35rem;
+  line-height: 2;
+  color: rgba(255, 255, 255, 0.85); /* Default light text on dark bg */
+  font-family: 'Georgia', serif;
+  selection-background: rgba(var(--color-primary), 0.2);
+}
+
+.parchment .is-zen .prose {
+  color: #3c3836; /* Dark text on parchment bg */
+}
+
+.is-zen .custom-scrollbar::-webkit-scrollbar {
+  width: 0px;
+}
+
+.zen-ui-element {
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.zen-ui-hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(-10px);
+}
+
+.zen-ui-visible {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translateY(0);
+}
+
+/* Ensure the editor itself is clean in Zen Mode */
+.is-zen .ghost-border {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.is-zen .bg-surface-container-low\/50 {
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+}

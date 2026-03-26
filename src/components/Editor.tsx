@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
-import { Wand2, ChevronDown, Maximize2, Minimize2, ShieldCheck, FileText, BookOpen, History, BarChart3, Sparkles, GitCompare, PenTool } from 'lucide-react';
+import { Wand2, ChevronDown, ShieldCheck, FileText, BookOpen, History, BarChart3, Sparkles, GitCompare, PenTool, Sun } from 'lucide-react';
 import { RefinedVersion, LoreEntry, VoiceProfile, AuthorVoice, Scene, WorkspaceTab } from '../types';
 import { scanForContext } from '../utils/contextScanner';
 import { draftReducer, initialDraftState } from './editor/draftReducer';
@@ -17,6 +17,7 @@ import { ArchivePanel } from './editor/ArchivePanel';
 import { ReportPanel } from './editor/ReportPanel';
 
 import { useLore } from '../contexts/LoreContext';
+import { useProject } from '../contexts/ProjectContext';
 
 interface EditorProps {
     draft: string;
@@ -35,8 +36,6 @@ interface EditorProps {
     onClearVersionHistory: () => void;
     onDeleteVersion: (id: string) => void;
     onAcceptVersion: (version: RefinedVersion) => void;
-    isFocusMode: boolean;
-    setIsFocusMode: (isFocusMode: boolean) => void;
 }
 
 const Editor: React.FC<EditorProps> = ({ 
@@ -55,10 +54,9 @@ const Editor: React.FC<EditorProps> = ({
     onAddVersion,
     onClearVersionHistory,
     onDeleteVersion,
-    onAcceptVersion,
-    isFocusMode,
-    setIsFocusMode
+    onAcceptVersion
 }) => {
+  const { isZenMode, setIsZenMode } = useProject();
   const { 
     loreEntries, 
     voiceProfiles, 
@@ -70,6 +68,30 @@ const Editor: React.FC<EditorProps> = ({
     addAuthorVoice,
     deleteAuthorVoice
   } = useLore();
+
+  const [isMouseMoving, setIsMouseMoving] = useState(true);
+  const mouseTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (!isZenMode) {
+      setIsMouseMoving(true);
+      return;
+    }
+
+    const handleMouseMove = () => {
+      setIsMouseMoving(true);
+      if (mouseTimerRef.current) clearTimeout(mouseTimerRef.current);
+      mouseTimerRef.current = setTimeout(() => {
+        setIsMouseMoving(false);
+      }, 3000);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (mouseTimerRef.current) clearTimeout(mouseTimerRef.current);
+    };
+  }, [isZenMode]);
 
   const onAddLoreEntry = useCallback(async (entry: LoreEntry) => {
     await addLoreEntry(entry);
@@ -335,13 +357,13 @@ const Editor: React.FC<EditorProps> = ({
                   />
               </div>
               <div className={`flex-1 min-h-0 flex flex-col overflow-hidden ${activeTab === 'draft' ? 'flex' : 'hidden'}`}>
-                  <div className="flex-1 min-h-0 flex flex-col mt-2 overflow-hidden">
+                  <div className={`flex-1 min-h-0 flex flex-col mt-2 overflow-hidden ${isZenMode ? 'max-w-3xl mx-auto w-full' : ''}`}>
                       <RichTextEditor
                           editorRef={editorRef}
                           content={draftState.present}
                           onChange={(markdown) => dispatchDraft({ type: 'SET', payload: markdown })}
                           onSelectionChange={setSelection}
-                          className="font-headline text-xl tracking-tight leading-relaxed text-on-surface/90"
+                          className={`font-headline text-xl tracking-tight leading-relaxed text-on-surface/90 ${isZenMode ? 'font-serif' : ''}`}
                       />
                       {editorMode === 'polishing' && showDiff && (
                           <div className="mt-4 border-t border-outline-variant/20 pt-4">
@@ -374,10 +396,12 @@ const Editor: React.FC<EditorProps> = ({
                       )}
                   </div>
 
-                  <EditorFooter 
-                      saveStatus={saveStatus}
-                      wordCount={wordCount}
-                  />
+                  <div className={`transition-all duration-500 ${isZenMode ? 'zen-ui-element' : ''} ${isZenMode && !isMouseMoving ? 'zen-ui-hidden' : 'zen-ui-visible'}`}>
+                    <EditorFooter 
+                        saveStatus={saveStatus}
+                        wordCount={wordCount}
+                    />
+                  </div>
               </div>
 
               {activeTab === 'context' && (
@@ -447,7 +471,8 @@ const Editor: React.FC<EditorProps> = ({
   [scenes, currentSceneId]);
 
   return (
-    <div className={`flex flex-col lg:flex-row gap-4 lg:gap-8 flex-1 min-h-0 animate-in fade-in duration-700 ${isFocusMode && activeTab === 'draft' ? 'focus-mode' : ''}`}>
+    <div className={`flex flex-col lg:flex-row gap-4 lg:gap-8 flex-1 min-h-0 animate-in fade-in duration-700 ${isZenMode ? 'is-zen' : ''} ${isZenMode && !isMouseMoving ? 'cursor-none' : ''}`}>
+      
       <EditorModals 
         showComparison={showComparison}
         showConflicts={showConflicts}
@@ -465,11 +490,11 @@ const Editor: React.FC<EditorProps> = ({
         setActiveTab={setActiveTab}
       />
       
-      <section className={`flex-1 flex flex-col min-h-0 transition-all duration-500 ${isFocusMode && activeTab === 'draft' ? 'max-w-4xl mx-auto w-full' : ''}`}>
-        <div className={`bg-surface-container-low/50 backdrop-blur-sm rounded-[0.75rem] shadow-2xl ghost-border flex flex-col flex-1 relative min-h-0 overflow-hidden transition-all duration-500 p-4 lg:p-6 ${isFocusMode && activeTab === 'draft' ? 'ghost-border-accent' : ''}`}>
+      <section className={`flex-1 flex flex-col min-h-0 transition-all duration-500 ${isZenMode ? 'zen-container' : ''}`}>
+        <div className={`bg-surface-container-low/50 backdrop-blur-sm rounded-[0.75rem] shadow-2xl ghost-border flex flex-col flex-1 relative min-h-0 overflow-hidden transition-all duration-500 p-4 lg:p-6 ${isZenMode ? 'border-none bg-transparent shadow-none' : ''}`}>
           
           {/* Workspace Tab Bar */}
-          {(!isFocusMode || activeTab !== 'draft') && (
+          {!isZenMode && (
               <div className="sticky top-0 z-20 bg-surface-container-low/90 backdrop-blur-md py-2 -mx-4 px-4 lg:-mx-6 lg:px-6 mb-2 border-b border-outline-variant/10 overflow-x-auto hide-scrollbar">
                   <div className="flex items-center gap-1 sm:gap-1.5 bg-surface-container-highest/50 p-1 rounded-full w-max mx-auto border border-outline-variant/10 shadow-sm">
                       {[
@@ -483,7 +508,6 @@ const Editor: React.FC<EditorProps> = ({
                               key={tab.id}
                               onClick={() => {
                                   setActiveTab(tab.id as WorkspaceTab);
-                                  if (tab.id !== 'draft') setIsFocusMode(false);
                               }}
                               className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === tab.id ? 'bg-primary text-on-primary-fixed shadow-lg shadow-primary/20' : 'text-on-surface-variant hover:text-primary hover:bg-primary/5'}`}
                           >
@@ -497,20 +521,18 @@ const Editor: React.FC<EditorProps> = ({
 
           {/* Main Editor Top Bar */}
           {activeTab === 'draft' && (
-              <div className="relative bg-surface-container-low/95 backdrop-blur-sm pb-2 border-b border-outline-variant/20 mb-2 sm:mb-3 -mx-4 px-4 lg:-mx-6 lg:px-6 flex items-center justify-between gap-2 sm:gap-4 min-h-[40px]">
+              <div className={`relative bg-surface-container-low/95 backdrop-blur-sm pb-2 border-b border-outline-variant/20 mb-2 sm:mb-3 -mx-4 px-4 lg:-mx-6 lg:px-6 flex items-center justify-between gap-2 sm:gap-4 min-h-[40px] transition-all duration-500 ${isZenMode ? 'zen-ui-element' : ''} ${isZenMode && !isMouseMoving ? 'zen-ui-hidden' : 'zen-ui-visible'}`}>
                   {/* Left: Formatting Toolbar */}
                   <div className="flex-1 min-w-0 overflow-x-auto hide-scrollbar z-10 pr-[100px] sm:pr-[150px]">
                       <FormattingToolbar 
                           editor={editorRef.current}
                           onFormat={handleFormat} 
                           hasSelection={!!selection && selection.text.trim().length > 0} 
-                          isFocusMode={isFocusMode}
-                          onToggleFocusMode={() => setIsFocusMode(!isFocusMode)}
                       />
                   </div>
                   
                   {/* Center: Continuity Guard */}
-                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[calc(50%+4px)] flex justify-center z-20 pointer-events-none">
+                  <div className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[calc(50%+4px)] flex justify-center z-20 pointer-events-none transition-all duration-500 ${isZenMode ? 'zen-ui-element' : ''} ${isZenMode && !isMouseMoving ? 'zen-ui-hidden' : 'zen-ui-visible'}`}>
                       <button 
                           onClick={() => setShowContinuityGuard(!showContinuityGuard)}
                           className={`pointer-events-auto flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
@@ -533,7 +555,14 @@ const Editor: React.FC<EditorProps> = ({
                   </div>
 
                   {/* Right: Mode/View Buttons */}
-                  <div className="flex-none flex justify-end gap-1 sm:gap-2 z-10">
+                  <div className={`flex-none flex justify-end gap-1 sm:gap-2 z-10 transition-all duration-500 ${isZenMode ? 'zen-ui-element' : ''} ${isZenMode && !isMouseMoving ? 'zen-ui-hidden' : 'zen-ui-visible'}`}>
+                      <button 
+                          onClick={() => setIsZenMode(!isZenMode)}
+                          className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${isZenMode ? 'bg-amber-500 text-white shadow-[0_0_15px_rgba(245,158,11,0.4)]' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
+                          title="Zen Sanctuary (Esc to exit)"
+                      >
+                          <Sun className={`w-4 h-4 transition-transform duration-700 ${isZenMode ? 'rotate-180 scale-110' : ''}`} />
+                      </button>
                       <button 
                           onClick={() => {
                               setActiveTab('draft');

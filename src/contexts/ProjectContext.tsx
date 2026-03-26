@@ -15,6 +15,8 @@ interface ProjectContextType {
   resetProject: () => Promise<void>;
   isImporting: boolean;
   importError: string | null;
+  isZenMode: boolean;
+  setIsZenMode: (isZenMode: boolean) => void;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
@@ -29,6 +31,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [projectName, setProjectNameState] = useState<string>('Untitled Project');
   const [isImporting, setIsImporting] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
+  const [isZenMode, setIsZenMode] = useState(false);
 
   // Load project name from IndexedDB on mount
   useEffect(() => {
@@ -90,7 +93,9 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
       importProject,
       resetProject,
       isImporting,
-      importError
+      importError,
+      isZenMode,
+      setIsZenMode
     }}>
       {children}
     </ProjectContext.Provider>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bold, Italic, List, ListOrdered, Quote, Heading3, BookOpen, Users, Strikethrough, Code, Maximize2, Minimize2, Sparkles } from 'lucide-react';
+import { Bold, Italic, List, ListOrdered, Quote, Heading3, BookOpen, Users, Strikethrough, Code, Sparkles } from 'lucide-react';
 import { Editor } from '@tiptap/react';
 
 export type FormatType = 'bold' | 'italic' | 'strikethrough' | 'code' | 'h3' | 'quote' | 'ul' | 'ol';
@@ -8,12 +8,10 @@ interface FormattingToolbarProps {
     editor: Editor | null;
     onFormat: (format: FormatType) => void;
     hasSelection: boolean;
-    isFocusMode: boolean;
-    onToggleFocusMode: () => void;
 }
 
 export const FormattingToolbar: React.FC<FormattingToolbarProps> = React.memo(({ 
-    editor, onFormat, hasSelection, isFocusMode, onToggleFocusMode 
+    editor, onFormat, hasSelection 
 }) => {
     const formatButtons = [
         { type: 'bold', icon: Bold, title: 'Bold', action: () => editor?.chain().focus().toggleBold().run(), isActive: () => editor?.isActive('bold') },
@@ -42,20 +40,6 @@ export const FormattingToolbar: React.FC<FormattingToolbarProps> = React.memo(({
                         <btn.icon className="w-4 h-4" />
                     </button>
                  ))}
-                 
-                 <div className="w-px h-4 bg-outline-variant/30 mx-1 sm:mx-2" />
-                 
-                 <button
-                    onClick={onToggleFocusMode}
-                    title={isFocusMode ? "Exit Focus Mode" : "Enter Focus Mode"}
-                    className={`p-2 rounded-[0.5rem] transition-all duration-200 ${
-                        isFocusMode 
-                        ? 'bg-accent-sky text-white shadow-sm' 
-                        : 'text-on-surface-variant hover:text-accent-sky hover:bg-surface-container-highest'
-                    }`}
-                 >
-                    {isFocusMode ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-                 </button>
             </div>
         </div>
     );
