@@ -20,6 +20,8 @@ export interface ScannerInstances {
     voyInstance: any;
 }
 
+let isVoyEnabled = true;
+
 export const createScanner = (entries: LoreEntry[], voices: VoiceProfile[]): ScannerInstances => {
     const miniSearch = new MiniSearch({
         fields: ['title', 'name', 'aliases', 'content'],
@@ -52,7 +54,7 @@ export const createScanner = (entries: LoreEntry[], voices: VoiceProfile[]): Sca
     
     let voyInstance: any = null;
     const entriesWithEmbeddings = entries.filter(e => e.embedding && e.embedding.length > 0);
-    if (entriesWithEmbeddings.length > 0) {
+    if (isVoyEnabled && entriesWithEmbeddings.length > 0) {
         try {
             voyInstance = new Voy({
                 embeddings: entriesWithEmbeddings.map(e => ({
@@ -64,6 +66,7 @@ export const createScanner = (entries: LoreEntry[], voices: VoiceProfile[]): Sca
             });
         } catch (error) {
             console.error("Failed to initialize Voy:", error);
+            isVoyEnabled = false;
             voyInstance = null;
         }
     }
@@ -155,7 +158,7 @@ export const checkSocialConsistency = (text: string, activeVoices: VoiceProfile[
     return issues;
 };
 
-export const localScan = (
+export const performLocalScan = (
     text: string, 
     loreEntries: LoreEntry[], 
     activeVoices: VoiceProfile[], 
@@ -197,7 +200,7 @@ export const localScan = (
     return issues;
 };
 
-export const conceptualScan = async (
+export const performConceptualScan = async (
     text: string, 
     loreEntries: LoreEntry[],
     voyInstance: any,

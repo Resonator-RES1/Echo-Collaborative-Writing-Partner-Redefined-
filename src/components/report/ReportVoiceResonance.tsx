@@ -1,14 +1,15 @@
-import React from 'react';
-import { Mic2, Info } from 'lucide-react';
+import React, { useState } from 'react';
+import { Mic2, Info, ChevronDown, ChevronUp } from 'lucide-react';
 import { VoiceAudit } from '../../types';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface ReportVoiceResonanceProps {
   voiceAudits?: VoiceAudit[];
 }
 
 export const ReportVoiceResonance: React.FC<ReportVoiceResonanceProps> = ({ voiceAudits }) => {
-  const [activeAuditIndex, setActiveAuditIndex] = React.useState<number | null>(null);
+  const [activeAuditIndex, setActiveAuditIndex] = useState<number | null>(null);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   if (!voiceAudits || voiceAudits.length === 0) return null;
 
@@ -16,18 +17,34 @@ export const ReportVoiceResonance: React.FC<ReportVoiceResonanceProps> = ({ voic
     <div className="bg-surface-container-low rounded-2xl border border-outline-variant/10 p-6 mb-6 shadow-sm overflow-hidden relative group">
       <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl group-hover:bg-primary/10 transition-colors duration-500"></div>
       
-      <div className="flex items-center gap-3 mb-6 relative z-10">
-        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shadow-inner">
-          <Mic2 className="w-5 h-5 text-primary" />
+      <div 
+        className="flex items-center justify-between mb-2 relative z-10 cursor-pointer"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shadow-inner">
+            <Mic2 className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h3 className="font-headline text-lg font-bold text-on-surface tracking-tight">Voice Resonance Radar</h3>
+            <p className="text-[10px] text-on-surface-variant/60 uppercase tracking-[0.2em] font-black">Consistency Analytics</p>
+          </div>
         </div>
-        <div>
-          <h3 className="font-headline text-lg font-bold text-on-surface tracking-tight">Voice Resonance Radar</h3>
-          <p className="text-[10px] text-on-surface-variant/60 uppercase tracking-[0.2em] font-black">Consistency Analytics</p>
-        </div>
+        <button className="p-2 rounded-full hover:bg-surface-container-highest transition-colors text-on-surface-variant">
+          {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+        </button>
       </div>
 
-      <div className="flex flex-wrap gap-3 relative z-10">
-        {voiceAudits.map((audit, index) => {
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0, marginTop: 0 }}
+            animate={{ height: 'auto', opacity: 1, marginTop: 16 }}
+            exit={{ height: 0, opacity: 0, marginTop: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="flex overflow-x-auto flex-nowrap gap-3 relative z-10 pb-4 custom-scrollbar scrollbar-thin">
+              {voiceAudits.map((audit, index) => {
           const score = audit.resonanceScore;
           const isActive = activeAuditIndex === index;
           let bgColor = 'bg-accent-emerald/10';
@@ -69,7 +86,10 @@ export const ReportVoiceResonance: React.FC<ReportVoiceResonanceProps> = ({ voic
             </motion.div>
           );
         })}
-      </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

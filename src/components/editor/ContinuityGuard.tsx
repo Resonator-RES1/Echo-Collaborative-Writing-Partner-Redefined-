@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { ShieldCheck, AlertTriangle, CheckCircle, Info, Zap, Search, Undo2, Check, Clock, Users } from 'lucide-react';
 import { LoreEntry, VoiceProfile, Scene } from '../../types';
-import { scanForContext, detectPotentialInconsistencies, ContinuityIssue, localScan, conceptualScan, ScannerInstances } from '../../utils/contextScanner';
+import { scanForContext, detectPotentialInconsistencies, ContinuityIssue, performLocalScan, performConceptualScan, ScannerInstances } from '../../utils/contextScanner';
 
 interface ContinuityGuardProps {
     draft: string;
@@ -59,7 +59,7 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = React.memo(({
         [voiceProfiles, detectedVoiceIds]
     );
 
-    // 2. Perform Conceptual Scan (Debounced 3000ms - Long Idle)
+    // 2. Perform Conceptual Scan (Debounced 10000ms - Long Idle)
     useEffect(() => {
         const timer = setTimeout(async () => {
             if (!draft.trim()) {
@@ -68,14 +68,14 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = React.memo(({
             }
             setIsScanning(true);
             try {
-                const issues = await conceptualScan(draft, loreEntries, scanner.voyInstance, scanner.miniSearch);
+                const issues = await performConceptualScan(draft, loreEntries, scanner.voyInstance, scanner.miniSearch);
                 setDeepIssues(issues);
             } catch (error) {
                 console.error("Conceptual scan failed:", error);
             } finally {
                 setIsScanning(false);
             }
-        }, 3000); // 3000ms debounce for conceptual scan
+        }, 10000); // 10s debounce for conceptual scan
 
         return () => clearTimeout(timer);
     }, [draft, loreEntries, scanner]);
@@ -84,7 +84,7 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = React.memo(({
         if (!draft.trim()) return;
         setIsScanning(true);
         try {
-            const issues = await conceptualScan(draft, loreEntries, scanner.voyInstance, scanner.miniSearch);
+            const issues = await performConceptualScan(draft, loreEntries, scanner.voyInstance, scanner.miniSearch);
             setDeepIssues(issues);
             showToast("Deep conceptual scan complete.");
         } catch (error) {
@@ -95,13 +95,17 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = React.memo(({
         }
     }, [draft, loreEntries, scanner, showToast]);
 
-    // 3. Local Heuristic Warnings (Fast)
-    const localWarnings = useMemo(() => {
-        const activeLore = loreEntries.filter(e => e.isActive);
-        const activeVoices = voiceProfiles.filter(v => v.isActive);
-        const inconsistencies = detectPotentialInconsistencies(draft, activeLore, activeVoices);
-        const localScanIssues = localScan(draft, loreEntries, voiceProfiles, currentScene, scanner.miniSearch);
-        return [...inconsistencies, ...localScanIssues];
+    // 3. Local Heuristic Warnings (Fast) - Debounced 1s
+    const [localWarnings, setLocalWarnings] = useState<ContinuityIssue[]>([]);
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const activeLore = loreEntries.filter(e => e.isActive);
+            const activeVoices = voiceProfiles.filter(v => v.isActive);
+            const inconsistencies = detectPotentialInconsistencies(draft, activeLore, activeVoices);
+            const localScanIssues = performLocalScan(draft, loreEntries, voiceProfiles, currentScene, scanner.miniSearch);
+            setLocalWarnings([...inconsistencies, ...localScanIssues]);
+        }, 1000);
+        return () => clearTimeout(timer);
     }, [draft, loreEntries, voiceProfiles, currentScene, scanner]);
 
     // Raw issues before filtering resolved ones
