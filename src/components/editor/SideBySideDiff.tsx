@@ -1,7 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { diffWordsWithSpace } from 'diff';
 import { getHighlightRanges } from '../../utils/highlightUtils';
 import { RefineDraftResult } from '../../services/gemini/refine';
+import { Sparkles } from 'lucide-react';
 
 // --- Component ---
 export const SideBySideDiff: React.FC<{ 
@@ -11,10 +12,11 @@ export const SideBySideDiff: React.FC<{
     onSeeReport?: () => void;
     onAcceptChanges?: () => void;
 }> = React.memo(({ original, polished, report, onSeeReport, onAcceptChanges }) => {
-    const [viewMode, setViewMode] = React.useState<'split' | 'original' | 'polished'>('split');
-    const [isMobile, setIsMobile] = React.useState(false);
+    const [viewMode, setViewMode] = useState<'split' | 'original' | 'polished'>('split');
+    const [isMobile, setIsMobile] = useState(false);
+    const [activeTooltip, setActiveTooltip] = useState<{ id: string; text: string } | null>(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
         const checkMobile = () => {
             const mobile = window.innerWidth < 768;
             setIsMobile(mobile);
@@ -73,13 +75,13 @@ export const SideBySideDiff: React.FC<{
                     let tooltip = "";
 
                     if (range.type === 'lore') {
-                        className = "bg-red-500/30 text-red-200 rounded px-1 border-b border-red-400 cursor-help transition-colors hover:bg-red-500/40";
+                        className = "bg-red-500/30 text-red-200 rounded px-1 border-b border-red-400 cursor-pointer transition-colors hover:bg-red-500/40";
                         tooltip = `Lore Correction: ${range.metadata.reason}`;
                     } else if (range.type === 'fraying') {
-                        className = "bg-amber-500/30 text-amber-200 rounded px-1 border-b border-amber-400 cursor-help transition-colors hover:bg-amber-500/40";
+                        className = "bg-amber-500/30 text-amber-200 rounded px-1 border-b border-amber-400 cursor-pointer transition-colors hover:bg-amber-500/40";
                         tooltip = `Lore Fraying: ${range.metadata.conflict}\nSuggestion: ${range.metadata.suggestion}`;
                     } else {
-                        className = "bg-blue-500/20 text-blue-200 rounded px-1 border-b border-blue-400 cursor-help transition-colors hover:bg-blue-500/30";
+                        className = "bg-blue-500/20 text-blue-200 rounded px-1 border-b border-blue-400 cursor-pointer transition-colors hover:bg-blue-500/30";
                         tooltip = `Restrained: ${range.metadata.justification}`;
                     }
 
@@ -87,7 +89,7 @@ export const SideBySideDiff: React.FC<{
                         <span 
                             key={`${key}-l-${rIdx}`} 
                             className={className}
-                            title={tooltip}
+                            onClick={() => setActiveTooltip({ id: `${key}-l-${rIdx}`, text: tooltip })}
                         >
                             {polished.substring(rangeStart, rangeEnd)}
                         </span>
@@ -135,13 +137,13 @@ export const SideBySideDiff: React.FC<{
                     let tooltip = "";
 
                     if (range.type === 'lore') {
-                        className = "bg-red-500/30 text-red-200 rounded px-1 border-b border-red-400 cursor-help transition-colors hover:bg-red-500/40";
+                        className = "bg-red-500/30 text-red-200 rounded px-1 border-b border-red-400 cursor-pointer transition-colors hover:bg-red-500/40";
                         tooltip = `Lore Correction: ${range.metadata.reason}`;
                     } else if (range.type === 'fraying') {
-                        className = "bg-amber-500/30 text-amber-200 rounded px-1 border-b border-amber-400 cursor-help transition-colors hover:bg-amber-500/40";
+                        className = "bg-amber-500/30 text-amber-200 rounded px-1 border-b border-amber-400 cursor-pointer transition-colors hover:bg-amber-500/40";
                         tooltip = `Lore Fraying: ${range.metadata.conflict}\nSuggestion: ${range.metadata.suggestion}`;
                     } else {
-                        className = "bg-blue-500/20 text-blue-200 rounded px-1 border-b border-blue-400 cursor-help transition-colors hover:bg-blue-500/30";
+                        className = "bg-blue-500/20 text-blue-200 rounded px-1 border-b border-blue-400 cursor-pointer transition-colors hover:bg-blue-500/30";
                         tooltip = `Preserved: ${range.metadata.justification}`;
                     }
 
@@ -149,7 +151,7 @@ export const SideBySideDiff: React.FC<{
                         <span 
                             key={`${key}-r-${rIdx}`} 
                             className={className}
-                            title={tooltip}
+                            onClick={() => setActiveTooltip({ id: `${key}-r-${rIdx}`, text: tooltip })}
                         >
                             {polished.substring(rangeStart, rangeEnd)}
                         </span>
@@ -241,6 +243,28 @@ export const SideBySideDiff: React.FC<{
                     </div>
                 )}
             </div>
+
+            {activeTooltip && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setActiveTooltip(null)}>
+                    <div className="bg-surface-container-highest border border-outline-variant/30 rounded-2xl p-6 shadow-2xl max-w-sm w-full animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                                <Sparkles className="w-5 h-5 text-primary" />
+                            </div>
+                            <div className="flex-1">
+                                <h4 className="font-headline text-sm font-bold text-on-surface mb-2 uppercase tracking-widest opacity-50">Context Card</h4>
+                                <p className="text-sm text-on-surface-variant leading-relaxed whitespace-pre-wrap">{activeTooltip.text}</p>
+                            </div>
+                        </div>
+                        <button 
+                            onClick={() => setActiveTooltip(null)}
+                            className="mt-6 w-full py-2.5 bg-surface-container-low text-on-surface-variant font-label text-[10px] uppercase tracking-widest rounded-xl border border-outline-variant/10 hover:bg-surface-container-high transition-all"
+                        >
+                            Dismiss
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 });

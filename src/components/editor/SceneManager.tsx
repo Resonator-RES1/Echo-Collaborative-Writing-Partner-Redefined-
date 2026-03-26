@@ -338,20 +338,20 @@ export const SceneManager: React.FC<SceneManagerProps> = ({
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-mono opacity-50">{getWordCount(scene.content)}w</span>
-                <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center opacity-0 group-hover:opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                   <button 
                     onClick={(e) => startEditingScene(scene, e)}
-                    className="p-1 text-on-surface-variant hover:text-primary rounded hover:bg-primary/10"
+                    className="p-2 text-on-surface-variant hover:text-primary rounded hover:bg-primary/10 min-w-[44px] min-h-[44px] flex items-center justify-center"
                     title="Rename Scene"
                   >
-                    <Edit2 size={12} />
+                    <Edit2 size={14} />
                   </button>
                   <button 
                     onClick={(e) => handleDeleteScene(scene.id, e)}
-                    className="p-1 text-on-surface-variant hover:text-error rounded hover:bg-error/10"
+                    className="p-2 text-on-surface-variant hover:text-error rounded hover:bg-error/10 min-w-[44px] min-h-[44px] flex items-center justify-center"
                     title="Delete Scene"
                   >
-                    <Trash2 size={12} />
+                    <Trash2 size={14} />
                   </button>
                 </div>
               </div>
@@ -372,19 +372,19 @@ export const SceneManager: React.FC<SceneManagerProps> = ({
         <div className="flex gap-1">
           <button 
             onClick={handleAddChapter}
-            className="p-1 hover:bg-primary/10 rounded text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1 text-xs font-medium"
+            className="p-2 md:p-1 hover:bg-primary/10 rounded text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1 text-xs font-medium min-w-[44px] min-h-[44px] justify-center md:min-w-0 md:min-h-0"
             title="Add Chapter"
           >
-            <Folder size={14} />
-            <span>Chapter</span>
+            <Folder size={16} />
+            <span className="hidden sm:inline">Chapter</span>
           </button>
           <button 
             onClick={() => handleAddScene()}
-            className="p-1 hover:bg-primary/10 rounded text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1 text-xs font-medium"
+            className="p-2 md:p-1 hover:bg-primary/10 rounded text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1 text-xs font-medium min-w-[44px] min-h-[44px] justify-center md:min-w-0 md:min-h-0"
             title="Add Scene"
           >
-            <Plus size={14} />
-            <span>Scene</span>
+            <Plus size={16} />
+            <span className="hidden sm:inline">Scene</span>
           </button>
         </div>
       </div>
@@ -441,27 +441,27 @@ export const SceneManager: React.FC<SceneManagerProps> = ({
                                   <span className="text-sm font-semibold text-on-surface">{chapter.title}</span>
                                   <span className="text-xs text-on-surface-variant/50 ml-2">({chapterScenes.length})</span>
                                 </div>
-                                <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+                                <div className="flex items-center opacity-0 group-hover:opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
                                   <button 
                                     onClick={(e) => { e.stopPropagation(); handleAddScene(chapter.id); }}
-                                    className="p-1 text-on-surface-variant hover:text-primary rounded hover:bg-primary/10"
+                                    className="p-2 text-on-surface-variant hover:text-primary rounded hover:bg-primary/10 min-w-[44px] min-h-[44px] flex items-center justify-center"
                                     title="Add Scene to Chapter"
                                   >
-                                    <Plus size={12} />
+                                    <Plus size={14} />
                                   </button>
                                   <button 
                                     onClick={(e) => startEditingChapter(chapter, e)}
-                                    className="p-1 text-on-surface-variant hover:text-primary rounded hover:bg-primary/10"
+                                    className="p-2 text-on-surface-variant hover:text-primary rounded hover:bg-primary/10 min-w-[44px] min-h-[44px] flex items-center justify-center"
                                     title="Rename Chapter"
                                   >
-                                    <Edit2 size={12} />
+                                    <Edit2 size={14} />
                                   </button>
                                   <button 
                                     onClick={(e) => handleDeleteChapter(chapter.id, e)}
-                                    className="p-1 text-on-surface-variant hover:text-error rounded hover:bg-error/10"
+                                    className="p-2 text-on-surface-variant hover:text-error rounded hover:bg-error/10 min-w-[44px] min-h-[44px] flex items-center justify-center"
                                     title="Delete Chapter"
                                   >
-                                    <Trash2 size={12} />
+                                    <Trash2 size={14} />
                                   </button>
                                 </div>
                               </>

@@ -69,29 +69,22 @@ const Editor: React.FC<EditorProps> = ({
     deleteAuthorVoice
   } = useLore();
 
-  const [isMouseMoving, setIsMouseMoving] = useState(true);
-  const mouseTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [isUIVisible, setIsUIVisible] = useState(true);
 
   useEffect(() => {
     if (!isZenMode) {
-      setIsMouseMoving(true);
+      setIsUIVisible(true);
       return;
     }
-
-    const handleMouseMove = () => {
-      setIsMouseMoving(true);
-      if (mouseTimerRef.current) clearTimeout(mouseTimerRef.current);
-      mouseTimerRef.current = setTimeout(() => {
-        setIsMouseMoving(false);
-      }, 3000);
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      if (mouseTimerRef.current) clearTimeout(mouseTimerRef.current);
-    };
   }, [isZenMode]);
+
+  const handleGutterClick = (e: React.MouseEvent) => {
+    if (!isZenMode) return;
+    // Only toggle if clicking the background/gutter, not the editor itself
+    if (e.target === e.currentTarget) {
+      setIsUIVisible(!isUIVisible);
+    }
+  };
 
   const onAddLoreEntry = useCallback(async (entry: LoreEntry) => {
     await addLoreEntry(entry);
@@ -396,7 +389,7 @@ const Editor: React.FC<EditorProps> = ({
                       )}
                   </div>
 
-                  <div className={`transition-all duration-500 ${isZenMode ? 'zen-ui-element' : ''} ${isZenMode && !isMouseMoving ? 'zen-ui-hidden' : 'zen-ui-visible'}`}>
+                  <div className={`transition-all duration-500 ${isZenMode ? 'zen-ui-element' : ''} ${isZenMode && !isUIVisible ? 'zen-ui-hidden' : 'zen-ui-visible'}`}>
                     <EditorFooter 
                         saveStatus={saveStatus}
                         wordCount={wordCount}
@@ -471,7 +464,10 @@ const Editor: React.FC<EditorProps> = ({
   [scenes, currentSceneId]);
 
   return (
-    <div className={`flex flex-col lg:flex-row gap-4 lg:gap-8 flex-1 min-h-0 animate-in fade-in duration-700 ${isZenMode ? 'is-zen' : ''} ${isZenMode && !isMouseMoving ? 'cursor-none' : ''}`}>
+    <div 
+      onClick={handleGutterClick}
+      className={`flex flex-col lg:flex-row gap-4 lg:gap-8 flex-1 min-h-0 animate-in fade-in duration-700 ${isZenMode ? 'is-zen' : ''} ${isZenMode && !isUIVisible ? 'cursor-none' : ''}`}
+    >
       
       <EditorModals 
         showComparison={showComparison}
@@ -521,7 +517,7 @@ const Editor: React.FC<EditorProps> = ({
 
           {/* Main Editor Top Bar */}
           {activeTab === 'draft' && (
-              <div className={`relative bg-surface-container-low/95 backdrop-blur-sm pb-2 border-b border-outline-variant/20 mb-2 sm:mb-3 -mx-4 px-4 lg:-mx-6 lg:px-6 flex items-center justify-between gap-2 sm:gap-4 min-h-[40px] transition-all duration-500 ${isZenMode ? 'zen-ui-element' : ''} ${isZenMode && !isMouseMoving ? 'zen-ui-hidden' : 'zen-ui-visible'}`}>
+              <div className={`relative bg-surface-container-low/95 backdrop-blur-sm pb-2 border-b border-outline-variant/20 mb-2 sm:mb-3 -mx-4 px-4 lg:-mx-6 lg:px-6 flex items-center justify-between gap-2 sm:gap-4 min-h-[40px] transition-all duration-500 ${isZenMode ? 'zen-ui-element' : ''} ${isZenMode && !isUIVisible ? 'zen-ui-hidden' : 'zen-ui-visible'}`}>
                   {/* Left: Formatting Toolbar */}
                   <div className="flex-1 min-w-0 overflow-x-auto hide-scrollbar z-10 pr-[100px] sm:pr-[150px]">
                       <FormattingToolbar 
@@ -532,7 +528,7 @@ const Editor: React.FC<EditorProps> = ({
                   </div>
                   
                   {/* Center: Continuity Guard */}
-                  <div className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[calc(50%+4px)] flex justify-center z-20 pointer-events-none transition-all duration-500 ${isZenMode ? 'zen-ui-element' : ''} ${isZenMode && !isMouseMoving ? 'zen-ui-hidden' : 'zen-ui-visible'}`}>
+                  <div className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[calc(50%+4px)] flex justify-center z-20 pointer-events-none transition-all duration-500 ${isZenMode ? 'zen-ui-element' : ''} ${isZenMode && !isUIVisible ? 'zen-ui-hidden' : 'zen-ui-visible'}`}>
                       <button 
                           onClick={() => setShowContinuityGuard(!showContinuityGuard)}
                           className={`pointer-events-auto flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
@@ -555,7 +551,7 @@ const Editor: React.FC<EditorProps> = ({
                   </div>
 
                   {/* Right: Mode/View Buttons */}
-                  <div className={`flex-none flex justify-end gap-1 sm:gap-2 z-10 transition-all duration-500 ${isZenMode ? 'zen-ui-element' : ''} ${isZenMode && !isMouseMoving ? 'zen-ui-hidden' : 'zen-ui-visible'}`}>
+                  <div className={`flex-none flex justify-end gap-1 sm:gap-2 z-10 transition-all duration-500 ${isZenMode ? 'zen-ui-element' : ''} ${isZenMode && !isUIVisible ? 'zen-ui-hidden' : 'zen-ui-visible'}`}>
                       <button 
                           onClick={() => setIsZenMode(!isZenMode)}
                           className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${isZenMode ? 'bg-amber-500 text-white shadow-[0_0_15px_rgba(245,158,11,0.4)]' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}

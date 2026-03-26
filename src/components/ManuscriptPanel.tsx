@@ -121,17 +121,17 @@ export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
             </div>
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
-            <label className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-surface-container-highest border border-outline-variant/20 hover:bg-surface-container-high transition-colors cursor-pointer">
-              <Upload className="w-3.5 h-3.5 md:w-4 md:h-4" />
-              <span className="font-label text-[10px] md:text-xs uppercase tracking-widest">Import</span>
+            <label className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-3 md:px-4 md:py-2 rounded-full bg-surface-container-highest border border-outline-variant/20 hover:bg-surface-container-high transition-colors cursor-pointer min-h-[44px]">
+              <Upload className="w-4 h-4" />
+              <span className="font-label text-xs uppercase tracking-widest">Import</span>
               <input type="file" accept=".md,.txt" onChange={handleImport} className="hidden" />
             </label>
             <button 
               onClick={handleExport}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-primary text-on-primary-fixed hover:bg-primary/90 transition-colors shadow-sm"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-3 md:px-4 md:py-2 rounded-full bg-primary text-on-primary-fixed hover:bg-primary/90 transition-colors shadow-sm min-h-[44px]"
             >
-              <Download className="w-3.5 h-3.5 md:w-4 md:h-4" />
-              <span className="font-label text-[10px] md:text-xs uppercase tracking-widest">Export</span>
+              <Download className="w-4 h-4" />
+              <span className="font-label text-xs uppercase tracking-widest">Export</span>
             </button>
           </div>
         </div>

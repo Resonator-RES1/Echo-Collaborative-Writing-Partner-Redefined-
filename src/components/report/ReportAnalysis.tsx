@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Activity, Info } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -48,21 +48,35 @@ export const ReportAnalysis: React.FC<ReportAnalysisProps> = ({ analysis, expres
                             <span>Expression Profile</span>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {expressionProfile.map((profile, idx) => (
-                                <div key={idx} className="bg-surface-container-highest/20 p-4 rounded-xl border border-outline-variant/5 hover:border-primary/20 transition-all group">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/50 group-hover:text-primary transition-colors">{profile.vibe}</span>
-                                        <span className={`text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter ${profile.qualifier === 'By Design' ? 'bg-accent-emerald/10 text-accent-emerald' : 'bg-accent-sky/10 text-accent-sky'}`}>
-                                            {profile.qualifier}
-                                        </span>
+                            {expressionProfile.map((profile, idx) => {
+                                const [isNoteExpanded, setIsNoteExpanded] = useState(false);
+                                return (
+                                    <div 
+                                        key={idx} 
+                                        className={`bg-surface-container-highest/20 p-4 rounded-xl border border-outline-variant/5 hover:border-primary/20 transition-all group cursor-pointer ${isNoteExpanded ? 'ring-1 ring-primary/30 shadow-sm' : ''}`}
+                                        onClick={() => setIsNoteExpanded(!isNoteExpanded)}
+                                    >
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/50 group-hover:text-primary transition-colors">{profile.vibe}</span>
+                                            <span className={`text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter ${profile.qualifier === 'By Design' ? 'bg-accent-emerald/10 text-accent-emerald' : 'bg-accent-sky/10 text-accent-sky'}`}>
+                                                {profile.qualifier}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-baseline gap-1">
+                                            <span className="text-2xl font-headline font-black text-primary">{profile.score}</span>
+                                            <span className="text-[10px] text-on-surface-variant/30 font-bold">/ 10</span>
+                                        </div>
+                                        <p className={`text-[11px] text-on-surface-variant/70 mt-2 leading-snug font-medium ${!isNoteExpanded ? 'line-clamp-2' : ''}`}>
+                                            {profile.note}
+                                        </p>
+                                        {profile.note.length > 60 && (
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-primary mt-2 block opacity-60">
+                                                {isNoteExpanded ? 'Show Less' : 'Read More'}
+                                            </span>
+                                        )}
                                     </div>
-                                    <div className="flex items-baseline gap-1">
-                                        <span className="text-2xl font-headline font-black text-primary">{profile.score}</span>
-                                        <span className="text-[10px] text-on-surface-variant/30 font-bold">/ 10</span>
-                                    </div>
-                                    <p className="text-[11px] text-on-surface-variant/70 mt-2 leading-snug font-medium">{profile.note}</p>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 )}

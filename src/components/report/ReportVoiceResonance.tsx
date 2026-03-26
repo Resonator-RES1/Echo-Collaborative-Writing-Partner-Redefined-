@@ -8,6 +8,8 @@ interface ReportVoiceResonanceProps {
 }
 
 export const ReportVoiceResonance: React.FC<ReportVoiceResonanceProps> = ({ voiceAudits }) => {
+  const [activeAuditIndex, setActiveAuditIndex] = React.useState<number | null>(null);
+
   if (!voiceAudits || voiceAudits.length === 0) return null;
 
   return (
@@ -27,6 +29,7 @@ export const ReportVoiceResonance: React.FC<ReportVoiceResonanceProps> = ({ voic
       <div className="flex flex-wrap gap-3 relative z-10">
         {voiceAudits.map((audit, index) => {
           const score = audit.resonanceScore;
+          const isActive = activeAuditIndex === index;
           let bgColor = 'bg-accent-emerald/10';
           let textColor = 'text-accent-emerald';
           let borderColor = 'border-accent-emerald/20';
@@ -47,14 +50,15 @@ export const ReportVoiceResonance: React.FC<ReportVoiceResonanceProps> = ({ voic
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.1 }}
-              className={`group/chip relative flex items-center gap-2 px-4 py-2 rounded-full border ${borderColor} ${bgColor} ${textColor} transition-all hover:shadow-md cursor-help`}
+              onClick={() => setActiveAuditIndex(isActive ? null : index)}
+              className={`group/chip relative flex items-center gap-2 px-4 py-2 rounded-full border ${borderColor} ${bgColor} ${textColor} transition-all hover:shadow-md cursor-pointer ${isActive ? 'ring-2 ring-primary/30 shadow-lg' : ''}`}
             >
               <span className="font-headline font-bold text-sm">{audit.characterName}</span>
               <div className={`w-px h-3 ${textColor === 'text-error' ? 'bg-error/30' : textColor === 'text-accent-amber' ? 'bg-accent-amber/30' : 'bg-accent-emerald/30'}`} />
               <span className="font-mono text-xs font-bold">{score}%</span>
               
-              {audit.dissonanceReason && (
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-surface-container-highest text-on-surface rounded-xl shadow-xl border border-outline-variant/20 text-xs opacity-0 group-hover/chip:opacity-100 transition-opacity pointer-events-none z-50">
+              {audit.dissonanceReason && isActive && (
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-surface-container-highest text-on-surface rounded-xl shadow-xl border border-outline-variant/20 text-xs z-50 animate-in fade-in zoom-in-95 duration-200">
                   <div className="flex items-start gap-2">
                     <Info className="w-3 h-3 mt-0.5 shrink-0 text-primary" />
                     <p className="leading-relaxed">{audit.dissonanceReason}</p>

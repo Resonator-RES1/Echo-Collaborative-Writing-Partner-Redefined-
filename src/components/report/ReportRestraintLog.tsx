@@ -47,22 +47,37 @@ export const ReportRestraintLog: React.FC<ReportRestraintLogProps> = ({ restrain
             {isExpanded && (
                 <div className="p-6 pt-0 border-t border-outline-variant/5">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-                        {restraintLog.map((log, idx) => (
-                            <div key={idx} className="group p-4 bg-surface-container-highest/20 rounded-xl border border-outline-variant/5 hover:border-accent-sky/20 transition-all">
-                                <div className="flex items-center justify-between mb-2">
-                                    <div className="flex items-center gap-2">
-                                        {getIconForCategory(log.category)}
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/70">{log.category}</span>
+                        {restraintLog.map((log, idx) => {
+                            const [isJustificationExpanded, setIsJustificationExpanded] = useState(false);
+                            return (
+                                <div key={idx} className="group p-4 bg-surface-container-highest/20 rounded-xl border border-outline-variant/5 hover:border-accent-sky/20 transition-all">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center gap-2">
+                                            {getIconForCategory(log.category)}
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/70">{log.category}</span>
+                                        </div>
+                                        <div className="w-2 h-2 rounded-full bg-accent-sky/30 group-hover:bg-accent-sky transition-colors"></div>
                                     </div>
-                                    <div className="w-2 h-2 rounded-full bg-accent-sky/30 group-hover:bg-accent-sky transition-colors"></div>
+                                    <h4 className="font-headline text-sm font-bold mb-2 text-on-surface/90">"{log.target}"</h4>
+                                    <div 
+                                        className={`flex gap-2 bg-surface-container-highest/30 p-2 rounded-lg border border-outline-variant/5 cursor-pointer transition-all ${isJustificationExpanded ? 'ring-1 ring-accent-sky/30 shadow-sm' : ''}`}
+                                        onClick={() => setIsJustificationExpanded(!isJustificationExpanded)}
+                                    >
+                                        <Info className={`w-3.5 h-3.5 shrink-0 mt-0.5 transition-colors ${isJustificationExpanded ? 'text-accent-sky' : 'text-accent-sky/40'}`} />
+                                        <div className="flex-1">
+                                            <p className={`text-[11px] text-on-surface-variant/80 leading-relaxed italic ${!isJustificationExpanded ? 'line-clamp-2' : ''}`}>
+                                                {log.justification}
+                                            </p>
+                                            {log.justification.length > 80 && (
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-accent-sky mt-1 block opacity-60">
+                                                    {isJustificationExpanded ? 'Show Less' : 'Read More'}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
-                                <h4 className="font-headline text-sm font-bold mb-2 text-on-surface/90">"{log.target}"</h4>
-                                <div className="flex gap-2 bg-surface-container-highest/30 p-2 rounded-lg border border-outline-variant/5">
-                                    <Info className="w-3.5 h-3.5 text-accent-sky/40 shrink-0 mt-0.5" />
-                                    <p className="text-[11px] text-on-surface-variant/80 leading-relaxed italic">{log.justification}</p>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             )}

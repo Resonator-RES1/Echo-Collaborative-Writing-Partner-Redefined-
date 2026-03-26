@@ -82,29 +82,45 @@ const getStatusColor = (score: number) => {
     return "text-red-500 bg-red-500/10";
 };
 
-const AuditItem: React.FC<{ label: string; score: number; reasoning: string; primary?: boolean; compact?: boolean }> = ({ label, score, reasoning, primary, compact }) => (
-    <div className={compact ? "space-y-2" : "space-y-3"}>
-        <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-                <span className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/50">{label}</span>
-                <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${getStatusColor(score)}`}>
-                    {getStatusLabel(score)}
-                </span>
+const AuditItem: React.FC<{ label: string; score: number; reasoning: string; primary?: boolean; compact?: boolean }> = ({ label, score, reasoning, primary, compact }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    
+    return (
+        <div 
+            className={`${compact ? "space-y-2" : "space-y-3"} cursor-pointer group/audit`}
+            onClick={() => setIsExpanded(!isExpanded)}
+        >
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/50 group-hover/audit:text-primary transition-colors">{label}</span>
+                    <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${getStatusColor(score)}`}>
+                        {getStatusLabel(score)}
+                    </span>
+                </div>
+                <div className="flex items-baseline gap-1">
+                    <span className={`${compact ? 'text-xl' : 'text-2xl'} font-headline font-black ${primary ? 'text-primary' : 'text-on-surface'}`}>{score}</span>
+                    <span className="text-[10px] text-on-surface-variant/30 font-bold">/ 10</span>
+                </div>
             </div>
-            <div className="flex items-baseline gap-1">
-                <span className={`${compact ? 'text-xl' : 'text-2xl'} font-headline font-black ${primary ? 'text-primary' : 'text-on-surface'}`}>{score}</span>
-                <span className="text-[10px] text-on-surface-variant/30 font-bold">/ 10</span>
+            <div className="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+                <div 
+                    className={`h-full transition-all duration-1000 ${primary ? 'bg-primary' : 'bg-on-surface-variant/30'}`} 
+                    style={{ width: `${score * 10}%` }}
+                />
+            </div>
+            <div className={`flex gap-3 bg-surface-container-highest/30 ${compact ? 'p-3' : 'p-4'} rounded-xl border border-outline-variant/5 transition-all ${isExpanded ? 'ring-1 ring-primary/30 shadow-sm' : ''}`}>
+                <Info className={`w-4 h-4 shrink-0 mt-0.5 transition-colors ${isExpanded ? 'text-primary' : 'text-primary/50'}`} />
+                <div className="flex-1">
+                    <p className={`text-[11px] text-on-surface-variant/80 leading-relaxed italic ${compact && !isExpanded ? 'line-clamp-2' : ''}`}>
+                        {reasoning}
+                    </p>
+                    {compact && reasoning.length > 100 && (
+                        <span className="text-[9px] font-black uppercase tracking-widest text-primary mt-2 block opacity-60">
+                            {isExpanded ? 'Show Less' : 'Read More'}
+                        </span>
+                    )}
+                </div>
             </div>
         </div>
-        <div className="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
-            <div 
-                className={`h-full transition-all duration-1000 ${primary ? 'bg-primary' : 'bg-on-surface-variant/30'}`} 
-                style={{ width: `${score * 10}%` }}
-            />
-        </div>
-        <div className={`flex gap-3 bg-surface-container-highest/30 ${compact ? 'p-3' : 'p-4'} rounded-xl border border-outline-variant/5`}>
-            <Info className="w-4 h-4 text-primary/50 shrink-0 mt-0.5" />
-            <p className={`text-[11px] text-on-surface-variant/80 leading-relaxed italic ${compact ? 'line-clamp-2' : ''}`}>{reasoning}</p>
-        </div>
-    </div>
-);
+    );
+};
