@@ -21,6 +21,7 @@
     "idb": "^8.0.3",
     "lucide-react": "^0.548.0",
     "marked": "^17.0.4",
+    "minisearch": "^7.2.0",
     "motion": "^12.38.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -28,7 +29,8 @@
     "recharts": "^3.8.0",
     "remark-breaks": "^4.0.0",
     "remark-gfm": "^4.0.1",
-    "tiptap-markdown": "^0.9.0"
+    "tiptap-markdown": "^0.9.0",
+    "voy-search": "^0.6.3"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.2.1",
@@ -37,6 +39,8 @@
     "@vitejs/plugin-react": "^5.0.0",
     "tailwindcss": "^4.2.1",
     "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "vite": "^6.2.0",
+    "vite-plugin-top-level-await": "^1.6.0",
+    "vite-plugin-wasm": "^3.6.0"
   }
 }

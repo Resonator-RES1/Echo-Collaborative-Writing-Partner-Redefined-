@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, BookOpen, Fingerprint, Database, Cpu, Waypoints, Plus, Trash2 } from 'lucide-react';
+import { X, Save, BookOpen, Fingerprint, Database, Cpu, Waypoints, Plus, Trash2, Loader2 } from 'lucide-react';
 import { LoreEntry, Gender, Relationship } from '../../types';
+import { getEmbedding } from '../../utils/contextScanner';
 
 interface LoreEntryFormProps {
   onClose: () => void;
@@ -20,6 +21,7 @@ export function LoreEntryForm({ onClose, onSave, initialData, isModal = true, lo
   const [relationships, setRelationships] = useState<Relationship[]>(initialData?.relationships || []);
   const [storyDay, setStoryDay] = useState<number | undefined>(initialData?.storyDay);
   const [linkedEntityIds, setLinkedEntityIds] = useState<string[]>(initialData?.linkedEntityIds || []);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     setTitle(initialData?.title || '');
@@ -46,25 +48,35 @@ export function LoreEntryForm({ onClose, onSave, initialData, isModal = true, lo
     'Other': "Any other worldbuilding details..."
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !content.trim()) return;
+    if (!title.trim() || !content.trim() || isSaving) return;
 
-    const aliasList = aliases.split(',').map(a => a.trim()).filter(a => a !== '');
+    setIsSaving(true);
+    try {
+      // Generate embedding for Voy conceptual search
+      const embedding = await getEmbedding(`${title}: ${content}`);
+      const aliasList = aliases.split(',').map(a => a.trim()).filter(a => a !== '');
 
-    onSave({
-      id: initialData?.id || Date.now().toString(),
-      title,
-      category,
-      content,
-      aliases: aliasList,
-      gender: category === 'Characters' ? gender : undefined,
-      sensoryPalette,
-      relationships: category === 'Characters' ? relationships : undefined,
-      storyDay: category === 'Timeline' ? storyDay : undefined,
-      linkedEntityIds: category === 'Timeline' ? linkedEntityIds : undefined,
-      lastModified: new Date().toISOString(),
-    });
+      onSave({
+        id: initialData?.id || Date.now().toString(),
+        title,
+        category,
+        content,
+        aliases: aliasList,
+        gender: category === 'Characters' ? gender : undefined,
+        sensoryPalette,
+        relationships: category === 'Characters' ? relationships : undefined,
+        storyDay: category === 'Timeline' ? storyDay : undefined,
+        linkedEntityIds: category === 'Timeline' ? linkedEntityIds : undefined,
+        lastModified: new Date().toISOString(),
+        embedding: embedding
+      });
+    } catch (error) {
+      console.error("Failed to save lore entry:", error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const addRelationship = () => {
@@ -395,10 +407,15 @@ export function LoreEntryForm({ onClose, onSave, initialData, isModal = true, lo
           </button>
           <button 
             type="submit"
-            className="flex items-center gap-2 px-8 py-3 bg-primary text-on-primary-fixed rounded-full font-label text-sm uppercase tracking-wider font-bold shadow-lg hover:shadow-xl hover:bg-primary/90 transition-all"
+            disabled={isSaving}
+            className="flex items-center gap-2 px-8 py-3 bg-primary text-on-primary-fixed rounded-full font-label text-sm uppercase tracking-wider font-bold shadow-lg hover:shadow-xl hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Save className="w-4 h-4" />
-            <span>Save Entry</span>
+            {isSaving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            <span>{isSaving ? 'Processing...' : 'Save Entry'}</span>
           </button>
         </div>
       </form>

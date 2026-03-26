@@ -322,8 +322,13 @@ const Editor: React.FC<EditorProps> = ({
                       draft={draft}
                       loreEntries={loreEntries}
                       voiceProfiles={voiceProfiles}
+                      currentScene={currentScene}
                       onActivateLore={handleActivateLore}
                       onActivateVoice={handleActivateVoice}
+                      onViewLore={(id) => {
+                          setActiveTab('context');
+                          // We could also trigger a scroll or highlight here if needed
+                      }}
                       onFix={handleContinuityFix}
                       showToast={showToast}
                       onIssuesUpdate={setContinuityIssues}

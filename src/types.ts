@@ -49,6 +49,7 @@ export interface LoreEntry {
   isActive?: boolean;
   storyDay?: number;
   linkedEntityIds?: string[];
+  embedding?: number[];
 }
 
 export interface VoiceProfile {

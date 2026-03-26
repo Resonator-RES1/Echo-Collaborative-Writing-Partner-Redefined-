@@ -1,14 +1,16 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { ShieldCheck, AlertTriangle, CheckCircle, Info, Zap, Search, Undo2, Check } from 'lucide-react';
-import { LoreEntry, VoiceProfile } from '../../types';
-import { scanForContext, detectPotentialInconsistencies, ContinuityIssue } from '../../utils/contextScanner';
+import { ShieldCheck, AlertTriangle, CheckCircle, Info, Zap, Search, Undo2, Check, Clock, Users } from 'lucide-react';
+import { LoreEntry, VoiceProfile, Scene } from '../../types';
+import { scanForContext, detectPotentialInconsistencies, ContinuityIssue, performDeepScan, initializeScanner } from '../../utils/contextScanner';
 
 interface ContinuityGuardProps {
     draft: string;
     loreEntries: LoreEntry[];
     voiceProfiles: VoiceProfile[];
+    currentScene?: Scene;
     onActivateLore: (id: string) => void;
     onActivateVoice: (id: string) => void;
+    onViewLore?: (id: string) => void;
     onFix: (original: string, replacement: string) => void;
     showToast: (message: string) => void;
     onIssuesUpdate?: (count: number) => void;
@@ -18,15 +20,24 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = ({
     draft,
     loreEntries,
     voiceProfiles,
+    currentScene,
     onActivateLore,
     onActivateVoice,
+    onViewLore,
     onFix,
     showToast,
     onIssuesUpdate
 }) => {
     const [resolvedFixes, setResolvedFixes] = useState<{ id: string, original: string, replacement: string }[]>([]);
+    const [deepIssues, setDeepIssues] = useState<ContinuityIssue[]>([]);
+    const [isScanning, setIsScanning] = useState(false);
 
-    // 1. Detect Mentions
+    // Initialize scanner when lore or voices change
+    useEffect(() => {
+        initializeScanner(loreEntries, voiceProfiles);
+    }, [loreEntries, voiceProfiles]);
+
+    // 1. Detect Mentions (Hard Matches)
     const detectedLoreIds = useMemo(() => scanForContext(draft, loreEntries), [draft, loreEntries]);
     const detectedVoiceIds = useMemo(() => scanForContext(draft, voiceProfiles), [draft, voiceProfiles]);
 
@@ -40,37 +51,74 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = ({
         [voiceProfiles, detectedVoiceIds]
     );
 
-    // 2. Local Heuristic Warnings
+    // 2. Perform Deep Scan (Debounced)
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (!draft.trim()) {
+                setDeepIssues([]);
+                return;
+            }
+            setIsScanning(true);
+            try {
+                const issues = await performDeepScan(draft, loreEntries, voiceProfiles, currentScene);
+                setDeepIssues(issues);
+            } catch (error) {
+                console.error("Deep scan failed:", error);
+            } finally {
+                setIsScanning(false);
+            }
+        }, 800); // 800ms debounce
+
+        return () => clearTimeout(timer);
+    }, [draft, loreEntries, voiceProfiles, currentScene]);
+
+    // 3. Local Heuristic Warnings (Fast)
     const localWarnings = useMemo(() => {
         const activeLore = loreEntries.filter(e => e.isActive);
         const activeVoices = voiceProfiles.filter(v => v.isActive);
         return detectPotentialInconsistencies(draft, activeLore, activeVoices);
     }, [draft, loreEntries, voiceProfiles]);
 
-    // Filter out warnings that have been resolved
-    const activeWarnings = useMemo(() => {
-        return localWarnings.filter(w => !resolvedFixes.some(r => r.id === w.id));
-    }, [localWarnings, resolvedFixes]);
+    // Raw issues before filtering resolved ones
+    const rawIssues = useMemo(() => [...localWarnings, ...deepIssues], [localWarnings, deepIssues]);
 
-    // 3. Inactive Mentions (Blind Spots)
+    // Combine all active issues (filtered)
+    const allIssues = useMemo(() => {
+        // Filter out resolved
+        return rawIssues.filter(w => !resolvedFixes.some(r => r.id === w.id));
+    }, [rawIssues, resolvedFixes]);
+
+    // Categorized Issues
+    const categorizedIssues = useMemo(() => {
+        return {
+            timeline: allIssues.filter(i => i.type === 'timeline'),
+            social: allIssues.filter(i => i.type === 'social'),
+            lore: allIssues.filter(i => i.type === 'lore' || i.type === 'general'),
+            voice: allIssues.filter(i => i.type === 'voice'),
+            conceptual: allIssues.filter(i => i.type === 'conceptual')
+        };
+    }, [allIssues]);
+
+    // 4. Inactive Mentions (Blind Spots)
     const inactiveMentions = useMemo(() => {
         const lore = detectedLore.filter(e => !e.isActive);
         const voices = detectedVoices.filter(v => !v.isActive);
         return { lore, voices };
     }, [detectedLore, detectedVoices]);
 
-    const totalIssues = activeWarnings.length + inactiveMentions.lore.length + inactiveMentions.voices.length;
+    const totalIssues = allIssues.length + inactiveMentions.lore.length + inactiveMentions.voices.length;
 
     useEffect(() => {
         onIssuesUpdate?.(totalIssues);
     }, [totalIssues, onIssuesUpdate]);
 
     useEffect(() => {
-        setResolvedFixes(prev => prev.filter(fix => {
-            const warningStillExists = localWarnings.some(w => w.id === fix.id);
-            return !warningStillExists;
-        }));
-    }, [localWarnings]);
+        setResolvedFixes(prev => {
+            const stillRelevant = prev.filter(fix => rawIssues.some(w => w.id === fix.id));
+            if (stillRelevant.length === prev.length) return prev;
+            return stillRelevant;
+        });
+    }, [rawIssues]);
 
     const handleApplyFix = (issue: ContinuityIssue) => {
         if (!issue.actionable) return;
@@ -82,20 +130,88 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = ({
     const handleRevertFix = (resolvedId: string) => {
         const fix = resolvedFixes.find(r => r.id === resolvedId);
         if (!fix) return;
-        // Swap replacement and original to revert
         onFix(fix.replacement, fix.original);
         setResolvedFixes(prev => prev.filter(r => r.id !== resolvedId));
         showToast(`Reverted "${fix.replacement}" back to "${fix.original}"`);
+    };
+
+    const getIssueIcon = (type: string) => {
+        switch (type) {
+            case 'timeline': return <Clock className="w-3.5 h-3.5 text-amber-500 mt-0.5 flex-shrink-0" />;
+            case 'social': return <Users className="w-3.5 h-3.5 text-amber-500 mt-0.5 flex-shrink-0" />;
+            case 'conceptual': return <Zap className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />;
+            case 'lore':
+            case 'general': return <AlertTriangle className="w-3.5 h-3.5 text-amber-500 mt-0.5 flex-shrink-0" />;
+            default: return <Info className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />;
+        }
+    };
+
+    const renderIssueList = (issues: ContinuityIssue[], title: string, icon: React.ReactNode) => {
+        if (issues.length === 0) return null;
+        return (
+            <div className="space-y-3">
+                <div className="flex items-center gap-2 text-on-surface/50">
+                    {icon}
+                    <span className="text-[9px] font-black uppercase tracking-widest">{title}</span>
+                </div>
+                <div className="space-y-2">
+                    {issues.map((issue) => (
+                        <div key={issue.id} className="p-3 rounded-xl bg-surface-container-highest/30 border border-outline-variant/10 flex flex-col gap-2">
+                            <div className="flex gap-3">
+                                {getIssueIcon(issue.type)}
+                                <p className="text-xs text-on-surface-variant leading-relaxed">{issue.message}</p>
+                            </div>
+                            <div className="flex justify-end gap-2 mt-1">
+                                {issue.actionable && (
+                                    <button 
+                                        onClick={() => handleApplyFix(issue)}
+                                        className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-on-primary transition-colors text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5"
+                                    >
+                                        <Check className="w-3 h-3" />
+                                        Fix
+                                    </button>
+                                )}
+                                {issue.type === 'conceptual' && issue.linkedEntryId && (
+                                    <button 
+                                        onClick={() => {
+                                            onActivateLore(issue.linkedEntryId!);
+                                            showToast(`Activated conceptual context`);
+                                        }}
+                                        className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-on-primary transition-colors text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5"
+                                    >
+                                        <Zap className="w-3 h-3" />
+                                        Activate
+                                    </button>
+                                )}
+                                {issue.type === 'timeline' && issue.linkedEntryId && (
+                                    <button 
+                                        onClick={() => {
+                                            onViewLore?.(issue.linkedEntryId!);
+                                        }}
+                                        className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-on-primary transition-colors text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5"
+                                    >
+                                        <Clock className="w-3 h-3" />
+                                        View Context
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
     };
 
     return (
         <div className="bg-surface-container-low rounded-2xl border border-outline-variant/20 overflow-hidden flex flex-col shadow-sm mt-4 animate-in slide-in-from-top-2 fade-in duration-300">
             <div className="p-4 border-b border-outline-variant/10 bg-surface-container-highest/30 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <ShieldCheck className={`w-4 h-4 ${totalIssues > 0 ? 'text-amber-500' : 'text-primary'}`} />
+                    <ShieldCheck className={`w-4 h-4 ${totalIssues > 0 ? 'text-amber-500' : 'text-primary'} ${isScanning ? 'animate-pulse' : ''}`} />
                     <div className="flex flex-col">
-                        <h3 className="font-label text-[10px] uppercase tracking-[0.2em] font-black text-on-surface/80">Continuity Guard</h3>
-                        <p className="text-[8px] text-on-surface-variant/60 uppercase tracking-wider">Scanning: Lore, Voices, Pronouns, Aliases</p>
+                        <h3 className="font-label text-[10px] uppercase tracking-[0.2em] font-black text-on-surface/80">Narrative Auditor</h3>
+                        <p className="text-[8px] text-on-surface-variant/60 uppercase tracking-wider">
+                            {isScanning ? 'Deep Scanning Intelligence Layers...' : 'Scanning: Lore, Timeline, Social, Concepts'}
+                        </p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -119,7 +235,7 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = ({
                 </div>
             </div>
 
-            <div className="p-4 space-y-6 max-h-[300px] overflow-y-auto scrollbar-thin">
+            <div className="p-4 space-y-6 max-h-[400px] overflow-y-auto scrollbar-thin">
                 {/* 1. Blind Spots (Inactive Mentions) */}
                 {(inactiveMentions.lore.length > 0 || inactiveMentions.voices.length > 0) && (
                     <div className="space-y-3">
@@ -158,36 +274,12 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = ({
                     </div>
                 )}
 
-                {/* 2. Heuristic Warnings */}
-                {activeWarnings.length > 0 && (
-                    <div className="space-y-3">
-                        <div className="flex items-center gap-2 text-on-surface/50">
-                            <Search className="w-3 h-3 text-primary" />
-                            <span className="text-[9px] font-black uppercase tracking-widest">Continuity Scan</span>
-                        </div>
-                        <div className="space-y-2">
-                            {activeWarnings.map((warning) => (
-                                <div key={warning.id} className="p-3 rounded-xl bg-surface-container-highest/30 border border-outline-variant/10 flex flex-col gap-2">
-                                    <div className="flex gap-3">
-                                        <Info className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
-                                        <p className="text-xs text-on-surface-variant leading-relaxed">{warning.message}</p>
-                                    </div>
-                                    {warning.actionable && (
-                                        <div className="flex justify-end mt-1">
-                                            <button 
-                                                onClick={() => handleApplyFix(warning)}
-                                                className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-on-primary transition-colors text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5"
-                                            >
-                                                <Check className="w-3 h-3" />
-                                                Fix: Replace "{warning.actionable.original}" with "{warning.actionable.replacement}"
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
+                {/* 2. Intelligence Audit (Categorized) */}
+                {renderIssueList(categorizedIssues.timeline, 'Timeline Audit', <Clock className="w-3 h-3 text-amber-500" />)}
+                {renderIssueList(categorizedIssues.social, 'Social Stakes', <Users className="w-3 h-3 text-amber-500" />)}
+                {renderIssueList(categorizedIssues.lore, 'Lore Integrity', <Search className="w-3 h-3 text-primary" />)}
+                {renderIssueList(categorizedIssues.voice, 'Voice Consistency', <Info className="w-3 h-3 text-primary" />)}
+                {renderIssueList(categorizedIssues.conceptual, 'Thematic Context', <Zap className="w-3 h-3 text-primary" />)}
 
                 {/* 3. Resolved Fixes (Revertible) */}
                 {resolvedFixes.length > 0 && (
@@ -216,14 +308,14 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = ({
                 )}
 
                 {/* 4. Empty State */}
-                {totalIssues === 0 && resolvedFixes.length === 0 && (
+                {totalIssues === 0 && resolvedFixes.length === 0 && !isScanning && (
                     <div className="flex flex-col items-center justify-center py-6 text-center space-y-3">
                         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                             <CheckCircle className="w-5 h-5 text-primary" />
                         </div>
                         <div className="space-y-1">
-                            <p className="text-xs font-bold text-on-surface">Lore is Synchronized</p>
-                            <p className="text-[10px] text-on-surface-variant/60 max-w-[180px]">No blind spots or obvious contradictions found in the current draft.</p>
+                            <p className="text-xs font-bold text-on-surface">Narrative Integrity Verified</p>
+                            <p className="text-[10px] text-on-surface-variant/60 max-w-[180px]">No contradictions, timeline anomalies, or social dissonance found.</p>
                         </div>
                     </div>
                 )}

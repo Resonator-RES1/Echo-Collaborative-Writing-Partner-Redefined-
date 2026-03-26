@@ -92,11 +92,12 @@ export const refineDraft = async (options: RefineDraftOptions): Promise<RefineDr
 
         if (storyDay !== undefined) {
             preamble += `*** CHRONOLOGICAL ANCHOR ***\n`;
-            preamble += `Current Scene Time: Day ${storyDay}.\n`;
+            preamble += `Current Story Day: ${storyDay}.\n`;
             
             const pastEvents = timelineEntries.filter(e => e.storyDay !== undefined && e.storyDay < storyDay);
             if (pastEvents.length > 0) {
-                preamble += `Past Events (Chronological Context):\n`;
+                preamble += `Active Timeline Context: [${pastEvents.map(e => e.title).join(', ')}]\n`;
+                preamble += `Past Events Details:\n`;
                 preamble += pastEvents.sort((a, b) => (a.storyDay || 0) - (b.storyDay || 0))
                     .map(e => `- [Day ${e.storyDay}] ${e.title}: ${e.content}`).join('\n') + '\n';
             }

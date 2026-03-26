@@ -1,67 +1,235 @@
-import { LoreEntry, VoiceProfile } from '../types';
+import MiniSearch from 'minisearch';
+import { Voy } from 'voy-search';
+import { LoreEntry, VoiceProfile, Scene } from '../types';
+import { GoogleGenAI } from "@google/genai";
 
 export interface ContinuityIssue {
     id: string;
-    type: 'lore' | 'voice' | 'general';
+    type: 'lore' | 'voice' | 'general' | 'timeline' | 'social' | 'conceptual';
     message: string;
     severity: 'low' | 'medium' | 'high';
     actionable?: {
         original: string;
         replacement: string;
     };
+    linkedEntryId?: string;
 }
 
-// Cache for compiled regexes to improve performance
-const regexCache = new Map<string, RegExp>();
-
-const getRegex = (term: string): RegExp => {
-    if (regexCache.has(term)) {
-        return regexCache.get(term)!;
+// MiniSearch instance for hard matches
+let miniSearch = new MiniSearch({
+    fields: ['title', 'name', 'aliases', 'content'],
+    storeFields: ['id', 'type'],
+    searchOptions: {
+        boost: { title: 2, name: 2, aliases: 1.5 },
+        fuzzy: 0.2,
+        prefix: true
     }
-    // Case-insensitive regex with word boundaries and optional possessive
-    const regex = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:'s)?\\b`, 'gi');
-    regexCache.set(term, regex);
-    return regex;
+});
+
+// Voy instance for thematic matches
+let voyInstance: any = null;
+let voyEntries: LoreEntry[] = [];
+
+export const initializeScanner = async (entries: LoreEntry[], voices: VoiceProfile[]) => {
+    // Index for MiniSearch
+    const documents = [
+        ...entries.map(e => ({
+            id: e.id,
+            title: e.title,
+            aliases: e.aliases?.join(' ') || '',
+            content: e.content,
+            type: 'lore'
+        })),
+        ...voices.map(v => ({
+            id: v.id,
+            name: v.name,
+            aliases: v.aliases?.join(' ') || '',
+            content: v.soulPattern + ' ' + v.cognitivePatterns,
+            type: 'voice'
+        }))
+    ];
+    
+    miniSearch.removeAll();
+    miniSearch.addAll(documents);
+    
+    // Store entries for Voy (conceptual search)
+    voyEntries = entries;
+
+    // Initialize Voy if we have embeddings
+    const entriesWithEmbeddings = entries.filter(e => e.embedding && e.embedding.length > 0);
+    if (entriesWithEmbeddings.length > 0) {
+        try {
+            voyInstance = new Voy({
+                embeddings: entriesWithEmbeddings.map(e => ({
+                    id: e.id,
+                    title: e.title,
+                    url: '', // Required by Voy types
+                    embeddings: e.embedding!
+                }))
+            });
+        } catch (error) {
+            console.error("Failed to initialize Voy:", error);
+            voyInstance = null;
+        }
+    } else {
+        voyInstance = null;
+    }
+};
+
+// Helper to get embeddings from Gemini
+export const getEmbedding = async (text: string): Promise<number[]> => {
+    if (!process.env.GEMINI_API_KEY) return new Array(768).fill(0);
+    
+    try {
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const result = await ai.models.embedContent({
+            model: 'gemini-embedding-2-preview',
+            contents: [text]
+        });
+        return result.embeddings[0].values;
+    } catch (error) {
+        console.error("Embedding error:", error);
+        return new Array(768).fill(0);
+    }
 };
 
 export const scanForContext = (text: string, entries: (LoreEntry | VoiceProfile)[]) => {
-    const foundIds: string[] = [];
+    if (!text.trim()) return [];
     
-    entries.forEach(entry => {
-        const titleOrName = (entry as LoreEntry).title || (entry as VoiceProfile).name;
-        const terms = [titleOrName, ...(entry.aliases || [])];
-        
-        for (const term of terms) {
-            if (!term.trim()) continue;
-            const regex = getRegex(term);
-            if (regex.test(text)) {
-                foundIds.push(entry.id);
-                break;
+    const results = miniSearch.search(text);
+    return results.map(r => r.id);
+};
+
+export const detectTimelineIssues = (text: string, currentScene: Scene | undefined, loreEntries: LoreEntry[]): ContinuityIssue[] => {
+    const issues: ContinuityIssue[] = [];
+    if (!currentScene || currentScene.storyDay === undefined) return issues;
+
+    const timelineEntries = loreEntries.filter(e => e.category === 'Timeline' && e.storyDay !== undefined);
+    
+    timelineEntries.forEach(entry => {
+        const titleRegex = new RegExp(`\\b${entry.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
+        if (titleRegex.test(text)) {
+            if (currentScene.storyDay! < entry.storyDay!) {
+                issues.push({
+                    id: `timeline-${entry.id}`,
+                    type: 'timeline',
+                    severity: 'high',
+                    message: `Chronological Anomaly: Scene occurs on Day ${currentScene.storyDay}, but references "${entry.title}" which happens on Day ${entry.storyDay}.`
+                });
             }
         }
     });
-    
-    return foundIds;
+
+    return issues;
 };
 
-export const detectPotentialInconsistencies = (text: string, activeLore: LoreEntry[], activeVoices: VoiceProfile[]): ContinuityIssue[] => {
-    const warnings: ContinuityIssue[] = [];
-    const lowerText = text.toLowerCase();
-
-    // 1. Check for gender pronoun mismatches if gender is defined in voice profiles
+export const checkSocialConsistency = (text: string, activeVoices: VoiceProfile[], loreEntries: LoreEntry[]): ContinuityIssue[] => {
+    const issues: ContinuityIssue[] = [];
+    
+    // Friendly keywords that might contradict tense relationships
+    const friendlyKeywords = ['smiled warmly', 'laughed together', 'hugged', 'best friend', 'trusted', 'kindly'];
+    
     activeVoices.forEach(voice => {
-        const name = voice.name.toLowerCase();
-        
-        // Check if the main name or any alias is mentioned
-        const terms = [name, ...(voice.aliases || []).map(a => a.toLowerCase())];
-        const isMentioned = terms.some(term => {
-            if (!term.trim()) return false;
-            const regex = getRegex(term);
-            return regex.test(text);
-        });
+        const characterLore = loreEntries.find(e => e.title.toLowerCase() === voice.name.toLowerCase() && e.category === 'Characters');
+        if (!characterLore || !characterLore.relationships) return;
 
-        if (isMentioned) {
-            // Use regex with word boundaries for more robust pronoun detection
+        characterLore.relationships.forEach(rel => {
+            if (rel.type.toLowerCase().includes('combustive') || rel.type.toLowerCase().includes('tense') || rel.tension >= 4) {
+                const targetVoice = activeVoices.find(v => v.id === rel.targetId);
+                if (targetVoice) {
+                    const bothMentioned = 
+                        new RegExp(`\\b${voice.name}\\b`, 'gi').test(text) && 
+                        new RegExp(`\\b${targetVoice.name}\\b`, 'gi').test(text);
+                    
+                    if (bothMentioned) {
+                        const foundFriendly = friendlyKeywords.find(k => text.toLowerCase().includes(k));
+                        if (foundFriendly) {
+                            issues.push({
+                                id: `social-${voice.id}-${targetVoice.id}`,
+                                type: 'social',
+                                severity: 'medium',
+                                message: `Social Dissonance: ${voice.name} and ${targetVoice.name} have a ${rel.type} relationship, but the text suggests warmth ("${foundFriendly}").`
+                            });
+                        }
+                    }
+                }
+            }
+        });
+    });
+
+    return issues;
+};
+
+export const performDeepScan = async (text: string, loreEntries: LoreEntry[], activeVoices: VoiceProfile[], currentScene?: Scene): Promise<ContinuityIssue[]> => {
+    const issues: ContinuityIssue[] = [];
+    if (!text.trim()) return issues;
+
+    // 1. Hard Matches (MiniSearch)
+    const hardMatches = miniSearch.search(text);
+    
+    // 2. Conceptual Hits (Voy)
+    if (voyInstance && process.env.GEMINI_API_KEY) {
+        try {
+            const queryVector = await getEmbedding(text);
+            const searchResult = voyInstance.search(new Float32Array(queryVector), 3);
+            const hits = searchResult.neighbors || [];
+            
+            hits.forEach((hit: any) => {
+                const entry = loreEntries.find(e => e.id === hit.id);
+                // Only flag if it's not already a hard match and not active
+                if (entry && !entry.isActive && !hardMatches.find(hm => hm.id === entry.id)) {
+                    issues.push({
+                        id: `conceptual-${entry.id}`,
+                        type: 'conceptual',
+                        severity: 'low',
+                        message: `Thematic Connection: "${entry.title}" seems relevant to this scene's mood or concepts.`,
+                        linkedEntryId: entry.id
+                    });
+                }
+            });
+        } catch (error) {
+            console.error("Voy search error:", error);
+        }
+    } else if (!voyInstance) {
+        // Fallback to fuzzy MiniSearch if Voy isn't ready
+        const conceptualHits = miniSearch.search(text, {
+            fuzzy: 0.4,
+            prefix: false,
+            boost: { content: 2 }
+        }).filter(hit => !hardMatches.find(hm => hm.id === hit.id));
+
+        conceptualHits.slice(0, 2).forEach(hit => {
+            const entry = loreEntries.find(e => e.id === hit.id);
+            if (entry && !entry.isActive) {
+                issues.push({
+                    id: `conceptual-${hit.id}`,
+                    type: 'conceptual',
+                    severity: 'low',
+                    message: `Thematic Connection: "${entry.title}" seems relevant to this scene's mood or concepts.`,
+                    linkedEntryId: entry.id
+                });
+            }
+        });
+    }
+
+    // 3. Timeline Guard
+    issues.push(...detectTimelineIssues(text, currentScene, loreEntries));
+
+    // 4. Social dynamics
+    issues.push(...checkSocialConsistency(text, activeVoices, loreEntries));
+
+    return issues;
+};
+
+// Legacy support for existing components
+export const detectPotentialInconsistencies = (text: string, activeLore: LoreEntry[], activeVoices: VoiceProfile[]): ContinuityIssue[] => {
+    // This is now partially handled by performDeepScan, but we keep it for simple checks
+    const warnings: ContinuityIssue[] = [];
+    
+    // Pronoun checks (still useful as a fast local check)
+    activeVoices.forEach(voice => {
+        const nameRegex = new RegExp(`\\b${voice.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
+        if (nameRegex.test(text)) {
             const checkPronoun = (pronoun: string, replacement: string, idSuffix: string) => {
                 const regex = new RegExp(`\\b${pronoun}\\b`, 'gi');
                 if (regex.test(text)) {
@@ -78,57 +246,11 @@ export const detectPotentialInconsistencies = (text: string, activeLore: LoreEnt
             if (voice.gender === 'male') {
                 checkPronoun('she', 'he', 'she');
                 checkPronoun('her', 'his', 'her');
-                checkPronoun('hers', 'his', 'hers');
             }
             if (voice.gender === 'female') {
                 checkPronoun('he', 'she', 'he');
                 checkPronoun('him', 'her', 'him');
-                checkPronoun('his', 'her', 'his');
             }
-
-            // Check for alias usage (Info alert)
-            if (voice.aliases && voice.aliases.length > 0) {
-                voice.aliases.forEach(alias => {
-                    if (!alias.trim()) return;
-                    const regex = getRegex(alias);
-                    if (regex.test(text)) {
-                        warnings.push({
-                            id: `alias-${voice.id}-${alias}`,
-                            type: 'voice',
-                            severity: 'low',
-                            message: `Using alias "${alias}" for ${voice.name}.`,
-                            actionable: { original: alias, replacement: voice.name }
-                        });
-                    }
-                });
-            }
-        }
-    });
-
-    // 2. Lore checks (e.g., checking if an alias is used)
-    activeLore.forEach(lore => {
-        const title = lore.title.toLowerCase();
-        const terms = [title, ...(lore.aliases || []).map(a => a.toLowerCase())];
-        const isMentioned = terms.some(term => {
-            if (!term.trim()) return false;
-            const regex = getRegex(term);
-            return regex.test(text);
-        });
-
-        if (isMentioned && lore.aliases && lore.aliases.length > 0) {
-            lore.aliases.forEach(alias => {
-                if (!alias.trim()) return;
-                const regex = getRegex(alias);
-                if (regex.test(text)) {
-                    warnings.push({
-                        id: `alias-${lore.id}-${alias}`,
-                        type: 'lore',
-                        severity: 'low',
-                        message: `Using alias "${alias}" for ${lore.title}.`,
-                        actionable: { original: alias, replacement: lore.title }
-                    });
-                }
-            });
         }
     });
 

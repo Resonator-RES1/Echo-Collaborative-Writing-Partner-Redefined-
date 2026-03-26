@@ -1,8 +1,8 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { Search, Filter, BookOpen, Plus, Download, Upload, Trash2, ChevronRight } from 'lucide-react';
+import { Search, Filter, BookOpen, Plus, Download, Upload, Trash2, ChevronRight, RefreshCw, Loader2, Sparkles } from 'lucide-react';
 import { LoreEntry, Screen } from '../types';
 import { LoreEntryForm } from './forms/LoreEntryForm';
-import { Sparkles } from 'lucide-react';
+import { getEmbedding } from '../utils/contextScanner';
 
 import { useLore } from '../contexts/LoreContext';
 
@@ -16,6 +16,7 @@ export function LoreScreen({ setCurrentScreen }: LoreScreenProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [editingEntry, setEditingEntry] = useState<LoreEntry | undefined>(undefined);
   const [isCreating, setIsCreating] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
@@ -30,6 +31,25 @@ export function LoreScreen({ setCurrentScreen }: LoreScreenProps) {
     await addLoreEntry(entry);
     setIsCreating(false);
     setEditingEntry(entry); // Keep it selected after saving
+  };
+
+  const handleSyncEmbeddings = async () => {
+    const entriesToSync = loreEntries.filter(e => !e.embedding);
+    if (entriesToSync.length === 0) return;
+
+    setIsSyncing(true);
+    try {
+      for (const entry of entriesToSync) {
+        const embedding = await getEmbedding(`${entry.title}: ${entry.content}`);
+        if (embedding) {
+          await addLoreEntry({ ...entry, embedding });
+        }
+      }
+    } catch (error) {
+      console.error("Failed to sync embeddings:", error);
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const handleEditEntry = (entry: LoreEntry) => {
@@ -99,6 +119,8 @@ export function LoreScreen({ setCurrentScreen }: LoreScreenProps) {
     'Other'
   ];
 
+  const unsyncedCount = useMemo(() => loreEntries.filter(e => !e.embedding).length, [loreEntries]);
+
   return (
     <div className="flex-1 min-h-0 flex flex-col animate-in fade-in duration-700">
       {/* Header Section */}
@@ -110,6 +132,21 @@ export function LoreScreen({ setCurrentScreen }: LoreScreenProps) {
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
+              {unsyncedCount > 0 && (
+                <button 
+                  onClick={handleSyncEmbeddings}
+                  disabled={isSyncing}
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary font-label text-[10px] uppercase tracking-widest hover:bg-primary/20 transition-all disabled:opacity-50"
+                  title={`Generate embeddings for ${unsyncedCount} entries`}
+                >
+                  {isSyncing ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="w-4 h-4" />
+                  )}
+                  <span>{isSyncing ? 'Syncing Intelligence...' : `Sync Intelligence (${unsyncedCount})`}</span>
+                </button>
+              )}
               <button 
                 onClick={handleExport}
                 className="p-3 rounded-full bg-surface-container-highest text-on-surface-variant hover:text-primary transition-all"
