@@ -18,6 +18,7 @@ interface ManuscriptPanelProps {
   onClearAcceptedVersions: () => void;
   goal: WritingGoal;
   setGoal: React.Dispatch<React.SetStateAction<WritingGoal>>;
+  onViewReport: (version: RefinedVersion) => void;
 }
 
 export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
@@ -33,7 +34,8 @@ export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
   onDeleteVersion,
   onClearAcceptedVersions,
   goal,
-  setGoal
+  setGoal,
+  onViewReport
 }) => {
   const [activeTab, setActiveTab] = useState<'scenes' | 'accepted' | 'goals'>('scenes');
   const [showGoalModal, setShowGoalModal] = useState(false);
@@ -236,51 +238,7 @@ export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
                     {version.justification && (
                       <button 
                         onClick={() => {
-                          // Simple alert for now, or we could add a modal
-                          // But let's try to show it inline or in a simple way
-                          const win = window.open('', '_blank');
-                          if (win) {
-                            win.document.write(`
-                              <html>
-                                <head>
-                                  <title>Refinement Report: ${version.title}</title>
-                                  <style>
-                                    body { font-family: system-ui; padding: 2rem; line-height: 1.6; max-width: 800px; margin: 0 auto; background: #121212; color: #e0e0e0; }
-                                    h1 { color: #bb86fc; }
-                                    h2 { color: #03dac6; margin-top: 2rem; border-bottom: 1px solid #333; padding-bottom: 0.5rem; }
-                                    .section { margin-bottom: 1.5rem; }
-                                    .label { font-weight: bold; color: #cf6679; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.1em; }
-                                    blockquote { border-left: 4px solid #bb86fc; padding-left: 1rem; font-style: italic; color: #b0b0b0; }
-                                  </style>
-                                </head>
-                                <body>
-                                  <h1>Refinement Report: ${version.title}</h1>
-                                  <div class="section">
-                                    <span class="label">Summary</span>
-                                    <p>${version.summary}</p>
-                                  </div>
-                                  <h2>Justification</h2>
-                                  <div class="section">
-                                    <span class="label">The "Why" Behind the Change</span>
-                                    <p>${version.whyBehindChange || version.justification}</p>
-                                  </div>
-                                  <div class="section">
-                                    <span class="label">Evidence-Based Claims</span>
-                                    <p>${version.evidenceBasedClaims}</p>
-                                  </div>
-                                  <div class="section">
-                                    <span class="label">Lore Lineage</span>
-                                    <p>${version.loreLineage}</p>
-                                  </div>
-                                  <div class="section">
-                                    <span class="label">Mirror Editor Critique</span>
-                                    <blockquote>${version.mirrorEditorCritique}</blockquote>
-                                  </div>
-                                </body>
-                              </html>
-                            `);
-                            win.document.close();
-                          }
+                          onViewReport(version);
                         }}
                         className="flex-1 min-w-[120px] px-4 py-2 rounded-xl bg-surface-container-highest border border-outline-variant/10 hover:bg-surface-container-high transition-all font-label text-[10px] uppercase tracking-widest"
                       >

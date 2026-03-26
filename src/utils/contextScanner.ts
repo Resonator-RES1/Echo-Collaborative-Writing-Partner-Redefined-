@@ -105,7 +105,7 @@ export const detectTimelineIssues = (text: string, currentScene: Scene | undefin
     const timelineEntries = loreEntries.filter(e => e.category === 'Timeline' && e.storyDay !== undefined);
     
     timelineEntries.forEach(entry => {
-        const titleRegex = new RegExp(`\\b${entry.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
+        const titleRegex = new RegExp(`\\b${entry.title.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}\\b`, 'gi');
         if (titleRegex.test(text)) {
             if (currentScene.storyDay! < entry.storyDay!) {
                 issues.push({
@@ -197,6 +197,34 @@ export const performLocalScan = (
     // 3. Social dynamics
     issues.push(...checkSocialConsistency(text, activeVoices, loreEntries));
 
+    // 4. Pronoun/Gender checks
+    activeVoices.forEach(voice => {
+        const nameRegex = new RegExp(`\\b${voice.name.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}\\b`, 'gi');
+        if (nameRegex.test(text)) {
+            const checkPronoun = (pronoun: string, replacement: string, idSuffix: string) => {
+                const regex = new RegExp(`\\b${pronoun}\\b`, 'gi');
+                if (regex.test(text)) {
+                    issues.push({ 
+                        id: `pronoun-${idSuffix}-${voice.id}`, 
+                        type: 'voice', 
+                        severity: 'medium', 
+                        message: `Possible pronoun mismatch for ${voice.name} (Profile: ${voice.gender}, but found '${pronoun}').`, 
+                        actionable: { original: pronoun, replacement: replacement } 
+                    });
+                }
+            };
+
+            if (voice.gender === 'male') {
+                checkPronoun('she', 'he', 'she');
+                checkPronoun('her', 'his', 'her');
+            }
+            if (voice.gender === 'female') {
+                checkPronoun('he', 'she', 'he');
+                checkPronoun('him', 'her', 'him');
+            }
+        }
+    });
+
     return issues;
 };
 
@@ -234,40 +262,4 @@ export const performConceptualScan = async (
     }
 
     return issues;
-};
-
-// Legacy support for existing components
-export const detectPotentialInconsistencies = (text: string, activeLore: LoreEntry[], activeVoices: VoiceProfile[]): ContinuityIssue[] => {
-    // This is now partially handled by performDeepScan, but we keep it for simple checks
-    const warnings: ContinuityIssue[] = [];
-    
-    // Pronoun checks (still useful as a fast local check)
-    activeVoices.forEach(voice => {
-        const nameRegex = new RegExp(`\\b${voice.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
-        if (nameRegex.test(text)) {
-            const checkPronoun = (pronoun: string, replacement: string, idSuffix: string) => {
-                const regex = new RegExp(`\\b${pronoun}\\b`, 'gi');
-                if (regex.test(text)) {
-                    warnings.push({ 
-                        id: `pronoun-${idSuffix}-${voice.id}`, 
-                        type: 'voice', 
-                        severity: 'medium', 
-                        message: `Possible pronoun mismatch for ${voice.name} (Profile: ${voice.gender}, but found '${pronoun}').`, 
-                        actionable: { original: pronoun, replacement: replacement } 
-                    });
-                }
-            };
-
-            if (voice.gender === 'male') {
-                checkPronoun('she', 'he', 'she');
-                checkPronoun('her', 'his', 'her');
-            }
-            if (voice.gender === 'female') {
-                checkPronoun('he', 'she', 'he');
-                checkPronoun('him', 'her', 'him');
-            }
-        }
-    });
-
-    return warnings;
 };

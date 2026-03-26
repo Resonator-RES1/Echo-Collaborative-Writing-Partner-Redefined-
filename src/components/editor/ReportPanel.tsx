@@ -43,9 +43,9 @@ export const ReportPanel: React.FC<ReportPanelProps> = ({
     }
 
     return (
-        <div className="flex flex-col flex-1 min-h-0 overflow-y-auto custom-scrollbar animate-in fade-in duration-500 pr-2 pb-12">
+        <div className="flex flex-col flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar animate-in fade-in duration-500 pr-2 pb-12">
             {/* Header with Summary - Scrollable */}
-            <div className="bg-surface-container-low rounded-2xl border border-outline-variant/10 p-4 sm:p-6 mb-4 sm:mb-6 shadow-sm relative">
+            <div className="bg-surface-container-low rounded-2xl border border-outline-variant/10 p-4 sm:p-6 mb-4 sm:mb-6 shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
                 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 mb-4 sm:mb-8 relative z-10">

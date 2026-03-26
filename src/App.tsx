@@ -175,12 +175,6 @@ export default function App() {
             setScenes([defaultScene]);
             setCurrentSceneId(defaultScene.id);
             await db.putScene(defaultScene);
-            
-            // Try to load legacy draft
-            const legacyDraft = localStorage.getItem('echo-draft');
-            if (legacyDraft) {
-                setDraft(legacyDraft);
-            }
         }
       } catch (e) {
         console.error("Failed to load data from DB", e);
@@ -201,22 +195,6 @@ export default function App() {
 
   const isLoaded = isAppLoaded && isLoreLoaded;
 
-  // Sync draft changes to current scene
-  useEffect(() => {
-      if (!isLoaded || !currentSceneId) return;
-      
-      const timer = setTimeout(() => {
-          setScenes(prev => {
-              const updated = prev.map(s => s.id === currentSceneId ? { ...s, content: draft, lastModified: new Date().toISOString() } : s);
-              const activeScene = updated.find(s => s.id === currentSceneId);
-              if (activeScene) {
-                  db.putScene(activeScene);
-              }
-              return updated;
-          });
-      }, 1000);
-      return () => clearTimeout(timer);
-  }, [draft, currentSceneId, isLoaded]);
 
   const showToast = useCallback((message: string) => {
     setToast({ message, id: Date.now() });
@@ -399,6 +377,16 @@ export default function App() {
             onClearAcceptedVersions={clearAcceptedVersions}
             goal={writingGoal}
             setGoal={setWritingGoal}
+            onViewReport={(version) => {
+              // We need to pass this down to the Editor component somehow, or handle it here.
+              // Since Editor manages its own tabs, we might need to lift the tab state or pass a signal.
+              // For now, let's just switch to the workspace screen.
+              setCurrentScreen('workspace');
+              // We'll need a way to tell the Editor to open the report tab and select this version.
+              // A simple way is to use a custom event or a global state/context for "selected version to view".
+              // Let's dispatch a custom event that Editor can listen to.
+              window.dispatchEvent(new CustomEvent('view-report', { detail: version }));
+            }}
           />
         );
       case 'settings':

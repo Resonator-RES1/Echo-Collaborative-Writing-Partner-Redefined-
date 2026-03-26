@@ -41,9 +41,9 @@ export const ReportVoiceResonance: React.FC<ReportVoiceResonanceProps> = ({ voic
             initial={{ height: 0, opacity: 0, marginTop: 0 }}
             animate={{ height: 'auto', opacity: 1, marginTop: 16 }}
             exit={{ height: 0, opacity: 0, marginTop: 0 }}
-            className="overflow-hidden"
+            className="overflow-hidden -mx-6 px-6"
           >
-            <div className="flex overflow-x-auto flex-nowrap gap-3 relative z-10 pb-4 custom-scrollbar scrollbar-thin">
+            <div className="flex overflow-x-auto flex-nowrap gap-3 relative z-10 pb-4 custom-scrollbar scrollbar-thin snap-x">
               {voiceAudits.map((audit, index) => {
           const score = audit.resonanceScore;
           const isActive = activeAuditIndex === index;
@@ -68,7 +68,7 @@ export const ReportVoiceResonance: React.FC<ReportVoiceResonanceProps> = ({ voic
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.1 }}
               onClick={() => setActiveAuditIndex(isActive ? null : index)}
-              className={`group/chip relative flex items-center gap-2 px-4 py-2 rounded-full border ${borderColor} ${bgColor} ${textColor} transition-all hover:shadow-md cursor-pointer ${isActive ? 'ring-2 ring-primary/30 shadow-lg' : ''}`}
+              className={`group/chip relative flex items-center gap-2 px-4 py-2 rounded-full border shrink-0 snap-start ${borderColor} ${bgColor} ${textColor} transition-all hover:shadow-md cursor-pointer ${isActive ? 'ring-2 ring-primary/30 shadow-lg' : ''}`}
             >
               <span className="font-headline font-bold text-sm">{audit.characterName}</span>
               <div className={`w-px h-3 ${textColor === 'text-error' ? 'bg-error/30' : textColor === 'text-accent-amber' ? 'bg-accent-amber/30' : 'bg-accent-emerald/30'}`} />

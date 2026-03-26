@@ -19,6 +19,7 @@ import { ReportPanel } from './editor/ReportPanel';
 
 import { useLore } from '../contexts/LoreContext';
 import { useProject } from '../contexts/ProjectContext';
+import * as db from '../services/dbService';
 
 interface EditorProps {
     draft: string;
@@ -202,13 +203,6 @@ const Editor: React.FC<EditorProps> = ({
   }, [draftState.present]);
 
   useEffect(() => {
-    const savedDraft = localStorage.getItem('echo-draft');
-    if (savedDraft) {
-        dispatchDraft({ type: 'EXTERNAL_UPDATE', payload: savedDraft });
-    }
-  }, []);
-
-  useEffect(() => {
     if (draft !== draftState.present) {
         dispatchDraft({ type: 'EXTERNAL_UPDATE', payload: draft });
     }
@@ -219,12 +213,22 @@ const Editor: React.FC<EditorProps> = ({
     const handler = setTimeout(() => {
         if (draft !== draftState.present) {
             setDraft(draftState.present);
-            localStorage.setItem('echo-draft', draftState.present);
+            
+            if (currentSceneId) {
+                const currentScene = scenes.find(s => s.id === currentSceneId);
+                if (currentScene) {
+                    db.putScene({
+                        ...currentScene,
+                        content: draftState.present,
+                        lastModified: new Date().toISOString()
+                    });
+                }
+            }
         }
         setSaveStatus('saved');
-    }, 1000);
+    }, 5000);
     return () => clearTimeout(handler);
-  }, [draftState.present, setDraft]);
+  }, [draftState.present, setDraft, currentSceneId, scenes, draft]);
 
   useEffect(() => {
     if (saveStatus === 'saved') {
@@ -282,6 +286,23 @@ const Editor: React.FC<EditorProps> = ({
     dispatchDraft({ type: 'EXTERNAL_UPDATE', payload: version.text });
     setActiveTab('draft');
   }, [onAcceptVersion]);
+
+  useEffect(() => {
+    const handleViewReport = (e: Event) => {
+        const customEvent = e as CustomEvent<RefinedVersion>;
+        const version = customEvent.detail;
+        if (version) {
+            // Find the index of this version in the history
+            const index = versionHistory.findIndex(v => v.id === version.id);
+            if (index !== -1) {
+                setCurrentVersionIndex(index);
+                setActiveTab('report');
+            }
+        }
+    };
+    window.addEventListener('view-report', handleViewReport);
+    return () => window.removeEventListener('view-report', handleViewReport);
+  }, [versionHistory]);
 
   const handleSelectArchiveVersion = useCallback((index: number) => {
       setCurrentVersionIndex(index);

@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { ShieldCheck, AlertTriangle, CheckCircle, Info, Zap, Search, Undo2, Check, Clock, Users } from 'lucide-react';
 import { LoreEntry, VoiceProfile, Scene } from '../../types';
-import { scanForContext, detectPotentialInconsistencies, ContinuityIssue, performLocalScan, performConceptualScan, ScannerInstances } from '../../utils/contextScanner';
+import { scanForContext, ContinuityIssue, performLocalScan, performConceptualScan, ScannerInstances } from '../../utils/contextScanner';
 
 interface ContinuityGuardProps {
     draft: string;
@@ -99,11 +99,8 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = React.memo(({
     const [localWarnings, setLocalWarnings] = useState<ContinuityIssue[]>([]);
     useEffect(() => {
         const timer = setTimeout(() => {
-            const activeLore = loreEntries.filter(e => e.isActive);
-            const activeVoices = voiceProfiles.filter(v => v.isActive);
-            const inconsistencies = detectPotentialInconsistencies(draft, activeLore, activeVoices);
             const localScanIssues = performLocalScan(draft, loreEntries, voiceProfiles, currentScene, scanner.miniSearch);
-            setLocalWarnings([...inconsistencies, ...localScanIssues]);
+            setLocalWarnings(localScanIssues);
         }, 1000);
         return () => clearTimeout(timer);
     }, [draft, loreEntries, voiceProfiles, currentScene, scanner]);
