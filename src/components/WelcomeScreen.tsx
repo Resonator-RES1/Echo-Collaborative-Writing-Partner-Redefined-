@@ -438,7 +438,7 @@ export function WelcomeScreen({ onStart, wordCount, goal, scenes, onJumpToScene 
 
                 <button
                   onClick={() => onJumpToScene(latestScene.id)}
-                  className="w-full group flex items-center justify-between p-4 rounded-2xl bg-primary text-on-primary hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary/20"
+                  className="w-full group flex items-center justify-between p-4 rounded-2xl bg-primary text-on-primary-fixed hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary/20"
                 >
                   <div className="flex flex-col items-start">
                     <span className="text-[9px] font-black uppercase tracking-widest opacity-70">Continue Writing</span>
@@ -452,7 +452,7 @@ export function WelcomeScreen({ onStart, wordCount, goal, scenes, onJumpToScene 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 md:pt-8">
               <button
                 onClick={onStart}
-                className="w-full sm:w-auto group relative px-8 md:px-12 py-4 md:py-5 rounded-full bg-primary text-on-primary font-label text-xs uppercase tracking-[0.2em] overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-xl shadow-primary/20"
+                className="w-full sm:w-auto group relative px-8 md:px-12 py-4 md:py-5 rounded-full bg-primary text-on-primary-fixed font-label text-xs uppercase tracking-[0.2em] overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-xl shadow-primary/20"
               >
                 <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
                 <span className="relative flex items-center justify-center gap-3">

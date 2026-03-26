@@ -18,6 +18,14 @@ export const formatReportForCopy = (version: RefinedVersion): string => {
         report += `\n`;
     }
     
+    if (version.voiceAudits && version.voiceAudits.length > 0) {
+        report += `VOICE RESONANCE RADAR:\n`;
+        version.voiceAudits.forEach(audit => {
+            report += `- ${audit.characterName.toUpperCase()}: ${audit.resonanceScore}% ${audit.dissonanceReason ? `- ${audit.dissonanceReason}` : ''}\n`;
+        });
+        report += `\n`;
+    }
+    
     if (version.audit) {
         report += `FIDELITY AUDIT:\n`;
         report += `- VOICE FIDELITY: ${version.audit.voiceFidelityScore}/10 - ${version.audit.voiceFidelityReasoning}\n`;

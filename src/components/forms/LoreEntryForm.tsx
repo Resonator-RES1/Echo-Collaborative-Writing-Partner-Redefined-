@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, BookOpen, Fingerprint, Database, Cpu } from 'lucide-react';
-import { LoreEntry, Gender } from '../../types';
+import { X, Save, BookOpen, Fingerprint, Database, Cpu, Waypoints, Plus, Trash2 } from 'lucide-react';
+import { LoreEntry, Gender, Relationship } from '../../types';
 
 interface LoreEntryFormProps {
   onClose: () => void;
   onSave: (entry: LoreEntry) => void;
   initialData?: LoreEntry;
   isModal?: boolean;
+  loreEntries?: LoreEntry[];
 }
 
-export function LoreEntryForm({ onClose, onSave, initialData, isModal = true }: LoreEntryFormProps) {
+export function LoreEntryForm({ onClose, onSave, initialData, isModal = true, loreEntries = [] }: LoreEntryFormProps) {
   const [title, setTitle] = useState(initialData?.title || '');
   const [category, setCategory] = useState<LoreEntry['category']>(initialData?.category || 'World Mechanics');
   const [content, setContent] = useState(initialData?.content || '');
   const [aliases, setAliases] = useState(initialData?.aliases?.join(', ') || '');
   const [gender, setGender] = useState<Gender>(initialData?.gender || 'unspecified');
   const [sensoryPalette, setSensoryPalette] = useState(initialData?.sensoryPalette || '');
+  const [relationships, setRelationships] = useState<Relationship[]>(initialData?.relationships || []);
 
   useEffect(() => {
     setTitle(initialData?.title || '');
@@ -24,6 +26,7 @@ export function LoreEntryForm({ onClose, onSave, initialData, isModal = true }: 
     setAliases(initialData?.aliases?.join(', ') || '');
     setGender(initialData?.gender || 'unspecified');
     setSensoryPalette(initialData?.sensoryPalette || '');
+    setRelationships(initialData?.relationships || []);
   }, [initialData]);
 
   const placeholders: Record<string, string> = {
@@ -52,9 +55,32 @@ export function LoreEntryForm({ onClose, onSave, initialData, isModal = true }: 
       aliases: aliasList,
       gender: category === 'Characters' ? gender : undefined,
       sensoryPalette,
+      relationships: category === 'Characters' ? relationships : undefined,
       lastModified: new Date().toISOString(),
     });
   };
+
+  const addRelationship = () => {
+    const otherCharacters = loreEntries.filter(e => e.category === 'Characters' && e.id !== initialData?.id);
+    if (otherCharacters.length === 0) return;
+    
+    setRelationships([
+      ...relationships,
+      { targetId: otherCharacters[0].id, type: 'Ally', tension: 1, context: '' }
+    ]);
+  };
+
+  const updateRelationship = (index: number, updates: Partial<Relationship>) => {
+    const newRelationships = [...relationships];
+    newRelationships[index] = { ...newRelationships[index], ...updates };
+    setRelationships(newRelationships);
+  };
+
+  const removeRelationship = (index: number) => {
+    setRelationships(relationships.filter((_, i) => i !== index));
+  };
+
+  const otherCharacters = loreEntries.filter(e => e.category === 'Characters' && e.id !== initialData?.id);
 
   const formContent = (
     <div className={`w-full h-full flex flex-col bg-surface-container-low ${isModal ? 'max-w-3xl rounded-3xl border border-outline-variant/20 shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300' : 'rounded-2xl border border-outline-variant/10 shadow-sm'}`}>
@@ -203,6 +229,108 @@ export function LoreEntryForm({ onClose, onSave, initialData, isModal = true }: 
             <p className="text-[10px] text-on-surface-variant/50 italic ml-1">Keywords Echo will weave into descriptions when 'Sensory' focus is active.</p>
           </div>
         </div>
+
+        {/* Section 3: Web of Fate (Relationships) - Only for Characters */}
+        {category === 'Characters' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-outline-variant/10">
+              <div className="flex items-center gap-2">
+                <Waypoints className="w-4 h-4 text-primary" />
+                <h3 className="text-sm font-headline font-bold text-on-surface uppercase tracking-wider">Web of Fate</h3>
+                <span className="text-[10px] font-label text-on-surface-variant/60 ml-2 italic">
+                  Define social dynamics and tensions between characters.
+                </span>
+              </div>
+              <button 
+                type="button"
+                onClick={addRelationship}
+                disabled={otherCharacters.length === 0}
+                className="flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 text-primary font-label text-[10px] uppercase tracking-widest hover:bg-primary/20 transition-all disabled:opacity-50"
+              >
+                <Plus className="w-3 h-3" />
+                Add Relation
+              </button>
+            </div>
+
+            {relationships.length === 0 ? (
+              <div className="py-8 text-center border-2 border-dashed border-outline-variant/10 rounded-2xl">
+                <p className="text-xs text-on-surface-variant italic">No relationships defined. Connect this character to others in the codex.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {relationships.map((rel, index) => (
+                  <div key={index} className="p-4 rounded-2xl bg-surface-container-highest/30 border border-outline-variant/20 space-y-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant ml-1">Target Character</label>
+                          <select 
+                            value={rel.targetId}
+                            onChange={(e) => updateRelationship(index, { targetId: e.target.value })}
+                            className="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl p-2 text-sm text-on-surface outline-none focus:ring-1 focus:ring-primary/30"
+                          >
+                            {otherCharacters.map(char => (
+                              <option key={char.id} value={char.id}>{char.title}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant ml-1">Relation Type</label>
+                          <input 
+                            type="text"
+                            value={rel.type}
+                            onChange={(e) => updateRelationship(index, { type: e.target.value })}
+                            placeholder="e.g. Rival, Mentor, Sibling"
+                            className="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl p-2 text-sm text-on-surface outline-none focus:ring-1 focus:ring-primary/30"
+                          />
+                        </div>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => removeRelationship(index)}
+                        className="p-2 text-on-surface-variant/40 hover:text-error transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant ml-1">Tension (1-5)</label>
+                        <div className="flex items-center gap-2">
+                          {[1, 2, 3, 4, 5].map(num => (
+                            <button
+                              key={num}
+                              type="button"
+                              onClick={() => updateRelationship(index, { tension: num as any })}
+                              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
+                                rel.tension === num 
+                                  ? 'bg-primary text-on-primary-fixed' 
+                                  : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high'
+                              }`}
+                            >
+                              {num}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="md:col-span-2 space-y-1">
+                        <label className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant ml-1">Context / History</label>
+                        <input 
+                          type="text"
+                          value={rel.context}
+                          onChange={(e) => updateRelationship(index, { context: e.target.value })}
+                          placeholder="Briefly describe the nature of their bond or conflict..."
+                          className="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl p-2 text-sm text-on-surface outline-none focus:ring-1 focus:ring-primary/30"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="flex justify-end gap-3 pt-4 shrink-0">
           <button 

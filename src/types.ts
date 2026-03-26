@@ -2,6 +2,13 @@ export type FocusArea = 'tone' | 'rhythm' | 'emotion' | 'plot' | 'sensory' | 'my
 
 export type Gender = 'male' | 'female' | 'non-binary' | 'unspecified';
 
+export interface Relationship {
+  targetId: string;
+  type: string;
+  tension: 1 | 2 | 3 | 4 | 5;
+  context: string;
+}
+
 export interface AuthorVoice {
   id: string;
   name: string;
@@ -37,6 +44,7 @@ export interface LoreEntry {
   aliases?: string[];
   gender?: Gender;
   sensoryPalette?: string;
+  relationships?: Relationship[];
   lastModified: string;
   isActive?: boolean;
 }
@@ -108,6 +116,12 @@ export interface LoreFraying {
   suggestion: string;
 }
 
+export interface VoiceAudit {
+  characterName: string;
+  resonanceScore: number; // 0-100
+  dissonanceReason?: string; // e.g., "Anya sounds too formal here."
+}
+
 export interface RefinedVersion {
   id: string;
   text: string;
@@ -124,6 +138,7 @@ export interface RefinedVersion {
   metrics?: ProseMetrics;
   loreCorrections?: LoreCorrection[];
   loreFraying?: LoreFraying[];
+  voiceAudits?: VoiceAudit[];
   audit?: RefinementAudit;
   restraintLog?: { category: string; target: string; justification: string; snippet?: string }[];
   expressionProfile?: { vibe: string; score: number; qualifier: 'By Design' | 'Opportunity'; note: string }[];

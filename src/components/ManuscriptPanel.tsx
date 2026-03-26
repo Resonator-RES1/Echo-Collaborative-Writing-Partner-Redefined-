@@ -128,7 +128,7 @@ export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
             </label>
             <button 
               onClick={handleExport}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-primary text-on-primary hover:bg-primary/90 transition-colors shadow-sm"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-primary text-on-primary-fixed hover:bg-primary/90 transition-colors shadow-sm"
             >
               <Download className="w-3.5 h-3.5 md:w-4 md:h-4" />
               <span className="font-label text-[10px] md:text-xs uppercase tracking-widest">Export</span>
@@ -139,19 +139,19 @@ export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
         <div className="flex gap-1 p-1 bg-surface-container-lowest rounded-xl border border-outline-variant/10 w-full sm:w-fit overflow-x-auto no-scrollbar">
           <button 
             onClick={() => setActiveTab('scenes')}
-            className={`flex-1 sm:flex-none px-6 py-2 rounded-lg font-label text-xs uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'scenes' ? 'bg-primary text-on-primary shadow-md' : 'hover:bg-surface-container-highest text-on-surface-variant'}`}
+            className={`flex-1 sm:flex-none px-6 py-2 rounded-lg font-label text-xs uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'scenes' ? 'bg-primary text-on-primary-fixed shadow-md' : 'hover:bg-surface-container-highest text-on-surface-variant'}`}
           >
             Scenes
           </button>
           <button 
             onClick={() => setActiveTab('accepted')}
-            className={`flex-1 sm:flex-none px-6 py-2 rounded-lg font-label text-xs uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'accepted' ? 'bg-primary text-on-primary shadow-md' : 'hover:bg-surface-container-highest text-on-surface-variant'}`}
+            className={`flex-1 sm:flex-none px-6 py-2 rounded-lg font-label text-xs uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'accepted' ? 'bg-primary text-on-primary-fixed shadow-md' : 'hover:bg-surface-container-highest text-on-surface-variant'}`}
           >
             Accepted Versions
           </button>
           <button 
             onClick={() => setActiveTab('goals')}
-            className={`flex-1 sm:flex-none px-6 py-2 rounded-lg font-label text-xs uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'goals' ? 'bg-primary text-on-primary shadow-md' : 'hover:bg-surface-container-highest text-on-surface-variant'}`}
+            className={`flex-1 sm:flex-none px-6 py-2 rounded-lg font-label text-xs uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'goals' ? 'bg-primary text-on-primary-fixed shadow-md' : 'hover:bg-surface-container-highest text-on-surface-variant'}`}
           >
             Goals
           </button>
@@ -229,7 +229,7 @@ export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
                         setDraft(version.text);
                         showToast('Version restored to editor');
                       }}
-                      className="flex-1 min-w-[120px] px-4 py-2 rounded-xl bg-primary text-on-primary hover:bg-primary/90 transition-all font-label text-[10px] uppercase tracking-widest shadow-sm"
+                      className="flex-1 min-w-[120px] px-4 py-2 rounded-xl bg-primary text-on-primary-fixed hover:bg-primary/90 transition-all font-label text-[10px] uppercase tracking-widest shadow-sm"
                     >
                       Restore to Editor
                     </button>

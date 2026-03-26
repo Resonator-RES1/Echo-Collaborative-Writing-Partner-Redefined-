@@ -93,7 +93,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = React.memo(({
                         </button>
                         <button 
                             onClick={onAccept}
-                            className="flex-1 sm:flex-none px-6 py-2.5 text-[10px] font-black uppercase tracking-widest bg-primary text-on-primary rounded-full shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all"
+                            className="flex-1 sm:flex-none px-6 py-2.5 text-[10px] font-black uppercase tracking-widest bg-primary text-on-primary-fixed rounded-full shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all"
                         >
                             Accept Changes
                         </button>

@@ -160,7 +160,7 @@ export function LoreScreen({ setCurrentScreen }: LoreScreenProps) {
                 key={filter} 
                 onClick={() => setActiveCategory(filter)}
                 className={`px-4 py-2 rounded-full border whitespace-nowrap font-label text-[10px] uppercase tracking-widest transition-all duration-300 ${
-                  activeCategory === filter ? 'bg-primary text-on-primary border-primary' : 'border-outline-variant/30 hover:bg-primary/10 text-on-surface-variant'
+                  activeCategory === filter ? 'bg-primary text-on-primary-fixed border-primary' : 'border-outline-variant/30 hover:bg-primary/10 text-on-surface-variant'
                 }`}
               >
                 {filter}
@@ -250,6 +250,7 @@ export function LoreScreen({ setCurrentScreen }: LoreScreenProps) {
                 onSave={handleSaveEntry}
                 initialData={editingEntry}
                 isModal={false}
+                loreEntries={loreEntries}
               />
             </div>
           ) : (

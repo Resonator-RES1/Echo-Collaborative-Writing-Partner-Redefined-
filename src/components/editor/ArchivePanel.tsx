@@ -64,7 +64,7 @@ export const ArchivePanel: React.FC<ArchivePanelProps> = ({
                                 const reportText = formatReportForCopy(version);
                                 navigator.clipboard.writeText(reportText);
                             }}
-                            className="flex items-center justify-center gap-2 px-4 py-3 sm:px-6 sm:py-3 bg-surface-container-highest/50 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-on-surface-variant hover:bg-primary hover:text-on-primary transition-all shadow-sm group border border-outline-variant/10 w-full sm:w-auto"
+                            className="flex items-center justify-center gap-2 px-4 py-3 sm:px-6 sm:py-3 bg-surface-container-highest/50 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-on-surface-variant hover:bg-primary hover:text-on-primary-fixed transition-all shadow-sm group border border-outline-variant/10 w-full sm:w-auto"
                         >
                             <Copy className="w-3 h-3 sm:w-4 sm:h-4 group-hover:scale-110 transition-transform" />
                             <span>Copy</span>
@@ -190,7 +190,7 @@ export const ArchivePanel: React.FC<ArchivePanelProps> = ({
                         
                         <div className="flex justify-between items-start mb-3 sm:mb-4">
                             <div className="flex items-center gap-2 sm:gap-3">
-                                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition-colors ${currentVersionIndex === index ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary'}`}>
+                                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition-colors ${currentVersionIndex === index ? 'bg-primary text-on-primary-fixed' : 'bg-surface-container-highest text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary'}`}>
                                     <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
                                 </div>
                                 <div>

@@ -8,6 +8,7 @@ import { ReportAnalysis } from '../report/ReportAnalysis';
 import { ReportMetrics } from '../report/ReportMetrics';
 import { ReportLoreCorrections } from '../report/ReportLoreCorrections';
 import { ReportLoreFraying } from '../report/ReportLoreFraying';
+import { ReportVoiceResonance } from '../report/ReportVoiceResonance';
 import { formatReportForCopy } from '../../utils/reportFormatter';
 
 interface ReportPanelProps {
@@ -101,6 +102,8 @@ export const ReportPanel: React.FC<ReportPanelProps> = ({
                     </div>
                 </div>
             </div>
+
+            <ReportVoiceResonance voiceAudits={version.voiceAudits} />
 
             {/* Detailed Report Sections */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">

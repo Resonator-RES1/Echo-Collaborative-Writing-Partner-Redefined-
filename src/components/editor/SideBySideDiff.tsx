@@ -189,7 +189,7 @@ export const SideBySideDiff: React.FC<{
                 </button>
                 <button 
                     onClick={() => setViewMode('polished')}
-                    className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === 'polished' ? 'bg-primary text-on-primary shadow-lg' : 'text-on-surface-variant/60'}`}
+                    className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === 'polished' ? 'bg-primary text-on-primary-fixed shadow-lg' : 'text-on-surface-variant/60'}`}
                 >
                     Polished
                 </button>
@@ -231,7 +231,7 @@ export const SideBySideDiff: React.FC<{
                                 {onAcceptChanges && (
                                     <button 
                                         onClick={onAcceptChanges}
-                                        className="px-6 py-2.5 rounded-full bg-primary text-on-primary font-label text-xs uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 w-full sm:w-auto text-center"
+                                        className="px-6 py-2.5 rounded-full bg-primary text-on-primary-fixed font-label text-xs uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 w-full sm:w-auto text-center"
                                     >
                                         Accept These Changes
                                     </button>

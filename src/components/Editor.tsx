@@ -475,7 +475,7 @@ const Editor: React.FC<EditorProps> = ({
                                   setActiveTab(tab.id as WorkspaceTab);
                                   if (tab.id !== 'draft') setIsFocusMode(false);
                               }}
-                              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === tab.id ? 'bg-primary text-on-primary shadow-lg shadow-primary/20' : 'text-on-surface-variant hover:text-primary hover:bg-primary/5'}`}
+                              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === tab.id ? 'bg-primary text-on-primary-fixed shadow-lg shadow-primary/20' : 'text-on-surface-variant hover:text-primary hover:bg-primary/5'}`}
                           >
                               <tab.icon className="w-3.5 h-3.5" />
                               {tab.label}
@@ -505,7 +505,7 @@ const Editor: React.FC<EditorProps> = ({
                           onClick={() => setShowContinuityGuard(!showContinuityGuard)}
                           className={`pointer-events-auto flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
                               showContinuityGuard 
-                                ? 'bg-primary text-on-primary' 
+                                ? 'bg-primary text-on-primary-fixed' 
                                 : continuityIssues > 0 
                                     ? 'bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 ring-1 ring-amber-500/50' 
                                     : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'
@@ -530,7 +530,7 @@ const Editor: React.FC<EditorProps> = ({
                               setEditorMode('drafting');
                               setShowDiff(false);
                           }}
-                          className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${editorMode === 'drafting' ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
+                          className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${editorMode === 'drafting' ? 'bg-primary text-on-primary-fixed' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
                           title="Drafting Mode"
                       >
                           <PenTool className="w-4 h-4" />
@@ -541,7 +541,7 @@ const Editor: React.FC<EditorProps> = ({
                               setEditorMode('polishing');
                               setShowRecentChanges(false);
                           }}
-                          className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${editorMode === 'polishing' ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
+                          className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${editorMode === 'polishing' ? 'bg-primary text-on-primary-fixed' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
                           title="Polishing Mode"
                       >
                           <Sparkles className="w-4 h-4" />
@@ -558,7 +558,7 @@ const Editor: React.FC<EditorProps> = ({
                       {editorMode === 'polishing' && (
                           <button 
                               onClick={() => setShowDiff(!showDiff)}
-                              className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${showDiff ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
+                              className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${showDiff ? 'bg-primary text-on-primary-fixed' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
                               title="Toggle Diff Viewer"
                           >
                               <GitCompare className="w-4 h-4" />
@@ -568,7 +568,7 @@ const Editor: React.FC<EditorProps> = ({
                       {editorMode === 'drafting' && (
                           <button 
                               onClick={() => setShowRecentChanges(!showRecentChanges)}
-                              className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${showRecentChanges ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
+                              className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${showRecentChanges ? 'bg-primary text-on-primary-fixed' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
                               title="Toggle Recent Changes"
                           >
                               <History className="w-4 h-4" />

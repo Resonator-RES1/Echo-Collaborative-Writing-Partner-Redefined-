@@ -1,6 +1,6 @@
 import { Type } from "@google/genai";
 import { FOCUS_AREA_PROMPTS } from '../../constants';
-import { FocusArea, LoreEntry, VoiceProfile, RefinedVersion, AuthorVoice, FeedbackDepth } from '../../types';
+import { FocusArea, LoreEntry, VoiceProfile, RefinedVersion, AuthorVoice, FeedbackDepth, VoiceAudit } from '../../types';
 import { callAiApi, GenerationConfig } from './api';
 import { getSystemPrompt } from './prompts';
 
@@ -38,6 +38,7 @@ export interface RefineDraftResult {
   expressionProfile: { vibe: string; score: number; qualifier: 'By Design' | 'Opportunity'; note: string }[];
   loreCorrections: { original: string; refined: string; reason: string; snippet: string }[];
   loreFraying: { snippet: string; conflict: string; suggestion: string }[];
+  voiceAudits?: VoiceAudit[];
   audit: {
     voiceFidelityScore: number;
     voiceFidelityReasoning: string;
@@ -95,7 +96,23 @@ export const refineDraft = async (options: RefineDraftOptions): Promise<RefineDr
         
         if (worldContext.length > 0) {
             preamble += '--- WORLD CONTEXT (NARRATIVE GUIDES) ---\n';
-            preamble += worldContext.map(l => `- [${l.category}] ${l.title}: ${l.content} ${l.sensoryPalette ? `(Sensory: ${l.sensoryPalette})` : ''}`).join('\n') + '\n';
+            preamble += worldContext.map(l => {
+                let entryText = `- [${l.category}] ${l.title}: ${l.content} ${l.sensoryPalette ? `(Sensory: ${l.sensoryPalette})` : ''}`;
+                
+                // Resolve relationships for characters
+                if (l.category === 'Characters' && l.relationships && l.relationships.length > 0) {
+                    const rels = l.relationships.map(r => {
+                        const target = loreEntries.find(le => le.id === r.targetId);
+                        return target ? `  * Relationship with ${target.title}: ${r.type} (Tension: ${r.tension}/5) - ${r.context}` : null;
+                    }).filter(Boolean);
+                    
+                    if (rels.length > 0) {
+                        entryText += '\n' + rels.join('\n');
+                    }
+                }
+                
+                return entryText;
+            }).join('\n') + '\n';
         }
         preamble += '\n';
     }
@@ -206,11 +223,19 @@ Return the following structure:
   ],
   "lore_fraying": [
     { "snippet": "The EXACT verbatim snippet from refined_text that contains a soft lore conflict.", "conflict": "Description of the soft constraint violation (Culture, Character Memory, Social Norms).", "suggestion": "How the author might resolve this if they choose." }
+  ],
+  "voice_audits": [
+    { "characterName": "string", "resonanceScore": 0-100, "dissonanceReason": "string" }
   ]
 }
 *** LORE CONSTRAINTS DEFINITIONS ***
 - lore_corrections (Red): Hard Constraints (Physics, Magic Laws, Geography). You MUST fix these in the refined_text.
 - lore_fraying (Amber): Soft Constraints (Culture, Character Memory, Social Norms). You should NOT change the refined_text but MUST flag the "Fraying" for the author to review.
+
+*** VOICE RESONANCE RADAR ***
+For every character identified in the scene whose Voice Profile is active, you MUST calculate a Resonance Score (0-100).
+- High Score (80-100): Dialogue perfectly matches their established idiom and syntax.
+- Low Score (<60): Flag 'Voice Dissonance'—identify specific lines where the character sounds 'out of character' and provide the reason in the dissonanceReason field.
 `;
     
     preamble += outputInstruction;
@@ -367,13 +392,25 @@ Return the following structure:
                         },
                         required: ["snippet", "conflict", "suggestion"]
                     }
+                },
+                voice_audits: {
+                    type: Type.ARRAY,
+                    items: {
+                        type: Type.OBJECT,
+                        properties: {
+                            characterName: { type: Type.STRING },
+                            resonanceScore: { type: Type.NUMBER },
+                            dissonanceReason: { type: Type.STRING }
+                        },
+                        required: ["characterName", "resonanceScore"]
+                    }
                 }
             },
             required: [
                 "refined_text", "editor_summary", "expression_profile", "analysis", "audit", 
                 "conflicts", "lore_corrections", "lore_fraying", "justification", "evidence_based_claims",
                 "why_behind_change", "lore_lineage", "mirror_editor_critique", "restraint_log",
-                "expression_profile_vibe"
+                "expression_profile_vibe", "voice_audits"
             ]
         }
     });
@@ -403,6 +440,7 @@ Return the following structure:
         expressionProfile: parsed.expression_profile_vibe || [],
         loreCorrections: parsed.lore_corrections || [],
         loreFraying: parsed.lore_fraying || [],
+        voiceAudits: parsed.voice_audits || [],
         audit: parsed.audit,
         restraintLog: parsed.restraint_log || [],
         activeContext: {
