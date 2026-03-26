@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, ArrowRight, BookOpen, Wand2, Mic2, BarChart3, ChevronRight, X, Download, Upload, ChevronDown, Info, Copy, Fingerprint, Cpu, Layout, Play, Zap } from 'lucide-react';
-import { Screen, GuideCategory, GuideItem, FocusArea } from '../types';
+import { Screen, Scene, WritingGoal, GuideCategory, GuideItem, FocusArea } from '../types';
 import { GUIDE_SECTIONS } from '../constants';
 import { useProject } from '../contexts/ProjectContext';
 import { copyFullGuideToClipboard } from '../utils/guideUtils';
@@ -12,6 +12,10 @@ import { GuideDeepDive } from './GuideDeepDive';
 
 interface WelcomeScreenProps {
   onStart: () => void;
+  wordCount: number;
+  goal: WritingGoal;
+  scenes: Scene[];
+  onJumpToScene: (id: string) => void;
 }
 
 const CollapsibleCategory = ({ category }: { category: GuideCategory }) => {
@@ -313,7 +317,7 @@ const Playground = () => {
   );
 };
 
-export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
+export function WelcomeScreen({ onStart, wordCount, goal, scenes, onJumpToScene }: WelcomeScreenProps) {
   const [showGuide, setShowGuide] = useState(false);
   const [activeTab, setActiveTab] = useState<'handbook' | 'codex' | 'playground'>('handbook');
   const [activeSection, setActiveSection] = useState(GUIDE_SECTIONS[0].id);
@@ -326,6 +330,10 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
   const activeGuideData = GUIDE_SECTIONS.find(s => s.id === activeSection) || GUIDE_SECTIONS[0];
 
   const progress = (visitedSections.size / GUIDE_SECTIONS.length) * 100;
+  const writingProgress = Math.min(100, Math.round((wordCount / goal.targetWords) * 100));
+
+  // Find the most recently modified scene
+  const latestScene = [...scenes].sort((a, b) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime())[0];
 
   const handleSectionSelect = (id: string) => {
     setActiveSection(id);
@@ -387,6 +395,59 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
                 "Reveal the author—clearly, faithfully, and without distortion."
               </p>
             </div>
+
+            {/* Continue Writing Section */}
+            {latestScene && (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="max-w-md mx-auto p-6 rounded-3xl bg-surface-container-low border border-outline-variant/10 shadow-xl"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-left">
+                    <p className="text-[10px] font-black text-on-surface-variant/60 uppercase tracking-widest mb-1">Current Progress</p>
+                    <h3 className="font-headline text-xl font-bold text-on-surface">{wordCount.toLocaleString()} <span className="text-sm font-normal text-on-surface-variant">/ {goal.targetWords.toLocaleString()} words</span></h3>
+                  </div>
+                  <div className="w-12 h-12 rounded-full border-2 border-primary/20 flex items-center justify-center relative">
+                    <svg className="w-full h-full -rotate-90">
+                      <circle
+                        cx="24"
+                        cy="24"
+                        r="20"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        className="text-primary/10"
+                      />
+                      <circle
+                        cx="24"
+                        cy="24"
+                        r="20"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        strokeDasharray={125.6}
+                        strokeDashoffset={125.6 * (1 - writingProgress / 100)}
+                        className="text-primary"
+                      />
+                    </svg>
+                    <span className="absolute text-[10px] font-black text-primary">{writingProgress}%</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => onJumpToScene(latestScene.id)}
+                  className="w-full group flex items-center justify-between p-4 rounded-2xl bg-primary text-on-primary hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary/20"
+                >
+                  <div className="flex flex-col items-start">
+                    <span className="text-[9px] font-black uppercase tracking-widest opacity-70">Continue Writing</span>
+                    <span className="font-headline text-sm font-bold">Jump Back into "{latestScene.title}"</span>
+                  </div>
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </button>
+              </motion.div>
+            )}
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 md:pt-8">
               <button

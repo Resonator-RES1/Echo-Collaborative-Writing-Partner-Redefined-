@@ -14,8 +14,11 @@ import {
     Settings, 
     PenTool, 
     Library,
-    Home
+    Home,
+    Mic2,
+    Layout
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import Editor from './components/Editor.tsx';
 import { Toast } from './components/Toast';
 import { TopAppBar } from './components/TopAppBar';
@@ -25,7 +28,7 @@ import { WelcomeScreen } from './components/WelcomeScreen';
 import { ManuscriptPanel } from './components/ManuscriptPanel';
 import { SettingsScreen } from './components/SettingsScreen';
 import { GlobalSearchModal } from './components/GlobalSearchModal';
-import { Screen, RefinedVersion, Scene, Chapter } from './types';
+import { Screen, RefinedVersion, Scene, Chapter, WritingGoal } from './types';
 import * as db from './services/dbService';
 import { useLore } from './contexts/LoreContext';
 
@@ -42,6 +45,10 @@ export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('welcome');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [writingGoal, setWritingGoal] = useState<WritingGoal>(() => {
+    const saved = localStorage.getItem('echo-writing-goal');
+    return saved ? JSON.parse(saved) : { targetWords: 50000 };
+  });
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -49,6 +56,41 @@ export default function App() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  const BottomNavBar = () => {
+    const navItems = [
+      { id: 'welcome', label: 'Home', icon: Home },
+      { id: 'lore', label: 'Lore', icon: BookOpen },
+      { id: 'workspace', label: 'Workspace', icon: Layout },
+      { id: 'voices', label: 'Voices', icon: Mic2 },
+      { id: 'manuscript', label: 'Manuscript', icon: FileText },
+    ];
+
+    return (
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-surface-container-low/95 backdrop-blur-xl border-t border-outline-variant/10 px-2 py-2 pb-safe flex items-center justify-around shadow-2xl md:hidden">
+        {navItems.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => setCurrentScreen(item.id as Screen)}
+            className={`flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all ${
+              currentScreen === item.id 
+                ? 'text-primary' 
+                : 'text-on-surface-variant/60 hover:text-on-surface'
+            }`}
+          >
+            <item.icon className={`w-5 h-5 ${currentScreen === item.id ? 'scale-110' : ''} transition-transform`} />
+            <span className="text-[9px] font-black uppercase tracking-tighter">{item.label}</span>
+            {currentScreen === item.id && (
+              <motion.div 
+                layoutId="bottom-nav-indicator"
+                className="absolute -bottom-1 w-1 h-1 rounded-full bg-primary"
+              />
+            )}
+          </button>
+        ))}
+      </nav>
+    );
+  };
   
   const { 
     loreEntries, 
@@ -304,7 +346,18 @@ export default function App() {
   const renderScreen = () => {
     switch (currentScreen) {
       case 'welcome':
-        return <WelcomeScreen onStart={() => setCurrentScreen('workspace')} />;
+        return (
+          <WelcomeScreen 
+            onStart={() => setCurrentScreen('workspace')} 
+            wordCount={totalWordCount}
+            goal={writingGoal}
+            scenes={scenes}
+            onJumpToScene={(id) => {
+              setCurrentSceneId(id);
+              setCurrentScreen('workspace');
+            }}
+          />
+        );
       case 'lore':
         return (
           <LoreScreen 
@@ -374,6 +427,11 @@ export default function App() {
           showToast={showToast} 
           wordCount={totalWordCount}
           isMobile={isMobile}
+          goal={writingGoal}
+          onSaveGoal={(newGoal) => {
+            setWritingGoal(newGoal);
+            localStorage.setItem('echo-writing-goal', JSON.stringify(newGoal));
+          }}
         />
       )}
       
@@ -385,26 +443,32 @@ export default function App() {
         showToast={showToast}
       />
       
-      <main className={`${currentScreen === 'welcome' ? 'flex-1 min-h-0 flex flex-col overflow-hidden' : `px-2 sm:px-4 md:px-6 pb-2 sm:pb-4 max-w-7xl mx-auto w-full flex-1 min-h-0 flex flex-col overflow-hidden ${isFocusMode && !isMobile ? 'pt-12' : ''}`}`}>
+      <main className={`${currentScreen === 'welcome' ? 'flex-1 min-h-0 flex flex-col overflow-hidden' : `px-2 sm:px-4 md:px-6 pb-2 sm:pb-4 max-w-7xl mx-auto w-full flex-1 min-h-0 flex flex-col overflow-hidden ${isFocusMode && !isMobile ? 'pt-12' : ''} ${isMobile ? 'pb-20' : ''}`}`}>
         {renderScreen()}
       </main>
 
-      {isMobile && currentScreen !== 'welcome' && (
-          <nav className="fixed bottom-0 left-0 right-0 z-50 bg-surface-container-low/95 backdrop-blur-xl border-t border-outline-variant/10 px-2 py-2 pb-safe flex items-center justify-around shadow-2xl">
+      {isMobile && (
+          <nav className="fixed bottom-0 left-0 right-0 z-50 bg-surface-container-low/95 backdrop-blur-xl border-t border-outline-variant/10 px-2 py-2 pb-safe flex items-center justify-around shadow-2xl md:hidden">
               {[
                   { id: 'welcome', label: 'Home', icon: Home },
-                  { id: 'lore', label: 'Lore', icon: Book },
-                  { id: 'workspace', label: 'Workspace', icon: PenTool },
-                  { id: 'voices', label: 'Voices', icon: BookOpen },
-                  { id: 'manuscript', label: 'Manuscript', icon: Library }
+                  { id: 'lore', label: 'Lore', icon: BookOpen },
+                  { id: 'workspace', label: 'Workspace', icon: Layout },
+                  { id: 'voices', label: 'Voices', icon: Mic2 },
+                  { id: 'manuscript', label: 'Manuscript', icon: FileText }
               ].map(item => (
                   <button
                       key={item.id}
                       onClick={() => setCurrentScreen(item.id as Screen)}
-                      className={`flex flex-col items-center gap-1 p-2 transition-all ${currentScreen === item.id ? 'text-primary' : 'text-on-surface-variant/60'}`}
+                      className={`flex flex-col items-center gap-1 p-2 transition-all relative ${currentScreen === item.id ? 'text-primary' : 'text-on-surface-variant/60'}`}
                   >
-                      <item.icon className={`w-5 h-5 ${currentScreen === item.id ? 'drop-shadow-[0_0_8px_rgba(208,192,255,0.5)]' : ''}`} />
-                      <span className="text-[8px] font-bold uppercase tracking-widest">{item.label}</span>
+                      <item.icon className={`w-5 h-5 transition-transform ${currentScreen === item.id ? 'scale-110 drop-shadow-[0_0_8px_rgba(208,192,255,0.5)]' : ''}`} />
+                      <span className="text-[8px] font-black uppercase tracking-widest">{item.label}</span>
+                      {currentScreen === item.id && (
+                        <motion.div 
+                          layoutId="bottom-nav-indicator"
+                          className="absolute -bottom-1 w-1 h-1 rounded-full bg-primary"
+                        />
+                      )}
                   </button>
               ))}
           </nav>
