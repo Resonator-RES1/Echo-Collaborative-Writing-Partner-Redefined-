@@ -50,7 +50,12 @@ export const createScanner = (entries: LoreEntry[], voices: VoiceProfile[]): Sca
         }))
     ];
     
-    miniSearch.addAll(documents);
+    const addDocuments = () => miniSearch.addAll(documents);
+    if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(addDocuments);
+    } else {
+        setTimeout(addDocuments, 0);
+    }
     
     let voyInstance: any = null;
     const entriesWithEmbeddings = entries.filter(e => e.embedding && e.embedding.length > 0);

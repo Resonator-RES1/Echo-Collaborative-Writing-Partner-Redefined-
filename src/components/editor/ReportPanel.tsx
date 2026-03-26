@@ -19,7 +19,7 @@ interface ReportPanelProps {
     onRevertSpecificLore?: (correction: LoreCorrection) => void;
 }
 
-export const ReportPanel: React.FC<ReportPanelProps> = ({
+const ReportPanelComponent: React.FC<ReportPanelProps> = ({
     version,
     original,
     onAccept,
@@ -140,3 +140,5 @@ export const ReportPanel: React.FC<ReportPanelProps> = ({
         </div>
     );
 };
+
+export const ReportPanel = React.memo(ReportPanelComponent);

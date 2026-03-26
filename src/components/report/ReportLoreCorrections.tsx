@@ -7,6 +7,50 @@ interface ReportLoreCorrectionsProps {
     onRevertSpecificLore?: (correction: LoreCorrection) => void;
 }
 
+const LoreCorrectionItem = ({ correction, onRevertSpecificLore }: { correction: LoreCorrection, onRevertSpecificLore?: (correction: LoreCorrection) => void }) => {
+    const [isReasonExpanded, setIsReasonExpanded] = useState(false);
+    return (
+        <div className="p-4 bg-surface-container-highest/30 rounded-2xl border border-outline-variant/10 group">
+            <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs font-bold text-on-surface-variant/50 line-through">{correction.original}</span>
+                        <ChevronRight className="w-3 h-3 text-on-surface-variant/30" />
+                        <span className="text-sm font-bold text-on-surface">{correction.refined}</span>
+                    </div>
+                    <div 
+                        className={`flex gap-2 bg-surface-container-highest/30 p-2 rounded-lg border border-outline-variant/5 mt-2 cursor-pointer transition-all ${isReasonExpanded ? 'ring-1 ring-accent-rose/30 shadow-sm' : ''}`}
+                        onClick={() => setIsReasonExpanded(!isReasonExpanded)}
+                    >
+                        <Info className={`w-3.5 h-3.5 shrink-0 mt-0.5 transition-colors ${isReasonExpanded ? 'text-accent-rose' : 'text-accent-rose/40'}`} />
+                        <div className="flex-1">
+                            <p className={`text-[11px] text-on-surface-variant/80 leading-relaxed italic ${!isReasonExpanded ? 'line-clamp-2' : ''}`}>
+                                {correction.reason}
+                            </p>
+                            {correction.reason.length > 80 && (
+                                <span className="text-[9px] font-black uppercase tracking-widest text-accent-rose mt-1 block opacity-60">
+                                    {isReasonExpanded ? 'Show Less' : 'Read More'}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+                {onRevertSpecificLore && (
+                    <button 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onRevertSpecificLore(correction);
+                        }}
+                        className="px-4 py-2 bg-accent-rose/10 text-accent-rose text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-accent-rose hover:text-white transition-all shadow-sm active:scale-95"
+                    >
+                        Revert
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+};
+
 export const ReportLoreCorrections: React.FC<ReportLoreCorrectionsProps> = ({ loreCorrections, onRevertSpecificLore }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -37,49 +81,13 @@ export const ReportLoreCorrections: React.FC<ReportLoreCorrectionsProps> = ({ lo
             {isExpanded && (
                 <div className="p-6 pt-0 border-t border-outline-variant/5">
                     <div className="space-y-4 mt-6">
-                        {loreCorrections.map((correction, idx) => {
-                            const [isReasonExpanded, setIsReasonExpanded] = useState(false);
-                            return (
-                                <div key={idx} className="p-4 bg-surface-container-highest/30 rounded-2xl border border-outline-variant/10 group">
-                                    <div className="flex items-start justify-between gap-4">
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <span className="text-xs font-bold text-on-surface-variant/50 line-through">{correction.original}</span>
-                                                <ChevronRight className="w-3 h-3 text-on-surface-variant/30" />
-                                                <span className="text-sm font-bold text-on-surface">{correction.refined}</span>
-                                            </div>
-                                            <div 
-                                                className={`flex gap-2 bg-surface-container-highest/30 p-2 rounded-lg border border-outline-variant/5 mt-2 cursor-pointer transition-all ${isReasonExpanded ? 'ring-1 ring-accent-rose/30 shadow-sm' : ''}`}
-                                                onClick={() => setIsReasonExpanded(!isReasonExpanded)}
-                                            >
-                                                <Info className={`w-3.5 h-3.5 shrink-0 mt-0.5 transition-colors ${isReasonExpanded ? 'text-accent-rose' : 'text-accent-rose/40'}`} />
-                                                <div className="flex-1">
-                                                    <p className={`text-[11px] text-on-surface-variant/80 leading-relaxed italic ${!isReasonExpanded ? 'line-clamp-2' : ''}`}>
-                                                        {correction.reason}
-                                                    </p>
-                                                    {correction.reason.length > 80 && (
-                                                        <span className="text-[9px] font-black uppercase tracking-widest text-accent-rose mt-1 block opacity-60">
-                                                            {isReasonExpanded ? 'Show Less' : 'Read More'}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {onRevertSpecificLore && (
-                                            <button 
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    onRevertSpecificLore(correction);
-                                                }}
-                                                className="px-4 py-2 bg-accent-rose/10 text-accent-rose text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-accent-rose hover:text-white transition-all shadow-sm active:scale-95"
-                                            >
-                                                Revert
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })}
+                        {loreCorrections.map((correction, idx) => (
+                            <LoreCorrectionItem 
+                                key={idx} 
+                                correction={correction} 
+                                onRevertSpecificLore={onRevertSpecificLore} 
+                            />
+                        ))}
                     </div>
                 </div>
             )}

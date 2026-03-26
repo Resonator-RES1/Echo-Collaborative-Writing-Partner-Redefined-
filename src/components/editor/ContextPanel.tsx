@@ -19,7 +19,7 @@ interface ContextPanelProps {
     onActivateSuggestion: (suggestion: { type: 'lore' | 'voice', id: string }) => void;
 }
 
-export const ContextPanel: React.FC<ContextPanelProps> = ({
+export const ContextPanel = React.memo(({
     loreEntries,
     voiceProfiles,
     authorVoices,
@@ -31,7 +31,7 @@ export const ContextPanel: React.FC<ContextPanelProps> = ({
     onDeleteAuthorVoice,
     suggestions,
     onActivateSuggestion
-}) => {
+}: ContextPanelProps) => {
     const activeLoreCount = loreEntries.filter(e => e.isActive).length;
     const activeVoiceCount = voiceProfiles.filter(p => p.isActive).length;
     const activeAuthorCount = authorVoices.filter(a => a.isActive).length;
@@ -103,4 +103,4 @@ export const ContextPanel: React.FC<ContextPanelProps> = ({
             </div>
         </div>
     );
-};
+});
