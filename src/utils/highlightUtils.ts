@@ -3,25 +3,22 @@ import { RefineDraftResult } from '../services/gemini/refine';
 export interface HighlightRange {
   start: number;
   end: number;
-  type: 'restraint' | 'lore';
+  type: 'restraint' | 'lore' | 'fraying';
   metadata: any;
 }
 
 /**
- * Finds the indices of snippets mentioned in the restraintLog and loreCorrections
+ * Finds the indices of snippets mentioned in the restraintLog, loreCorrections, and loreQueries
  * within the refined text.
  */
 export const getHighlightRanges = (refinedText: string, result: RefineDraftResult): HighlightRange[] => {
   const ranges: HighlightRange[] = [];
 
-  // 1. Lore Corrections (Red)
+  // 1. Lore Corrections (Red) - Highest Priority
   result.loreCorrections.forEach(correction => {
     if (correction.snippet && correction.snippet.length > 0) {
       let index = refinedText.indexOf(correction.snippet);
-      // We use a while loop in case the same snippet appears multiple times, 
-      // though usually these are specific enough.
       while (index !== -1) {
-        // Check if this range already exists to avoid duplicates
         const exists = ranges.some(r => r.start === index && r.end === index + correction.snippet.length && r.type === 'lore');
         if (!exists) {
           ranges.push({
@@ -36,13 +33,49 @@ export const getHighlightRanges = (refinedText: string, result: RefineDraftResul
     }
   });
 
-  // 2. Restraint Log (Blue)
+  // 2. Lore Queries / Fraying (Amber) - Medium Priority
+  if (result.loreQueries) {
+    result.loreQueries.forEach(query => {
+      if (query.snippet && query.snippet.length > 0) {
+        let index = refinedText.indexOf(query.snippet);
+        while (index !== -1) {
+          // Check if this range already exists as a LORE correction. 
+          const overlapsWithLore = ranges.some(r => 
+            r.type === 'lore' && 
+            Math.max(r.start, index) < Math.min(r.end, index + query.snippet.length)
+          );
+          
+          const exists = ranges.some(r => r.start === index && r.end === index + query.snippet.length && r.type === 'fraying');
+          
+          if (!exists && !overlapsWithLore) {
+            ranges.push({
+              start: index,
+              end: index + query.snippet.length,
+              type: 'fraying',
+              metadata: query
+            });
+          }
+          index = refinedText.indexOf(query.snippet, index + 1);
+        }
+      }
+    });
+  }
+
+  // 3. Restraint Log (Blue) - Lowest Priority
   result.restraintLog.forEach(log => {
     if (log.snippet && log.snippet.length > 0) {
       let index = refinedText.indexOf(log.snippet);
       while (index !== -1) {
+        // Check if this range already exists as a LORE correction or FRAYING query. 
+        // Lore corrections and Fraying take priority.
+        const overlapsWithHigherPriority = ranges.some(r => 
+          (r.type === 'lore' || r.type === 'fraying') && 
+          Math.max(r.start, index) < Math.min(r.end, index + log.snippet.length)
+        );
+        
         const exists = ranges.some(r => r.start === index && r.end === index + log.snippet.length);
-        if (!exists) {
+        
+        if (!exists && !overlapsWithHigherPriority) {
           ranges.push({
             start: index,
             end: index + log.snippet.length,

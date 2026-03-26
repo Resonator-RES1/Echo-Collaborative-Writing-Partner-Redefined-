@@ -32,30 +32,51 @@ export const SideBySideDiff: React.FC<{
             const end = polishedIndex + part.value.length;
             
             // Find lore highlights in this added part
-            const partRanges = highlightRanges.filter(r => r.type === 'lore' && r.start >= start && r.end <= end);
+            const partRanges = highlightRanges.filter(r => 
+                (r.type === 'lore' || r.type === 'restraint' || r.type === 'fraying') && 
+                Math.max(r.start, start) < Math.min(r.end, end)
+            );
             
             if (partRanges.length > 0) {
                 let currentPos = start;
                 const segments: React.ReactNode[] = [];
                 
                 partRanges.forEach((range, rIdx) => {
-                    if (range.start > currentPos) {
+                    const rangeStart = Math.max(range.start, start);
+                    const rangeEnd = Math.min(range.end, end);
+
+                    if (rangeStart > currentPos) {
                         segments.push(
                             <span key={`${key}-s-${rIdx}`} className="bg-emerald-500/20 text-emerald-300 rounded px-1">
-                                {polished.substring(currentPos, range.start)}
+                                {polished.substring(currentPos, rangeStart)}
                             </span>
                         );
                     }
+
+                    let className = "";
+                    let tooltip = "";
+
+                    if (range.type === 'lore') {
+                        className = "bg-red-500/30 text-red-200 rounded px-1 border-b border-red-400 cursor-help transition-colors hover:bg-red-500/40";
+                        tooltip = `Lore Correction: ${range.metadata.reason}`;
+                    } else if (range.type === 'fraying') {
+                        className = "bg-amber-500/30 text-amber-200 rounded px-1 border-b border-amber-400 cursor-help transition-colors hover:bg-amber-500/40";
+                        tooltip = `Lore Fraying: ${range.metadata.conflict}\nSuggestion: ${range.metadata.suggestion}`;
+                    } else {
+                        className = "bg-blue-500/20 text-blue-200 rounded px-1 border-b border-blue-400 cursor-help transition-colors hover:bg-blue-500/30";
+                        tooltip = `Restrained: ${range.metadata.justification}`;
+                    }
+
                     segments.push(
                         <span 
                             key={`${key}-l-${rIdx}`} 
-                            className="bg-red-500/30 text-red-200 rounded px-1 border-b border-red-400 cursor-help transition-colors hover:bg-red-500/40"
-                            title={`Lore Correction: ${range.metadata.reason}`}
+                            className={className}
+                            title={tooltip}
                         >
-                            {polished.substring(range.start, range.end)}
+                            {polished.substring(rangeStart, rangeEnd)}
                         </span>
                     );
-                    currentPos = range.end;
+                    currentPos = rangeEnd;
                 });
                 
                 if (currentPos < end) {
@@ -77,26 +98,47 @@ export const SideBySideDiff: React.FC<{
             const end = polishedIndex + part.value.length;
             
             // Find restraint highlights in this unchanged part
-            const partRanges = highlightRanges.filter(r => r.type === 'restraint' && r.start >= start && r.end <= end);
+            const partRanges = highlightRanges.filter(r => 
+                (r.type === 'lore' || r.type === 'restraint' || r.type === 'fraying') && 
+                Math.max(r.start, start) < Math.min(r.end, end)
+            );
             
             if (partRanges.length > 0) {
                 let currentPos = start;
                 const segments: React.ReactNode[] = [];
                 
                 partRanges.forEach((range, rIdx) => {
-                    if (range.start > currentPos) {
-                        segments.push(<span key={`${key}-n-${rIdx}`}>{polished.substring(currentPos, range.start)}</span>);
+                    const rangeStart = Math.max(range.start, start);
+                    const rangeEnd = Math.min(range.end, end);
+
+                    if (rangeStart > currentPos) {
+                        segments.push(<span key={`${key}-n-${rIdx}`}>{polished.substring(currentPos, rangeStart)}</span>);
                     }
+
+                    let className = "";
+                    let tooltip = "";
+
+                    if (range.type === 'lore') {
+                        className = "bg-red-500/30 text-red-200 rounded px-1 border-b border-red-400 cursor-help transition-colors hover:bg-red-500/40";
+                        tooltip = `Lore Correction: ${range.metadata.reason}`;
+                    } else if (range.type === 'fraying') {
+                        className = "bg-amber-500/30 text-amber-200 rounded px-1 border-b border-amber-400 cursor-help transition-colors hover:bg-amber-500/40";
+                        tooltip = `Lore Fraying: ${range.metadata.conflict}\nSuggestion: ${range.metadata.suggestion}`;
+                    } else {
+                        className = "bg-blue-500/20 text-blue-200 rounded px-1 border-b border-blue-400 cursor-help transition-colors hover:bg-blue-500/30";
+                        tooltip = `Preserved: ${range.metadata.justification}`;
+                    }
+
                     segments.push(
                         <span 
                             key={`${key}-r-${rIdx}`} 
-                            className="bg-blue-500/20 text-blue-200 rounded px-1 border-b border-blue-400 cursor-help transition-colors hover:bg-blue-500/30"
-                            title={`Preserved: ${range.metadata.justification}`}
+                            className={className}
+                            title={tooltip}
                         >
-                            {polished.substring(range.start, range.end)}
+                            {polished.substring(rangeStart, rangeEnd)}
                         </span>
                     );
-                    currentPos = range.end;
+                    currentPos = rangeEnd;
                 });
                 
                 if (currentPos < end) {

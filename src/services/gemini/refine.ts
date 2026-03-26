@@ -37,6 +37,7 @@ export interface RefineDraftResult {
   };
   expressionProfile: { vibe: string; score: number; qualifier: 'By Design' | 'Opportunity'; note: string }[];
   loreCorrections: { original: string; refined: string; reason: string; snippet: string }[];
+  loreQueries: { snippet: string; conflict: string; suggestion: string }[];
   audit: {
     voiceFidelityScore: number;
     voiceFidelityReasoning: string;
@@ -201,9 +202,15 @@ Return the following structure:
     { "sentence": "Original sentence with conflict", "reason": "Why it conflicts with lore" }
   ],
   "lore_corrections": [
-    { "original": "Original term/fact", "refined": "Corrected term/fact", "reason": "Lore reference", "snippet": "The EXACT snippet of text as it appears in the refined_text after correction." }
+    { "original": "Original term/fact", "refined": "Corrected term/fact", "reason": "Lore reference", "snippet": "The EXACT snippet of text as it appears in the refined_text after correction. CRITICAL: The snippet field in the lore_corrections array MUST be the EXACT verbatim string as it appears in your refined_text output (the fixed version). If the snippet does not match your refined text exactly (including spaces and punctuation), the UI will fail to highlight the correction." }
+  ],
+  "lore_queries": [
+    { "snippet": "The EXACT verbatim snippet from refined_text that contains a soft lore conflict.", "conflict": "Description of the soft constraint violation (Culture, Character Memory, Social Norms).", "suggestion": "How the author might resolve this if they choose." }
   ]
 }
+*** LORE CONSTRAINTS DEFINITIONS ***
+- lore_corrections (Red): Hard Constraints (Physics, Magic Laws, Geography). You MUST fix these in the refined_text.
+- lore_queries (Amber): Soft Constraints (Culture, Character Memory, Social Norms). You should NOT change the refined_text but MUST flag the "Fraying" for the author to review.
 `;
     
     preamble += outputInstruction;
@@ -348,11 +355,23 @@ Return the following structure:
                         },
                         required: ["original", "refined", "reason", "snippet"]
                     }
+                },
+                lore_queries: {
+                    type: Type.ARRAY,
+                    items: {
+                        type: Type.OBJECT,
+                        properties: {
+                            snippet: { type: Type.STRING },
+                            conflict: { type: Type.STRING },
+                            suggestion: { type: Type.STRING }
+                        },
+                        required: ["snippet", "conflict", "suggestion"]
+                    }
                 }
             },
             required: [
                 "refined_text", "editor_summary", "expression_profile", "analysis", "audit", 
-                "conflicts", "lore_corrections", "justification", "evidence_based_claims",
+                "conflicts", "lore_corrections", "lore_queries", "justification", "evidence_based_claims",
                 "why_behind_change", "lore_lineage", "mirror_editor_critique", "restraint_log",
                 "expression_profile_vibe"
             ]
@@ -383,6 +402,7 @@ Return the following structure:
         },
         expressionProfile: parsed.expression_profile_vibe || [],
         loreCorrections: parsed.lore_corrections || [],
+        loreQueries: parsed.lore_queries || [],
         audit: parsed.audit,
         restraintLog: parsed.restraint_log || [],
         activeContext: {
@@ -407,6 +427,7 @@ Return the following structure:
           },
           expressionProfile: [],
           loreCorrections: [],
+          loreQueries: [],
           audit: {
               voiceFidelityScore: 0,
               voiceFidelityReasoning: "Error",

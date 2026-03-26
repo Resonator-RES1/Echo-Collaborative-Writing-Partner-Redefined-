@@ -102,6 +102,12 @@ export interface LoreCorrection {
   snippet?: string;
 }
 
+export interface LoreQuery {
+  snippet: string;
+  conflict: string;
+  suggestion: string;
+}
+
 export interface RefinedVersion {
   id: string;
   text: string;
@@ -117,6 +123,7 @@ export interface RefinedVersion {
   conflicts?: LoreConflict[];
   metrics?: ProseMetrics;
   loreCorrections?: LoreCorrection[];
+  loreQueries?: LoreQuery[];
   audit?: RefinementAudit;
   restraintLog?: { category: string; target: string; justification: string; snippet?: string }[];
   expressionProfile?: { vibe: string; score: number; qualifier: 'By Design' | 'Opportunity'; note: string }[];
