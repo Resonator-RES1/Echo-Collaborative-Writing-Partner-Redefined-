@@ -159,8 +159,9 @@ const Editor: React.FC<EditorProps> = ({
             return;
         }
 
-        const foundLoreIds = scanForContext(text, scanner.miniSearch);
-        const foundVoiceIds = scanForContext(text, scanner.miniSearch);
+        const foundIds = scanForContext(text, scanner.miniSearch);
+        const foundLoreIds = foundIds;
+        const foundVoiceIds = foundIds;
 
         const newSuggestions: { id: string; name: string; type: 'lore' | 'voice' }[] = [];
 
@@ -213,22 +214,20 @@ const Editor: React.FC<EditorProps> = ({
     const handler = setTimeout(() => {
         if (draft !== draftState.present) {
             setDraft(draftState.present);
-            
+
             if (currentSceneId) {
-                const currentScene = scenes.find(s => s.id === currentSceneId);
-                if (currentScene) {
-                    db.putScene({
-                        ...currentScene,
-                        content: draftState.present,
-                        lastModified: new Date().toISOString()
-                    });
-                }
+                setScenes(prev => {
+                    const updated = prev.map(s => s.id === currentSceneId ? { ...s, content: draftState.present, lastModified: new Date().toISOString() } : s);
+                    const currentScene = updated.find(s => s.id === currentSceneId);
+                    if (currentScene) db.putScene(currentScene); // Single Source of Truth DB Write
+                    return updated;
+                });
             }
         }
         setSaveStatus('saved');
     }, 5000);
     return () => clearTimeout(handler);
-  }, [draftState.present, setDraft, currentSceneId, scenes, draft]);
+  }, [draftState.present, setDraft, currentSceneId, draft, setScenes]);
 
   useEffect(() => {
     if (saveStatus === 'saved') {

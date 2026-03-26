@@ -46,8 +46,9 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = React.memo(({
     const [isScanning, setIsScanning] = useState(false);
 
     // 1. Detect Mentions (Hard Matches)
-    const detectedLoreIds = useMemo(() => scanForContext(draft, scanner.miniSearch), [draft, scanner]);
-    const detectedVoiceIds = useMemo(() => scanForContext(draft, scanner.miniSearch), [draft, scanner]);
+    const detectedIds = useMemo(() => scanForContext(draft, scanner.miniSearch), [draft, scanner]);
+    const detectedLoreIds = detectedIds;
+    const detectedVoiceIds = detectedIds;
 
     const detectedLore = useMemo(() => 
         loreEntries.filter(e => detectedLoreIds.includes(e.id)), 
