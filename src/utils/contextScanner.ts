@@ -76,10 +76,10 @@ export const createScanner = (entries: LoreEntry[], voices: VoiceProfile[]): Sca
 
 // Helper to get embeddings from Gemini
 export const getEmbedding = async (text: string): Promise<number[]> => {
-    if (!process.env.GEMINI_API_KEY) return new Array(768).fill(0);
+    if (typeof import.meta.env === 'undefined' || !import.meta.env.VITE_GEMINI_API_KEY) return new Array(768).fill(0);
     
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
         const result = await ai.models.embedContent({
             model: 'gemini-embedding-2-preview',
             contents: [text]
@@ -235,7 +235,7 @@ export const performConceptualScan = async (
     miniSearch: MiniSearch
 ): Promise<ContinuityIssue[]> => {
     const issues: ContinuityIssue[] = [];
-    if (!text.trim() || !voyInstance || !process.env.GEMINI_API_KEY || !miniSearch) return issues;
+    if (!text.trim() || !voyInstance || typeof import.meta.env === 'undefined' || !import.meta.env.VITE_GEMINI_API_KEY || !miniSearch) return issues;
 
     try {
         const queryVector = await getEmbedding(text);

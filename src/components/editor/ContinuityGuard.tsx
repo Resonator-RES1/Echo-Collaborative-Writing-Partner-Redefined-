@@ -75,7 +75,7 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = React.memo(({
             } finally {
                 setIsScanning(false);
             }
-        }, 10000); // 10s debounce for conceptual scan
+        }, 300000); // 5 minute debounce for conceptual scan to prevent quota issues
 
         return () => clearTimeout(timer);
     }, [draft, loreEntries, scanner]);

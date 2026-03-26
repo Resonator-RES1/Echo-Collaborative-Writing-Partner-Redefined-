@@ -27,6 +27,16 @@ export default defineConfig(({ mode }) => {
           '@': path.resolve(__dirname, '.'),
         }
       },
+      build: {
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              'ai-engine': ['@google/genai', 'voy-search', 'minisearch'],
+              'vendor': ['react', 'react-dom', 'lucide-react', 'motion']
+            }
+          }
+        }
+      },
       optimizeDeps: {
         include: ['lucide-react', 'react', 'react-dom', 'react-markdown', '@google/genai']
       }
