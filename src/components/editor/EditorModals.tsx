@@ -45,6 +45,7 @@ export const EditorModals: React.FC<EditorModalsProps> = React.memo(({
                     onClose={() => setShowComparison(false)}
                     original={originalDraft}
                     polished={currentVersion.text}
+                    report={currentVersion}
                     onRevertLore={onRevertLore}
                     onAccept={() => onAcceptVersion(currentVersion)}
                     onSeeReport={() => {

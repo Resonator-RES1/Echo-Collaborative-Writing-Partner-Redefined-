@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Scene, RefinedVersion, WritingGoal, Chapter } from '../types';
 import { SceneManager } from './editor/SceneManager';
-import { Book, Download, Upload, Target, CheckCircle2, Trash2, ChevronRight, ChevronDown, FileText } from 'lucide-react';
+import { Book, Download, Upload, Target, CheckCircle2, Trash2 } from 'lucide-react';
 import * as db from '../services/dbService';
 
 interface ManuscriptPanelProps {
@@ -353,3 +353,6 @@ export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
     </div>
   );
 };
+
+export default ManuscriptPanel;
+

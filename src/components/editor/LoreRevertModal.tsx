@@ -18,8 +18,8 @@ export const LoreRevertModal: React.FC<LoreRevertModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className="bg-surface-container-high w-full max-w-lg rounded-[1rem] shadow-2xl border border-outline-variant/30 flex flex-col max-h-[80vh] overflow-hidden animate-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose}>
+            <div className="bg-surface-container-high w-full max-w-lg rounded-[1rem] shadow-2xl border border-outline-variant/30 flex flex-col max-h-[80vh] overflow-hidden animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
                 <header className="px-6 py-4 border-b border-outline-variant/20 flex justify-between items-center bg-surface-container-highest/50">
                     <div className="flex items-center gap-2">
                         <RotateCcw className="w-4 h-4 text-amber-500" />

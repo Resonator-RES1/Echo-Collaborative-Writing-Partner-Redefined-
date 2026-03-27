@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, Users, User, Sparkles, Zap, AlertCircle, PlusCircle } from 'lucide-react';
+import { BookOpen, Users, User, Sparkles, Zap } from 'lucide-react';
 import { LoreEntry, VoiceProfile, AuthorVoice } from '../../types';
 import { AuthorVoiceManager } from './presets/AuthorVoiceManager';
 import { VoiceProfileManager } from './presets/VoiceProfileManager';
@@ -15,8 +15,6 @@ interface ContextPanelProps {
     onDeleteVoiceProfile: (id: string) => void;
     onAddAuthorVoice: (voice: AuthorVoice) => void;
     onDeleteAuthorVoice: (id: string) => void;
-    suggestions: { type: 'lore' | 'voice', id: string, name: string }[];
-    onActivateSuggestion: (suggestion: { type: 'lore' | 'voice', id: string }) => void;
 }
 
 export const ContextPanel = React.memo(({
@@ -28,9 +26,7 @@ export const ContextPanel = React.memo(({
     onAddVoiceProfile,
     onDeleteVoiceProfile,
     onAddAuthorVoice,
-    onDeleteAuthorVoice,
-    suggestions,
-    onActivateSuggestion
+    onDeleteAuthorVoice
 }: ContextPanelProps) => {
     const activeLoreCount = loreEntries.filter(e => e.isActive).length;
     const activeVoiceCount = voiceProfiles.filter(p => p.isActive).length;
@@ -52,27 +48,6 @@ export const ContextPanel = React.memo(({
                     </div>
                 </div>
             </div>
-
-            {suggestions.length > 0 && (
-                <div className="bg-accent-sky/5 border border-accent-sky/20 rounded-3xl p-6 mb-8 space-y-4 shadow-inner">
-                    <div className="flex items-center gap-2 text-accent-sky font-black text-[10px] uppercase tracking-widest">
-                        <AlertCircle className="w-4 h-4" />
-                        <span>Smart Context Detected</span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                        {suggestions.map(s => (
-                            <button 
-                                key={s.id}
-                                onClick={() => onActivateSuggestion(s)}
-                                className="text-[10px] font-black bg-surface-container-highest/40 border border-accent-sky/30 text-accent-sky px-4 py-2 rounded-2xl hover:bg-accent-sky hover:text-white transition-all active:scale-95 flex items-center gap-2 uppercase tracking-wider"
-                            >
-                                <PlusCircle className="w-3.5 h-3.5" />
-                                {s.name}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
 
             <div className="grid grid-cols-1 gap-8">
                 <div className="bg-surface-container-low rounded-3xl border border-outline-variant/10 p-8 shadow-sm space-y-8">

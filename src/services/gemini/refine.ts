@@ -343,7 +343,7 @@ For every character identified in the scene whose Voice Profile is active, you M
                     }
                 }
             },
-            required: ["refined_text", "editor_summary", "justification", "lore_corrections"]
+            required: ["refined_text", "editor_summary", "justification"]
         } : {
             type: Type.OBJECT,
             properties: {
@@ -493,7 +493,7 @@ For every character identified in the scene whose Voice Profile is active, you M
             },
             required: [
                 "refined_text", "editor_summary", "expression_profile", "analysis", "audit", 
-                "conflicts", "lore_corrections", "lore_fraying", "justification", "evidence_based_claims",
+                "conflicts", "lore_corrections", "lore_fraying", "justification", 
                 "why_behind_change", "lore_lineage", "mirror_editor_critique", "restraint_log",
                 "expression_profile_vibe", "voice_audits"
             ]

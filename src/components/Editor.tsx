@@ -2,13 +2,12 @@ import React, { useState, useCallback, useEffect, useMemo, useReducer, useRef } 
 import { motion, AnimatePresence } from 'motion/react';
 import { Wand2, ChevronDown, ShieldCheck, FileText, BookOpen, History, BarChart3, Sparkles, GitCompare, PenTool, Sun } from 'lucide-react';
 import { RefinedVersion, LoreEntry, VoiceProfile, AuthorVoice, Scene, WorkspaceTab } from '../types';
-import { scanForContext, createScanner, ContinuityIssue } from '../utils/contextScanner';
+import { createScanner, ContinuityIssue } from '../utils/contextScanner';
 import { draftReducer, initialDraftState } from './editor/draftReducer';
-import { FormattingToolbar, FormatType } from './editor/FormattingToolbar';
+import { FormattingToolbar } from './editor/FormattingToolbar';
 import { RichTextEditor } from './editor/RichTextEditor';
 import { EditorFooter } from './editor/EditorFooter';
 import { EditorModals } from './editor/EditorModals';
-import { RefinementPresets } from './editor/RefinementPresets';
 import { ContinuityGuard } from './editor/ContinuityGuard';
 import { SideBySideDiff } from './editor/SideBySideDiff';
 import { RecentChangesList } from './editor/RecentChangesList';
@@ -144,57 +143,10 @@ const Editor: React.FC<EditorProps> = ({
 
   const [selection, setSelection] = useState<{ text: string; start: number; end: number } | null>(null);
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('draft');
-  const [suggestions, setSuggestions] = useState<{ id: string; name: string; type: 'lore' | 'voice' }[]>([]);
   
   const scanner = useMemo(() => createScanner(loreEntries, voiceProfiles), [loreEntries, voiceProfiles]);
   
   const editorRef = useRef<any>(null);
-
-  // Smart Context Detection
-  useEffect(() => {
-    const timer = setTimeout(() => {
-        const text = draftState.present;
-        if (!text.trim()) {
-            setSuggestions([]);
-            return;
-        }
-
-        const foundIds = scanForContext(text, scanner.miniSearch);
-        const foundLoreIds = foundIds;
-        const foundVoiceIds = foundIds;
-
-        const newSuggestions: { id: string; name: string; type: 'lore' | 'voice' }[] = [];
-
-        foundLoreIds.forEach(id => {
-            const entry = loreEntries.find(e => e.id === id);
-            if (entry && !entry.isActive) {
-                newSuggestions.push({ id: entry.id, name: entry.title, type: 'lore' });
-            }
-        });
-
-        foundVoiceIds.forEach(id => {
-            const profile = voiceProfiles.find(p => p.id === id);
-            if (profile && !profile.isActive) {
-                newSuggestions.push({ id: profile.id, name: profile.name, type: 'voice' });
-            }
-        });
-
-        setSuggestions(newSuggestions);
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, [draftState.present, loreEntries, voiceProfiles]);
-
-  const handleActivateSuggestion = useCallback((suggestion: { id: string; type: 'lore' | 'voice' }) => {
-    if (suggestion.type === 'lore') {
-        const entry = loreEntries.find(e => e.id === suggestion.id);
-        if (entry) onAddLoreEntry({ ...entry, isActive: true });
-    } else {
-        const profile = voiceProfiles.find(p => p.id === suggestion.id);
-        if (profile) onAddVoiceProfile({ ...profile, isActive: true });
-    }
-    showToast(`Activated ${suggestion.type} context...`);
-  }, [loreEntries, voiceProfiles, onAddLoreEntry, onAddVoiceProfile, showToast]);
 
   const handleContinuityFix = useCallback((original: string, replacement: string) => {
       // Use word boundaries for replacement to avoid partial word matches
@@ -235,13 +187,6 @@ const Editor: React.FC<EditorProps> = ({
         return () => clearTimeout(timer);
     }
   }, [saveStatus]);
-
-  const handleFormat = useCallback(async (format: FormatType) => {
-      if (!selection || !selection.text.trim()) {
-          showToast(`Please select text to format.`);
-          return;
-      }
-  }, [selection, showToast]);
 
   const handleUpdateVersion = useCallback((index: number, content: string) => {
     const newHistory = [...versionHistory];
@@ -426,8 +371,6 @@ const Editor: React.FC<EditorProps> = ({
                     onDeleteVoiceProfile={onDeleteVoiceProfile} 
                     onAddAuthorVoice={onAddAuthorVoice}
                     onDeleteAuthorVoice={onDeleteAuthorVoice} 
-                    suggestions={suggestions}
-                    onActivateSuggestion={handleActivateSuggestion}
                   />
               )}
               {activeTab === 'refine' && (
@@ -448,7 +391,6 @@ const Editor: React.FC<EditorProps> = ({
                     selection={selection}
                     editorRef={editorRef}
                     setActiveTab={setActiveTab}
-                    scanner={scanner}
                     localWarnings={continuityIssues}
                   />
               )}
@@ -595,8 +537,6 @@ const Editor: React.FC<EditorProps> = ({
                   <div className="flex-1 min-w-0 overflow-x-auto hide-scrollbar z-10 pr-[100px] sm:pr-[150px]">
                       <FormattingToolbar 
                           editor={editorRef.current}
-                          onFormat={handleFormat} 
-                          hasSelection={!!selection && selection.text.trim().length > 0} 
                       />
                   </div>
                   

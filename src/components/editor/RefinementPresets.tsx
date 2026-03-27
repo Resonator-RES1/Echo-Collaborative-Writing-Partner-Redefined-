@@ -1,17 +1,13 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import {
-    Sparkles, Loader2, ChevronDown, ChevronUp, CheckCircle, MessageSquareQuote, 
-    Waves, Smile, Network, Eye, Globe, MessagesSquare, Clock, ShieldCheck, Zap, AlertCircle, CheckCircle2, PlusCircle, Settings
+    Sparkles, Loader2, ChevronDown, ChevronUp, Zap, AlertCircle, Settings
 } from 'lucide-react';
 import { FocusAreaSelector } from './presets/FocusAreaSelector';
-import { AuthorVoiceManager } from './presets/AuthorVoiceManager';
 import { PolishDepthSelector } from './presets/PolishDepthSelector';
 import { ModelSelector } from './presets/ModelSelector';
-import { VoiceProfileManager } from './presets/VoiceProfileManager';
 import { FocusArea, FeedbackDepth, RefinedVersion, LoreEntry, VoiceProfile, AuthorVoice, WorkspaceTab } from '../../types';
 import { refineDraft } from '../../services/geminiService';
-import { LoreContextManager } from './LoreContextManager';
-import { scanForContext, ScannerInstances, ContinuityIssue } from '../../utils/contextScanner';
+import { ContinuityIssue } from '../../utils/contextScanner';
 import { SettingsModal } from '../SettingsModal';
 
 const DEPTH_CONFIG: Record<FeedbackDepth, { label: string; thinkingLevel: 'low' | 'default' | 'high' }> = {
@@ -37,7 +33,6 @@ interface RefinementPresetsProps {
     storyDay?: number;
     editorRef?: React.MutableRefObject<any>;
     setActiveTab?: (tab: WorkspaceTab) => void;
-    scanner: ScannerInstances;
     localWarnings?: ContinuityIssue[];
 }
 
@@ -70,58 +65,15 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
         getDraft, selection, isRefining, setIsRefining, showToast, onNewVersion,
         loreEntries, voiceProfiles, authorVoices,
         onAddLoreEntry, onAddVoiceProfile, onAddAuthorVoice,
-        currentSceneId, storyDay, editorRef, setActiveTab, scanner, localWarnings
+        currentSceneId, storyDay, editorRef, setActiveTab, localWarnings
     } = props;
 
     const [presetsOpen, setPresetsOpen] = useState(true);
     const [showSettings, setShowSettings] = useState(false);
-    const [isScanComplete, setIsScanComplete] = useState(false);
     const [focusAreas, setFocusAreas] = useState<FocusArea[]>([]);
     const [model, setModel] = useState<'gemini-3.1-flash-lite-preview' | 'gemini-3-flash-preview' | 'gemini-3.1-pro-preview'>('gemini-3.1-flash-lite-preview');
     const [feedbackDepth, setFeedbackDepth] = useState<FeedbackDepth>('balanced');
-    const lastRefinementRef = React.useRef<{ options: any, result: any } | null>(null);
-    const [suggestions, setSuggestions] = useState<{ type: 'lore' | 'voice', id: string, name: string }[]>([]);
 
-    // Smart Selection Logic
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            const draft = getDraft();
-            if (!draft) {
-                setSuggestions([]);
-                return;
-            }
-
-            const foundLoreIds = scanForContext(draft, scanner.miniSearch);
-            const foundVoiceIds = scanForContext(draft, scanner.miniSearch);
-
-            const newSuggestions = [
-                ...foundLoreIds.map(id => {
-                    const entry = loreEntries.find(e => e.id === id && !e.isActive);
-                    return entry ? { type: 'lore' as const, id, name: entry.title } : null;
-                }).filter(Boolean) as { type: 'lore', id: string, name: string }[],
-                ...foundVoiceIds.map(id => {
-                    const profile = voiceProfiles.find(p => p.id === id && !p.isActive);
-                    return profile ? { type: 'voice' as const, id, name: profile.name } : null;
-                }).filter(Boolean) as { type: 'voice', id: string, name: string }[]
-            ];
-
-            setSuggestions(newSuggestions);
-            setIsScanComplete(true);
-        }, 1000); // 1 second debounce
-
-        return () => clearTimeout(timer);
-    }, [getDraft, loreEntries, voiceProfiles]);
-
-    const handleActivateSuggestion = (suggestion: { type: 'lore' | 'voice', id: string }) => {
-        if (suggestion.type === 'lore') {
-            const entry = loreEntries.find(e => e.id === suggestion.id);
-            if (entry) onAddLoreEntry({ ...entry, isActive: true });
-        } else {
-            const profile = voiceProfiles.find(p => p.id === suggestion.id);
-            if (profile) onAddVoiceProfile({ ...profile, isActive: true });
-        }
-    };
-     
     const handleRefine = useCallback(async () => {
         const fullDraft = getDraft();
         const isTargeted = selection && selection.text.trim().length > 0;
@@ -252,20 +204,6 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
         showToast(isTargeted ? "Targeted refinement applied directly!" : "New version created!");
         setIsRefining(false);
     }, [getDraft, selection, model, feedbackDepth, focusAreas, showToast, setIsRefining, onNewVersion, loreEntries, voiceProfiles, authorVoices, currentSceneId, editorRef, setActiveTab]);
-
-    const handleAutoSetFocus = useCallback((areas: FocusArea[]) => {
-        setFocusAreas(prev => {
-            const newAreas = [...prev];
-            areas.forEach(area => {
-                if (!newAreas.includes(area)) {
-                    newAreas.push(area);
-                }
-            });
-            return newAreas;
-        });
-        const areaLabel = areas.length > 0 ? areas[0] : 'none';
-        showToast(`Focus area '${areaLabel}' added to selection.`);
-    }, [setFocusAreas, showToast]);
 
     // Calculate Prompt Efficiency
     const totalLoreChars = loreEntries.reduce((acc, e) => acc + e.content.length, 0);

@@ -2,16 +2,12 @@ import React from 'react';
 import { Bold, Italic, List, ListOrdered, Quote, Heading3, BookOpen, Users, Strikethrough, Code, Sparkles } from 'lucide-react';
 import { Editor } from '@tiptap/react';
 
-export type FormatType = 'bold' | 'italic' | 'strikethrough' | 'code' | 'h3' | 'quote' | 'ul' | 'ol';
-
 interface FormattingToolbarProps {
     editor: Editor | null;
-    onFormat: (format: FormatType) => void;
-    hasSelection: boolean;
 }
 
 export const FormattingToolbar: React.FC<FormattingToolbarProps> = React.memo(({ 
-    editor, onFormat, hasSelection 
+    editor 
 }) => {
     const formatButtons = [
         { type: 'bold', icon: Bold, title: 'Bold', action: () => editor?.chain().focus().toggleBold().run(), isActive: () => editor?.isActive('bold') },

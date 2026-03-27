@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { Search, Filter, BookOpen, Plus, Download, Upload, Trash2, ChevronRight, RefreshCw, Loader2, Sparkles } from 'lucide-react';
+import { Search, BookOpen, Plus, Download, Upload, Trash2, ChevronRight } from 'lucide-react';
 import { LoreEntry, Screen } from '../types';
 import { LoreEntryForm } from './forms/LoreEntryForm';
 
@@ -271,3 +271,5 @@ export function LoreScreen({ setCurrentScreen }: LoreScreenProps) {
     </div>
   );
 }
+
+export default LoreScreen;

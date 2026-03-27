@@ -12,8 +12,8 @@ export const ConflictModal: React.FC<ConflictModalProps> = ({ isOpen, onClose, c
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <div className="bg-surface-container-highest rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden border border-outline-variant/20">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
+            <div className="bg-surface-container-highest rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden border border-outline-variant/20" onClick={e => e.stopPropagation()}>
                 <div className="p-4 border-b border-outline-variant/20 flex justify-between items-center">
                     <h3 className="font-headline text-lg text-primary font-semibold flex items-center gap-2">
                         <AlertTriangle className="w-5 h-5 text-amber-500" />

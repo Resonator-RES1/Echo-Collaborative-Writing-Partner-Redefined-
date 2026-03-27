@@ -5,15 +5,8 @@
 
 import React, { useState, useCallback, useEffect, useMemo, Suspense, lazy } from 'react';
 import { 
-    Book, 
-    Sparkles, 
-    History, 
     FileText, 
     BookOpen, 
-    BarChart3, 
-    Settings, 
-    PenTool, 
-    Library,
     Home,
     Mic2,
     Layout,
@@ -32,9 +25,9 @@ import { useProject } from './contexts/ProjectContext';
 
 // Lazy load main screens
 const Editor = lazy(() => import('./components/Editor'));
-const LoreScreen = lazy(() => import('./components/LoreScreen').then(m => ({ default: m.LoreScreen })));
-const VoicesScreen = lazy(() => import('./components/VoicesScreen').then(m => ({ default: m.VoicesScreen })));
-const ManuscriptPanel = React.memo(lazy(() => import('./components/ManuscriptPanel').then(m => ({ default: m.ManuscriptPanel }))));
+const LoreScreen = lazy(() => import('./components/LoreScreen'));
+const VoicesScreen = lazy(() => import('./components/VoicesScreen'));
+const ManuscriptPanel = React.memo(lazy(() => import('./components/ManuscriptPanel')));
 
 const LoadingState = () => (
   <div className="flex-1 flex flex-col items-center justify-center gap-4 animate-in fade-in duration-500">

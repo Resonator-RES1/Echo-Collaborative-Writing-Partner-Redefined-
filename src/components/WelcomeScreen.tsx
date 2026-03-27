@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { NewProjectModal } from './NewProjectModal';
-import { Sparkles, ArrowRight, BookOpen, Wand2, Mic2, BarChart3, ChevronRight, X, Download, Upload, ChevronDown, Info, Copy, Fingerprint, Cpu, Layout, Play, Zap, Plus } from 'lucide-react';
+import { Sparkles, ArrowRight, BookOpen, Wand2, Mic2, BarChart3, ChevronRight, X, Download, Upload, ChevronDown, Info, Fingerprint, Layout, Play, Zap, Plus } from 'lucide-react';
 import { Screen, Scene, WritingGoal, GuideCategory, GuideItem, FocusArea } from '../types';
 import { GUIDE_SECTIONS } from '../constants';
 import { useProject } from '../contexts/ProjectContext';

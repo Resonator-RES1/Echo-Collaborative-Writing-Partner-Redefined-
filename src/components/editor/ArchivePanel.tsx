@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Clock, Trash2, ChevronRight, History, Sparkles, Calendar, Eye, Activity, Copy, CheckCircle2, ShieldCheck, BarChart3 } from 'lucide-react';
+import { Clock, Trash2, ChevronRight, History, Sparkles, Calendar, Eye, Activity, Copy, ShieldCheck, BarChart3 } from 'lucide-react';
 import { RefinedVersion, LoreCorrection } from '../../types';
 import { SideBySideDiff } from './SideBySideDiff';
 import { formatReportForCopy } from '../../utils/reportFormatter';

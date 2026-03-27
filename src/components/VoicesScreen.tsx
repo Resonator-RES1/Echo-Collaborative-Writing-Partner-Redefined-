@@ -345,3 +345,5 @@ export function VoicesScreen({
     </div>
   );
 }
+
+export default VoicesScreen;
