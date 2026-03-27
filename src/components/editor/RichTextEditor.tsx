@@ -30,7 +30,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       StarterKit.configure({
         // We can disable things we don't want from starter kit if needed
         codeBlock: false, // We'll use simple code if needed, or keep it
-        dropCursor: false, // Disable dropCursor here to avoid duplication
+        dropcursor: false, // Disable dropcursor here to avoid duplication
       }),
       Placeholder.configure({
         placeholder,
