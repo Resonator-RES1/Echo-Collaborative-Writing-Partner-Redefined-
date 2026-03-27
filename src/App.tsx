@@ -24,10 +24,10 @@ import { useLore } from './contexts/LoreContext';
 import { useProject } from './contexts/ProjectContext';
 
 // Lazy load main screens
-const Editor = lazy(() => import('./components/Editor'));
-const LoreScreen = lazy(() => import('./components/LoreScreen'));
-const VoicesScreen = lazy(() => import('./components/VoicesScreen'));
-const ManuscriptPanel = React.memo(lazy(() => import('./components/ManuscriptPanel')));
+const Editor = lazy(() => import('./components/EditorView'));
+const LoreScreen = lazy(() => import('./components/LoreView'));
+const VoicesScreen = lazy(() => import('./components/VoicesView'));
+const ManuscriptPanel = React.memo(lazy(() => import('./components/ManuscriptView')));
 
 const LoadingState = () => (
   <div className="flex-1 flex flex-col items-center justify-center gap-4 animate-in fade-in duration-500">
@@ -133,9 +133,9 @@ export default function App() {
   // Background pre-fetching
   useEffect(() => {
     const timer = setTimeout(() => {
-      import('./components/Editor');
-      import('./components/LoreScreen');
-      import('./components/ManuscriptPanel');
+      import('./components/EditorView');
+      import('./components/LoreView');
+      import('./components/ManuscriptView');
     }, 3000);
     return () => clearTimeout(timer);
   }, []);

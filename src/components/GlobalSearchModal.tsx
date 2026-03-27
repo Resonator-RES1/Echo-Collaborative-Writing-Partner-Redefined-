@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { Search, X, Replace, ChevronRight, ChevronDown, Check } from 'lucide-react';
+import { Search, X, Replace, Check } from 'lucide-react';
 import { Scene, LoreEntry, VoiceProfile, AuthorVoice } from '../types';
 
 import { useLore } from '../contexts/LoreContext';

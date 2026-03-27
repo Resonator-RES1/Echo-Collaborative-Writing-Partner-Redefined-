@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Activity, Info, Search, Scale, BookOpen } from 'lucide-react';
+import { Activity, Info, Search, Scale, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
@@ -31,58 +31,71 @@ const ExpressionCard: React.FC<{ profile: any }> = ({ profile }) => {
 };
 
 export const ReportAnalysis: React.FC<{ version: RefinedVersion }> = ({ version }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
     const { analysis, expressionProfile } = version;
     if (!analysis && (!expressionProfile || expressionProfile.length === 0)) return null;
 
     return (
-        <div className="bg-surface-container-low rounded-2xl border border-outline-variant/10 p-6 shadow-sm">
-            <div className="flex items-center gap-4 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Activity className="w-6 h-6 text-primary" />
+        <div className="bg-surface-container-low rounded-2xl border border-outline-variant/10 shadow-sm overflow-hidden transition-all duration-300">
+            <button 
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="w-full flex items-center justify-between p-6 hover:bg-surface-container-highest/30 transition-colors text-left"
+            >
+                <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <Activity className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                        <h3 className="font-headline text-xl font-bold text-on-surface">Mirror Editor Analysis</h3>
+                        <p className="text-[10px] text-on-surface-variant/60 uppercase tracking-[0.2em] font-black">Neutral Observation</p>
+                    </div>
                 </div>
-                <div>
-                    <h3 className="font-headline text-xl font-bold text-on-surface">Mirror Editor Analysis</h3>
-                    <p className="text-[10px] text-on-surface-variant/60 uppercase tracking-[0.2em] font-black">Neutral Observation</p>
+                <div className="p-2 rounded-full bg-surface-container-highest/50 text-on-surface-variant">
+                    {isExpanded ? <ChevronUp className="w-6 h-6" /> : <ChevronDown className="w-6 h-6" />}
                 </div>
-            </div>
+            </button>
 
-            <div className="space-y-6">
-                {/* Analysis Block */}
-                {analysis && (
-                    <div className="bg-surface-container-highest/20 p-5 rounded-xl border border-outline-variant/5 relative overflow-hidden">
-                        <div className="flex gap-4">
-                            <Info className="w-4 h-4 text-primary/50 shrink-0 mt-1" />
-                            <div className="prose prose-sm prose-slate max-w-none prose-p:text-sm prose-p:text-on-surface-variant prose-p:leading-relaxed prose-p:italic dark:prose-invert">
-                                <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
-                                    {analysis}
-                                </ReactMarkdown>
+            {isExpanded && (
+                <div className="p-6 pt-0 border-t border-outline-variant/5">
+                    <div className="space-y-6 mt-6">
+                        {/* Analysis Block */}
+                        {analysis && (
+                            <div className="bg-surface-container-highest/20 p-5 rounded-xl border border-outline-variant/5 relative overflow-hidden">
+                                <div className="flex gap-4">
+                                    <Info className="w-4 h-4 text-primary/50 shrink-0 mt-1" />
+                                    <div className="prose prose-sm prose-slate max-w-none prose-p:text-sm prose-p:text-on-surface-variant prose-p:leading-relaxed prose-p:italic dark:prose-invert">
+                                        <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+                                            {analysis}
+                                        </ReactMarkdown>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                )}
+                        )}
 
-                {/* Mirror Critique */}
-                {version.mirrorEditorCritique && (
-                    <div className="bg-surface-container-highest/20 p-5 rounded-xl border border-outline-variant/5 mt-4">
-                        <div className="flex gap-4">
-                            <Search className="w-4 h-4 text-primary/50 shrink-0 mt-1" />
-                            <div>
-                                <h4 className="text-xs font-black uppercase tracking-widest text-on-surface-variant/50 mb-2">Mirror Critique</h4>
-                                <p className="text-sm text-on-surface-variant leading-relaxed">{version.mirrorEditorCritique}</p>
+                        {/* Mirror Critique */}
+                        {version.mirrorEditorCritique && (
+                            <div className="bg-surface-container-highest/20 p-5 rounded-xl border border-outline-variant/5 mt-4">
+                                <div className="flex gap-4">
+                                    <Search className="w-4 h-4 text-primary/50 shrink-0 mt-1" />
+                                    <div>
+                                        <h4 className="text-xs font-black uppercase tracking-widest text-on-surface-variant/50 mb-2">Mirror Critique</h4>
+                                        <p className="text-sm text-on-surface-variant leading-relaxed">{version.mirrorEditorCritique}</p>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                )}
+                        )}
 
-                {/* expressionProfile Loop */}
-                {expressionProfile && expressionProfile.length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-                        {expressionProfile.map((profile, idx) => (
-                            <ExpressionCard key={idx} profile={profile} />
-                        ))}
+                        {/* expressionProfile Loop */}
+                        {expressionProfile && expressionProfile.length > 0 && (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                                {expressionProfile.map((profile, idx) => (
+                                    <ExpressionCard key={idx} profile={profile} />
+                                ))}
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
 };

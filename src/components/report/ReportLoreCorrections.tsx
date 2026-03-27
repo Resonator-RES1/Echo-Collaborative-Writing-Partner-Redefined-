@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ShieldAlert, Info, ChevronDown, ChevronUp, ChevronRight } from 'lucide-react';
 import { RefinedVersion, LoreCorrection } from '../../types';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface ReportLoreCorrectionsProps {
     loreCorrections: RefinedVersion['loreCorrections'];
@@ -78,19 +79,29 @@ export const ReportLoreCorrections: React.FC<ReportLoreCorrectionsProps> = ({ lo
                 )}
             </button>
 
-            {isExpanded && (
-                <div className="p-6 pt-0 border-t border-outline-variant/5">
-                    <div className="space-y-4 mt-6">
-                        {loreCorrections.map((correction, idx) => (
-                            <LoreCorrectionItem 
-                                key={idx} 
-                                correction={correction} 
-                                onRevertSpecificLore={onRevertSpecificLore} 
-                            />
-                        ))}
-                    </div>
-                </div>
-            )}
+            <AnimatePresence>
+                {isExpanded && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        className="overflow-hidden"
+                    >
+                        <div className="p-6 pt-0 border-t border-outline-variant/5">
+                            <div className="space-y-4 mt-6">
+                                {loreCorrections.map((correction, idx) => (
+                                    <LoreCorrectionItem 
+                                        key={idx} 
+                                        correction={correction} 
+                                        onRevertSpecificLore={onRevertSpecificLore} 
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

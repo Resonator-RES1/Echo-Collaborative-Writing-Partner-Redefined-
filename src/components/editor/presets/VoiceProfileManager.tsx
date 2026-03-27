@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { VoiceProfile } from '../../../types';
-import { Users, PlusCircle, CheckCircle2, X, Sparkles } from 'lucide-react';
+import { Users, PlusCircle, X, Sparkles } from 'lucide-react';
 import { GenderIcon } from '../../GenderIcon';
 
 interface VoiceProfileManagerProps {

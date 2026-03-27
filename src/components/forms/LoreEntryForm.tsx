@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, BookOpen, Fingerprint, Database, Cpu, Waypoints, Plus, Trash2, Loader2 } from 'lucide-react';
+import { X, Save, BookOpen, Fingerprint, Cpu, Waypoints, Plus, Trash2, Loader2 } from 'lucide-react';
 import { LoreEntry, Gender, Relationship } from '../../types';
 
 

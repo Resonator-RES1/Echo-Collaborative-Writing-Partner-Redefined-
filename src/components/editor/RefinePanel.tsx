@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Loader2, Zap, AlertCircle, PlusCircle, Settings, FileText } from 'lucide-react';
+import { Sparkles, Loader2 } from 'lucide-react';
 import { RefinementPresets } from './RefinementPresets';
 import { Scene, RefinedVersion, LoreEntry, VoiceProfile, AuthorVoice, FeedbackDepth, FocusArea, WorkspaceTab } from '../../types';
 import { ContinuityIssue } from '../../utils/contextScanner';

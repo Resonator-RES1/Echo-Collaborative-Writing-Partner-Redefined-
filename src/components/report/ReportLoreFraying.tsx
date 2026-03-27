@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { HelpCircle, Info, ChevronDown, ChevronUp, ChevronRight } from 'lucide-react';
 import { RefinedVersion, LoreFraying } from '../../types';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface ReportLoreFrayingProps {
     loreFraying: RefinedVersion['loreFraying'];
@@ -33,39 +34,49 @@ export const ReportLoreFraying: React.FC<ReportLoreFrayingProps> = ({ loreFrayin
                 )}
             </button>
 
-            {isExpanded && (
-                <div className="p-6 pt-0 border-t border-outline-variant/5">
-                    <div className="space-y-4 mt-6">
-                        {loreFraying.map((fraying, idx) => (
-                            <div key={idx} className="p-4 bg-surface-container-highest/30 rounded-2xl border border-outline-variant/10 group">
-                                <div className="flex items-start justify-between gap-4">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span className="text-sm font-bold text-on-surface italic">"{fraying.snippet}"</span>
-                                        </div>
-                                        <div className="flex flex-col gap-3 mt-3">
-                                            <div className="flex gap-2 bg-amber-500/5 p-3 rounded-xl border border-amber-500/10">
-                                                <Info className="w-3.5 h-3.5 text-amber-600/60 shrink-0 mt-0.5" />
-                                                <div className="flex flex-col gap-1">
-                                                    <p className="text-[11px] text-amber-700 font-bold uppercase tracking-wider">Conflict</p>
-                                                    <p className="text-[11px] text-on-surface-variant/80 leading-relaxed">{fraying.conflict}</p>
+            <AnimatePresence>
+                {isExpanded && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        className="overflow-hidden"
+                    >
+                        <div className="p-6 pt-0 border-t border-outline-variant/5">
+                            <div className="space-y-4 mt-6">
+                                {loreFraying.map((fraying, idx) => (
+                                    <div key={idx} className="p-4 bg-surface-container-highest/30 rounded-2xl border border-outline-variant/10 group">
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <span className="text-sm font-bold text-on-surface italic">"{fraying.snippet}"</span>
                                                 </div>
-                                            </div>
-                                            <div className="flex gap-2 bg-surface-container-highest/30 p-3 rounded-xl border border-outline-variant/5">
-                                                <ChevronRight className="w-3.5 h-3.5 text-on-surface-variant/30 shrink-0 mt-0.5" />
-                                                <div className="flex flex-col gap-1">
-                                                    <p className="text-[11px] text-on-surface-variant/60 font-bold uppercase tracking-wider">Suggestion</p>
-                                                    <p className="text-[11px] text-on-surface-variant/80 leading-relaxed italic">{fraying.suggestion}</p>
+                                                <div className="flex flex-col gap-3 mt-3">
+                                                    <div className="flex gap-2 bg-amber-500/5 p-3 rounded-xl border border-amber-500/10">
+                                                        <Info className="w-3.5 h-3.5 text-amber-600/60 shrink-0 mt-0.5" />
+                                                        <div className="flex flex-col gap-1">
+                                                            <p className="text-[11px] text-amber-700 font-bold uppercase tracking-wider">Conflict</p>
+                                                            <p className="text-[11px] text-on-surface-variant/80 leading-relaxed">{fraying.conflict}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex gap-2 bg-surface-container-highest/30 p-3 rounded-xl border border-outline-variant/5">
+                                                        <ChevronRight className="w-3.5 h-3.5 text-on-surface-variant/30 shrink-0 mt-0.5" />
+                                                        <div className="flex flex-col gap-1">
+                                                            <p className="text-[11px] text-on-surface-variant/60 font-bold uppercase tracking-wider">Suggestion</p>
+                                                            <p className="text-[11px] text-on-surface-variant/80 leading-relaxed italic">{fraying.suggestion}</p>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
-                </div>
-            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
