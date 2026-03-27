@@ -31,8 +31,8 @@ const ExpressionCard: React.FC<{ profile: any }> = ({ profile }) => {
 };
 
 export const ReportAnalysis: React.FC<{ version: RefinedVersion }> = ({ version }) => {
-    const { analysis, expressionProfile } = version;
-    if (!analysis && (!expressionProfile || expressionProfile.length === 0)) return null;
+    const { analysis, expressionProfile, justification, mirrorEditorCritique } = version;
+    if (!analysis && (!expressionProfile || expressionProfile.length === 0) && !justification && !mirrorEditorCritique) return null;
 
     return (
         <div className="bg-surface-container-low rounded-2xl border border-outline-variant/10 p-6 shadow-sm">
@@ -60,7 +60,19 @@ export const ReportAnalysis: React.FC<{ version: RefinedVersion }> = ({ version 
                     </div>
                 )}
                 
-                {/* Mirror Critique, Trade-offs, and Lore Lineage... (Add your other sections back here) */}
+                {justification && (
+                    <div className="bg-surface-container-highest/10 p-5 rounded-xl border border-outline-variant/5">
+                        <h4 className="text-xs font-black uppercase tracking-widest text-on-surface-variant/60 mb-2">Justification</h4>
+                        <p className="text-sm text-on-surface-variant leading-relaxed">{justification}</p>
+                    </div>
+                )}
+
+                {mirrorEditorCritique && (
+                    <div className="bg-surface-container-highest/10 p-5 rounded-xl border border-outline-variant/5">
+                        <h4 className="text-xs font-black uppercase tracking-widest text-on-surface-variant/60 mb-2">Mirror Editor Critique</h4>
+                        <p className="text-sm text-on-surface-variant leading-relaxed">{mirrorEditorCritique}</p>
+                    </div>
+                )}
 
                 {expressionProfile && expressionProfile.length > 0 && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">

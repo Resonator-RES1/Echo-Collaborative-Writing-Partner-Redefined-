@@ -14,9 +14,7 @@ export default defineConfig(({ mode }) => {
       },
       plugins: [
         react(),
-        tailwindcss(),
-        wasm(),
-        topLevelAwait()
+        tailwindcss()
       ],
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
@@ -28,31 +26,9 @@ export default defineConfig(({ mode }) => {
         }
       },
       build: {
+        outDir: 'dist',
         rollupOptions: {
           output: {
-            manualChunks(id) {
-              if (id.includes('node_modules')) {
-                if (id.includes('@tiptap') || id.includes('prosemirror')) {
-                  return 'vendor-editor';
-                }
-                if (id.includes('lucide-react')) {
-                  return 'vendor-icons';
-                }
-                if (id.includes('recharts')) {
-                  return 'vendor-charts';
-                }
-                if (id.includes('@google/genai') || id.includes('voy-search') || id.includes('minisearch')) {
-                  return 'vendor-ai';
-                }
-                if (id.includes('motion')) {
-                  return 'vendor-motion';
-                }
-                if (id.includes('react/') || id.includes('react-dom/')) {
-                  return 'vendor-react';
-                }
-                return 'vendor-core'; // Fallback
-              }
-            }
           }
         }
       },

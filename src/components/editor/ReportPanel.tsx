@@ -59,7 +59,7 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
     }
 
     return (
-        <div className="flex flex-col flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar animate-in fade-in duration-500 pt-16 sm:pt-20 pr-2 pb-12">
+        <div className="flex flex-col flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar animate-in fade-in duration-500 pt-20 sm:pt-24 pr-2 pb-12">
             {/* Header with Summary - Accordion */}
             <div className="bg-surface-container-low rounded-3xl border border-outline-variant/10 shadow-sm relative overflow-hidden mb-6 sm:mb-8 transition-all duration-300">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
