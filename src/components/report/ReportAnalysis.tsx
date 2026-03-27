@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Activity, Info, Search, Scale, BookOpen } from 'lucide-react';
+import { Activity, Info } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
@@ -47,6 +47,13 @@ export const ReportAnalysis: React.FC<{ version: RefinedVersion }> = ({ version 
             </div>
 
             <div className="space-y-6">
+                {justification && (
+                    <div className="bg-surface-container-highest/10 p-5 rounded-xl border border-outline-variant/5">
+                        <h4 className="text-xs font-black uppercase tracking-widest text-on-surface-variant/60 mb-2">Surgical Justification</h4>
+                        <p className="text-sm text-on-surface-variant leading-relaxed">{justification}</p>
+                    </div>
+                )}
+
                 {analysis && (
                     <div className="bg-surface-container-highest/20 p-5 rounded-xl border border-outline-variant/5 relative overflow-hidden">
                         <div className="flex gap-4">
@@ -60,13 +67,6 @@ export const ReportAnalysis: React.FC<{ version: RefinedVersion }> = ({ version 
                     </div>
                 )}
                 
-                {justification && (
-                    <div className="bg-surface-container-highest/10 p-5 rounded-xl border border-outline-variant/5">
-                        <h4 className="text-xs font-black uppercase tracking-widest text-on-surface-variant/60 mb-2">Justification</h4>
-                        <p className="text-sm text-on-surface-variant leading-relaxed">{justification}</p>
-                    </div>
-                )}
-
                 {mirrorEditorCritique && (
                     <div className="bg-surface-container-highest/10 p-5 rounded-xl border border-outline-variant/5">
                         <h4 className="text-xs font-black uppercase tracking-widest text-on-surface-variant/60 mb-2">Mirror Editor Critique</h4>

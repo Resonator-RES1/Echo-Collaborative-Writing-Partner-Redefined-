@@ -27,10 +27,6 @@ export default defineConfig(({ mode }) => {
       },
       build: {
         outDir: 'dist',
-        rollupOptions: {
-          output: {
-          }
-        }
       },
       optimizeDeps: {
         include: ['lucide-react', 'react', 'react-dom', 'react-markdown', '@google/genai']
