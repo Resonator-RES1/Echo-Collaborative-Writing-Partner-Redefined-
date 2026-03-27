@@ -53,16 +53,11 @@ const LoreCorrectionItem = ({ correction, onRevertSpecificLore }: { correction: 
 };
 
 export const ReportLoreCorrections: React.FC<ReportLoreCorrectionsProps> = ({ loreCorrections, onRevertSpecificLore }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
-
     if (!loreCorrections || loreCorrections.length === 0) return null;
 
     return (
         <div className="bg-surface-container-low rounded-2xl border border-outline-variant/10 shadow-sm overflow-hidden transition-all duration-300">
-            <button 
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="w-full flex items-center justify-between p-6 hover:bg-surface-container-highest/30 transition-colors"
-            >
+            <div className="flex items-center justify-between p-6">
                 <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-xl bg-accent-rose/10 flex items-center justify-center">
                         <ShieldAlert className="w-6 h-6 text-accent-rose" />
@@ -72,36 +67,19 @@ export const ReportLoreCorrections: React.FC<ReportLoreCorrectionsProps> = ({ lo
                         <p className="text-[10px] text-on-surface-variant/60 uppercase tracking-[0.2em] font-black">Continuity Enforcement</p>
                     </div>
                 </div>
-                {isExpanded ? (
-                    <ChevronUp className="w-6 h-6 text-on-surface-variant/50" />
-                ) : (
-                    <ChevronDown className="w-6 h-6 text-on-surface-variant/50" />
-                )}
-            </button>
+            </div>
 
-            <AnimatePresence>
-                {isExpanded && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                        className="overflow-hidden"
-                    >
-                        <div className="p-6 pt-0 border-t border-outline-variant/5">
-                            <div className="space-y-4 mt-6">
-                                {loreCorrections.map((correction, idx) => (
-                                    <LoreCorrectionItem 
-                                        key={idx} 
-                                        correction={correction} 
-                                        onRevertSpecificLore={onRevertSpecificLore} 
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            <div className="p-6 pt-0 border-t border-outline-variant/5">
+                <div className="space-y-4 mt-6">
+                    {loreCorrections.map((correction, idx) => (
+                        <LoreCorrectionItem 
+                            key={idx} 
+                            correction={correction} 
+                            onRevertSpecificLore={onRevertSpecificLore} 
+                        />
+                    ))}
+                </div>
+            </div>
         </div>
     );
 };

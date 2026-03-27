@@ -14,15 +14,18 @@ export default defineConfig(({ mode }) => {
       },
       plugins: [
         react(),
-        tailwindcss()
+        tailwindcss(),
+        wasm(),
+        topLevelAwait()
       ],
+      base: './',
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
       },
       resolve: {
         alias: {
-          '@': path.resolve(__dirname, '.'),
+          '@/': path.resolve(__dirname, './src/'),
         }
       },
       build: {
