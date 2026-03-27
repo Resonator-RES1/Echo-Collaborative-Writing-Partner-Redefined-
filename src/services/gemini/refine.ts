@@ -323,28 +323,7 @@ For every character identified in the scene whose Voice Profile is active, you M
         temperature: generationConfig.temperature,
         thinkingConfig: generationConfig.thinkingConfig, // Pass the new parameter
         feedbackDepth,
-        responseSchema: isSurgical ? {
-            type: Type.OBJECT,
-            properties: {
-                refined_text: { type: Type.STRING },
-                editor_summary: { type: Type.STRING },
-                justification: { type: Type.STRING },
-                lore_corrections: {
-                    type: Type.ARRAY,
-                    items: {
-                        type: Type.OBJECT,
-                        properties: {
-                            original: { type: Type.STRING },
-                            refined: { type: Type.STRING },
-                            reason: { type: Type.STRING },
-                            snippet: { type: Type.STRING }
-                        },
-                        required: ["original", "refined", "reason", "snippet"]
-                    }
-                }
-            },
-            required: ["refined_text", "editor_summary", "justification"]
-        } : {
+        responseSchema: {
             type: Type.OBJECT,
             properties: {
                 refined_text: { type: Type.STRING },
@@ -491,12 +470,14 @@ For every character identified in the scene whose Voice Profile is active, you M
                     }
                 }
             },
-            required: [
-                "refined_text", "editor_summary", "expression_profile", "analysis", "audit", 
-                "conflicts", "lore_corrections", "lore_fraying", "justification", 
-                "why_behind_change", "lore_lineage", "mirror_editor_critique", "restraint_log",
-                "expression_profile_vibe", "voice_audits"
-            ]
+            required: isSurgical 
+                ? ["refined_text", "editor_summary", "justification"] 
+                : [
+                    "refined_text", "editor_summary", "expression_profile", "analysis", "audit", 
+                    "conflicts", "lore_corrections", "lore_fraying", "justification", "evidence_based_claims",
+                    "why_behind_change", "lore_lineage", "mirror_editor_critique", "restraint_log",
+                    "expression_profile_vibe", "voice_audits"
+                ]
         }
     });
 
