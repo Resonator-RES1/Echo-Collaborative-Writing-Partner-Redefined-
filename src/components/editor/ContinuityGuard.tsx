@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { ShieldCheck, AlertTriangle, CheckCircle, Info, Zap, Search, Undo2, Check, Clock, Users } from 'lucide-react';
 import { LoreEntry, VoiceProfile, Scene } from '../../types';
-import { scanForContext, ContinuityIssue, performLocalScan, performConceptualScan, ScannerInstances } from '../../utils/contextScanner';
+import { scanForContext, ContinuityIssue, performLocalScan, ScannerInstances } from '../../utils/contextScanner';
 
 interface ContinuityGuardProps {
     draft: string;
@@ -14,7 +14,7 @@ interface ContinuityGuardProps {
     onViewLore?: (id: string) => void;
     onFix: (original: string, replacement: string) => void;
     showToast: (message: string) => void;
-    onIssuesUpdate?: (count: number) => void;
+    onIssuesUpdate?: (issues: ContinuityIssue[]) => void;
 }
 
 const getIssueIcon = (type: string) => {
@@ -42,8 +42,6 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = React.memo(({
     onIssuesUpdate
 }) => {
     const [resolvedFixes, setResolvedFixes] = useState<{ id: string, original: string, replacement: string }[]>([]);
-    const [deepIssues, setDeepIssues] = useState<ContinuityIssue[]>([]);
-    const [isScanning, setIsScanning] = useState(false);
 
     // 1. Detect Mentions (Hard Matches)
     const detectedIds = useMemo(() => scanForContext(draft, scanner.miniSearch), [draft, scanner]);
@@ -60,43 +58,7 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = React.memo(({
         [voiceProfiles, detectedVoiceIds]
     );
 
-    // 2. Perform Conceptual Scan (Debounced 10000ms - Long Idle)
-    useEffect(() => {
-        const timer = setTimeout(async () => {
-            if (!draft.trim()) {
-                setDeepIssues([]);
-                return;
-            }
-            setIsScanning(true);
-            try {
-                const issues = await performConceptualScan(draft, loreEntries, scanner.voyInstance, scanner.miniSearch);
-                setDeepIssues(issues);
-            } catch (error) {
-                console.error("Conceptual scan failed:", error);
-            } finally {
-                setIsScanning(false);
-            }
-        }, 300000); // 5 minute debounce for conceptual scan to prevent quota issues
-
-        return () => clearTimeout(timer);
-    }, [draft, loreEntries, scanner]);
-
-    const handleManualScan = useCallback(async () => {
-        if (!draft.trim()) return;
-        setIsScanning(true);
-        try {
-            const issues = await performConceptualScan(draft, loreEntries, scanner.voyInstance, scanner.miniSearch);
-            setDeepIssues(issues);
-            showToast("Deep conceptual scan complete.");
-        } catch (error) {
-            console.error("Conceptual scan failed:", error);
-            showToast("Deep scan failed.");
-        } finally {
-            setIsScanning(false);
-        }
-    }, [draft, loreEntries, scanner, showToast]);
-
-    // 3. Local Heuristic Warnings (Fast) - Debounced 1s
+    // 2. Local Heuristic Warnings (Fast) - Debounced 1s
     const [localWarnings, setLocalWarnings] = useState<ContinuityIssue[]>([]);
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -107,7 +69,7 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = React.memo(({
     }, [draft, loreEntries, voiceProfiles, currentScene, scanner]);
 
     // Raw issues before filtering resolved ones
-    const rawIssues = useMemo(() => [...localWarnings, ...deepIssues], [localWarnings, deepIssues]);
+    const rawIssues = useMemo(() => localWarnings, [localWarnings]);
 
     // Combine all active issues (filtered)
     const allIssues = useMemo(() => {
@@ -126,7 +88,7 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = React.memo(({
         };
     }, [allIssues]);
 
-    // 4. Inactive Mentions (Blind Spots)
+    // 3. Inactive Mentions (Blind Spots)
     const inactiveMentions = useMemo(() => {
         const lore = detectedLore.filter(e => !e.isActive);
         const voices = detectedVoices.filter(v => !v.isActive);
@@ -136,8 +98,8 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = React.memo(({
     const totalIssues = allIssues.length + inactiveMentions.lore.length + inactiveMentions.voices.length;
 
     useEffect(() => {
-        onIssuesUpdate?.(totalIssues);
-    }, [totalIssues, onIssuesUpdate]);
+        onIssuesUpdate?.(allIssues);
+    }, [allIssues, onIssuesUpdate]);
 
     useEffect(() => {
         setResolvedFixes(prev => {
@@ -224,23 +186,15 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = React.memo(({
         <div className="bg-surface-container-low rounded-2xl border border-outline-variant/20 overflow-hidden flex flex-col shadow-sm mt-4 animate-in slide-in-from-top-2 fade-in duration-300">
             <div className="p-4 border-b border-outline-variant/10 bg-surface-container-highest/30 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <ShieldCheck className={`w-4 h-4 ${totalIssues > 0 ? 'text-amber-500' : 'text-primary'} ${isScanning ? 'animate-pulse' : ''}`} />
+                    <ShieldCheck className={`w-4 h-4 ${totalIssues > 0 ? 'text-amber-500' : 'text-primary'}`} />
                     <div className="flex flex-col">
                         <h3 className="font-label text-[10px] uppercase tracking-[0.2em] font-black text-on-surface/80">Narrative Auditor</h3>
                         <p className="text-[8px] text-on-surface-variant/60 uppercase tracking-wider">
-                            {isScanning ? 'Deep Scanning Intelligence Layers...' : 'Scanning: Lore, Timeline, Social, Concepts'}
+                            Scanning: Lore, Timeline, Social, Concepts
                         </p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button 
-                        onClick={handleManualScan}
-                        disabled={isScanning}
-                        className="px-2 py-1 rounded-full bg-primary/10 text-primary text-[9px] font-black uppercase tracking-tighter hover:bg-primary/20 transition-all disabled:opacity-50"
-                        title="Run deep conceptual audit"
-                    >
-                        {isScanning ? 'Auditing...' : 'Deep Audit'}
-                    </button>
                     {(inactiveMentions.lore.length > 0 || inactiveMentions.voices.length > 0) && (
                         <button 
                             onClick={() => {
@@ -334,7 +288,7 @@ export const ContinuityGuard: React.FC<ContinuityGuardProps> = React.memo(({
                 )}
 
                 {/* 4. Empty State */}
-                {totalIssues === 0 && resolvedFixes.length === 0 && !isScanning && (
+                {totalIssues === 0 && resolvedFixes.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-6 text-center space-y-3">
                         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                             <CheckCircle className="w-5 h-5 text-primary" />

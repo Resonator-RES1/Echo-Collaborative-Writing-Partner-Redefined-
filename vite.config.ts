@@ -30,10 +30,28 @@ export default defineConfig(({ mode }) => {
       build: {
         rollupOptions: {
           output: {
-            manualChunks: {
-              'editor-core': ['@tiptap/react', '@tiptap/starter-kit', 'tiptap-markdown'],
-              'ai-engine': ['@google/genai', 'voy-search', 'minisearch'],
-              'ui-framework': ['motion', 'lucide-react', 'recharts']
+            manualChunks(id) {
+              if (id.includes('node_modules')) {
+                if (id.includes('@tiptap') || id.includes('prosemirror')) {
+                  return 'vendor-editor';
+                }
+                if (id.includes('lucide-react')) {
+                  return 'vendor-icons';
+                }
+                if (id.includes('recharts')) {
+                  return 'vendor-charts';
+                }
+                if (id.includes('@google/genai') || id.includes('voy-search') || id.includes('minisearch')) {
+                  return 'vendor-ai';
+                }
+                if (id.includes('motion')) {
+                  return 'vendor-motion';
+                }
+                if (id.includes('react/') || id.includes('react-dom/')) {
+                  return 'vendor-react';
+                }
+                return 'vendor-core'; // Fallback
+              }
             }
           }
         }

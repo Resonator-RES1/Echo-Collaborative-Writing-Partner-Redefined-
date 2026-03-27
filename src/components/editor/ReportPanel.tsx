@@ -42,6 +42,20 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
         );
     }
 
+    if (version.text.startsWith('Error:')) {
+        return (
+            <div className="flex flex-col flex-1 min-h-0 items-center justify-center text-center p-8 animate-in fade-in duration-700">
+                <div className="w-16 h-16 rounded-full bg-error/10 flex items-center justify-center mb-4">
+                    <Activity className="w-8 h-8 text-error" />
+                </div>
+                <h3 className="font-headline text-xl font-bold text-error mb-1">Refinement Failed</h3>
+                <p className="text-on-surface-variant max-w-xs mx-auto text-sm leading-relaxed">
+                    Check API Quota or network connection. The model was unable to complete the refinement process.
+                </p>
+            </div>
+        );
+    }
+
     return (
         <div className="flex flex-col flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar animate-in fade-in duration-500 pr-2 pb-12">
             {/* Header with Summary - Scrollable */}
@@ -93,10 +107,10 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
                         </div>
                         <div>
                             <h4 className="text-on-surface font-headline text-lg sm:text-xl font-bold mb-2">
-                                Echo's Verdict: High Fidelity Refinement.
+                                Echo's Verdict
                             </h4>
                             <p className="text-on-surface-variant text-sm sm:text-base leading-relaxed">
-                                Your unique voice was preserved{version.loreCorrections && version.loreCorrections.length > 0 ? `, and ${version.loreCorrections.length} lore conflicts were corrected` : ''}{version.loreFraying && version.loreFraying.length > 0 ? `, and ${version.loreFraying.length} lore fraying points were identified for review` : ''}. Ready for review.
+                                {version.summary || "Refinement complete. Review the metrics below."}
                             </p>
                         </div>
                     </div>
@@ -122,7 +136,7 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
                     <ReportAudit audit={version.audit} />
                 </div>
                 <div className="lg:col-span-2">
-                    <ReportAnalysis analysis={version.analysis} expressionProfile={version.expressionProfile} />
+                    <ReportAnalysis version={version} />
                 </div>
             </div>
 

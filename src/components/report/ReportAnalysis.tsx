@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { Activity, Info } from 'lucide-react';
+import { Activity, Info, Search, Scale, BookOpen } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import { RefinedVersion } from '../../types';
 
 interface ReportAnalysisProps {
-    analysis: RefinedVersion['analysis'];
-    expressionProfile: RefinedVersion['expressionProfile'];
+    version: RefinedVersion;
 }
 
-export const ReportAnalysis: React.FC<ReportAnalysisProps> = ({ analysis, expressionProfile }) => {
+export const ReportAnalysis: React.FC<ReportAnalysisProps> = ({ version }) => {
+    const { analysis, expressionProfile } = version;
     if (!analysis) return null;
 
     return (
@@ -40,6 +40,42 @@ export const ReportAnalysis: React.FC<ReportAnalysisProps> = ({ analysis, expres
                         </div>
                     </div>
                 </div>
+
+                {version.mirrorEditorCritique && (
+                    <div className="bg-surface-container-highest/20 p-5 rounded-xl border border-outline-variant/5 relative overflow-hidden mt-4">
+                        <div className="flex gap-4">
+                            <Search className="w-4 h-4 text-primary/50 shrink-0 mt-1" />
+                            <div>
+                                <h4 className="text-xs font-black uppercase tracking-widest text-on-surface-variant/50 mb-2">Mirror Critique</h4>
+                                <p className="text-sm text-on-surface-variant leading-relaxed">{version.mirrorEditorCritique}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {version.whyBehindChange && (
+                    <div className="bg-surface-container-highest/20 p-5 rounded-xl border border-outline-variant/5 relative overflow-hidden mt-4">
+                        <div className="flex gap-4">
+                            <Scale className="w-4 h-4 text-primary/50 shrink-0 mt-1" />
+                            <div>
+                                <h4 className="text-xs font-black uppercase tracking-widest text-on-surface-variant/50 mb-2">Stylistic Trade-offs</h4>
+                                <p className="text-sm text-on-surface-variant leading-relaxed">{version.whyBehindChange}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {version.loreLineage && (
+                    <div className="bg-surface-container-highest/20 p-5 rounded-xl border border-outline-variant/5 relative overflow-hidden mt-4">
+                        <div className="flex gap-4">
+                            <BookOpen className="w-4 h-4 text-primary/50 shrink-0 mt-1" />
+                            <div>
+                                <h4 className="text-xs font-black uppercase tracking-widest text-on-surface-variant/50 mb-2">Lore Lineage Verified</h4>
+                                <p className="text-sm text-on-surface-variant leading-relaxed">{version.loreLineage}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {expressionProfile && expressionProfile.length > 0 && (
                     <div className="space-y-4">

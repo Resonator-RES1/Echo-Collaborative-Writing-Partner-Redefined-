@@ -1,12 +1,19 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
+const SCENE_MODEL = "gemini-3-flash-preview";
+
+const cleanJsonResponse = (text: string | undefined): string => {
+    const rawText = text || "[]";
+    return rawText.replace(/^```json\n?/, '').replace(/```$/, '').trim();
+};
+
 export const generateSceneSummary = async (text: string): Promise<string> => {
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const prompt = `Summarize the following scene in 2-3 concise sentences, focusing on the main events and character developments:\n\n${text}`;
 
     try {
         const response = await ai.models.generateContent({
-            model: "gemini-3-flash-preview",
+            model: SCENE_MODEL,
             contents: prompt,
         });
         return response.text || '';
@@ -35,7 +42,7 @@ export const analyzeSceneContinuity = async (text: string, previousSummaries: st
 
     try {
         const response = await ai.models.generateContent({
-            model: "gemini-3-flash-preview",
+            model: SCENE_MODEL,
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
@@ -45,7 +52,7 @@ export const analyzeSceneContinuity = async (text: string, previousSummaries: st
                 }
             }
         });
-        return JSON.parse(response.text || '[]');
+        return JSON.parse(cleanJsonResponse(response.text));
     } catch (error) {
         console.error("Continuity analysis error:", error);
         return [];
@@ -66,7 +73,7 @@ export const generateSceneSuggestions = async (text: string): Promise<string[]> 
 
     try {
         const response = await ai.models.generateContent({
-            model: "gemini-3-flash-preview",
+            model: SCENE_MODEL,
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
@@ -76,7 +83,7 @@ export const generateSceneSuggestions = async (text: string): Promise<string[]> 
                 }
             }
         });
-        return JSON.parse(response.text || '[]');
+        return JSON.parse(cleanJsonResponse(response.text));
     } catch (error) {
         console.error("Scene suggestions error:", error);
         return [];
@@ -89,7 +96,7 @@ export const generateSceneTitle = async (text: string): Promise<string> => {
 
     try {
         const response = await ai.models.generateContent({
-            model: "gemini-3-flash-preview",
+            model: SCENE_MODEL,
             contents: prompt,
         });
         return (response.text || '').replace(/["']/g, '').trim();

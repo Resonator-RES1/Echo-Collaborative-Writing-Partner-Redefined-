@@ -2,64 +2,64 @@ import React from 'react';
 import { FeedbackDepth, RefineMode } from '../../../types';
 import { Zap, Scale, Search } from 'lucide-react';
 
-export const DEPTH_CONFIG: Record<FeedbackDepth, { label: string; temperature: number; icon: React.ReactNode; description: string }> = {
+export const DEPTH_CONFIG: Record<FeedbackDepth, { label: string; thinkingLevel: 'low' | 'default' | 'high'; icon: React.ReactNode; description: string }> = {
   casual: { 
     label: 'Casual', 
-    temperature: 0.3, 
+    thinkingLevel: 'low', 
     icon: <Zap className="w-4 h-4" />, 
     description: 'Quick, light polish for flow and clarity.' 
   },
   balanced: { 
     label: 'Balanced', 
-    temperature: 0.7, 
+    thinkingLevel: 'default', 
     icon: <Scale className="w-4 h-4" />, 
     description: 'Standard refinement for professional prose.' 
   },
   'in-depth': { 
     label: 'In-depth', 
-    temperature: 0.9, 
+    thinkingLevel: 'high', 
     icon: <Search className="w-4 h-4" />, 
     description: 'Deep stylistic overhaul and narrative audit.' 
   },
 };
 
-export const REVIEW_DEPTH_CONFIG: Record<FeedbackDepth, { label: string; temperature: number; icon: React.ReactNode; description: string }> = {
+export const REVIEW_DEPTH_CONFIG: Record<FeedbackDepth, { label: string; thinkingLevel: 'low' | 'default' | 'high'; icon: React.ReactNode; description: string }> = {
   casual: { 
     label: 'Casual', 
-    temperature: 0.3, 
+    thinkingLevel: 'low', 
     icon: <Zap className="w-4 h-4" />, 
     description: 'Quick check for glaring errors.' 
   },
   balanced: { 
     label: 'Balanced', 
-    temperature: 0.7, 
+    thinkingLevel: 'default', 
     icon: <Scale className="w-4 h-4" />, 
     description: 'Thorough review of prose and logic.' 
   },
   'in-depth': { 
     label: 'In-depth', 
-    temperature: 0.9, 
+    thinkingLevel: 'high', 
     icon: <Search className="w-4 h-4" />, 
     description: 'Comprehensive audit of all narrative layers.' 
   },
 };
 
-export const REACTION_DEPTH_CONFIG: Record<FeedbackDepth, { label: string; temperature: number; icon: React.ReactNode; description: string }> = {
+export const REACTION_DEPTH_CONFIG: Record<FeedbackDepth, { label: string; thinkingLevel: 'low' | 'default' | 'high'; icon: React.ReactNode; description: string }> = {
   casual: { 
     label: 'Quick', 
-    temperature: 0.5, 
+    thinkingLevel: 'low', 
     icon: <Zap className="w-4 h-4" />, 
     description: 'Immediate impressions and vibes.' 
   },
   balanced: { 
     label: 'Balanced', 
-    temperature: 0.8, 
+    thinkingLevel: 'default', 
     icon: <Scale className="w-4 h-4" />, 
     description: 'Thoughtful reaction to scene and character.' 
   },
   'in-depth': { 
     label: 'Deep', 
-    temperature: 1.0, 
+    thinkingLevel: 'high', 
     icon: <Search className="w-4 h-4" />, 
     description: 'Profound analysis of emotional and thematic resonance.' 
   },

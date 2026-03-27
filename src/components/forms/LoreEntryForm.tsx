@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, BookOpen, Fingerprint, Database, Cpu, Waypoints, Plus, Trash2, Loader2 } from 'lucide-react';
 import { LoreEntry, Gender, Relationship } from '../../types';
-import { getEmbedding } from '../../utils/contextScanner';
+
 
 interface LoreEntryFormProps {
   onClose: () => void;
@@ -54,8 +54,6 @@ export function LoreEntryForm({ onClose, onSave, initialData, isModal = true, lo
 
     setIsSaving(true);
     try {
-      // Generate embedding for Voy conceptual search
-      const embedding = await getEmbedding(`${title}: ${content}`);
       const aliasList = aliases.split(',').map(a => a.trim()).filter(a => a !== '');
 
       onSave({
@@ -69,8 +67,7 @@ export function LoreEntryForm({ onClose, onSave, initialData, isModal = true, lo
         relationships: category === 'Characters' ? relationships : undefined,
         storyDay: category === 'Timeline' ? storyDay : undefined,
         linkedEntityIds: category === 'Timeline' ? linkedEntityIds : undefined,
-        lastModified: new Date().toISOString(),
-        embedding: embedding
+        lastModified: new Date().toISOString()
       });
     } catch (error) {
       console.error("Failed to save lore entry:", error);

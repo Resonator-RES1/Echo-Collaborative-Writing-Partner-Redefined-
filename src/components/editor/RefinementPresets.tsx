@@ -11,13 +11,13 @@ import { VoiceProfileManager } from './presets/VoiceProfileManager';
 import { FocusArea, FeedbackDepth, RefinedVersion, LoreEntry, VoiceProfile, AuthorVoice, WorkspaceTab } from '../../types';
 import { refineDraft } from '../../services/geminiService';
 import { LoreContextManager } from './LoreContextManager';
-import { scanForContext, ScannerInstances } from '../../utils/contextScanner';
+import { scanForContext, ScannerInstances, ContinuityIssue } from '../../utils/contextScanner';
 import { SettingsModal } from '../SettingsModal';
 
-const DEPTH_CONFIG: Record<FeedbackDepth, { label: string; temperature: number }> = {
-  casual: { label: 'Casual Polish', temperature: 0.3 },
-  balanced: { label: 'Balanced Polish', temperature: 0.7 },
-  'in-depth': { label: 'In-depth Polish', temperature: 0.9 },
+const DEPTH_CONFIG: Record<FeedbackDepth, { label: string; thinkingLevel: 'low' | 'default' | 'high' }> = {
+  casual: { label: 'Casual Polish', thinkingLevel: 'low' },
+  balanced: { label: 'Balanced Polish', thinkingLevel: 'default' },
+  'in-depth': { label: 'In-depth Polish', thinkingLevel: 'high' },
 };
 
 interface RefinementPresetsProps {
@@ -38,6 +38,7 @@ interface RefinementPresetsProps {
     editorRef?: React.MutableRefObject<any>;
     setActiveTab?: (tab: WorkspaceTab) => void;
     scanner: ScannerInstances;
+    localWarnings?: ContinuityIssue[];
 }
 
 function replaceClosestOccurrence(fullText: string, searchText: string, replacementText: string, estimatedIndex: number): string {
@@ -69,7 +70,7 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
         getDraft, selection, isRefining, setIsRefining, showToast, onNewVersion,
         loreEntries, voiceProfiles, authorVoices,
         onAddLoreEntry, onAddVoiceProfile, onAddAuthorVoice,
-        currentSceneId, storyDay, editorRef, setActiveTab, scanner
+        currentSceneId, storyDay, editorRef, setActiveTab, scanner, localWarnings
     } = props;
 
     const [presetsOpen, setPresetsOpen] = useState(true);
@@ -137,18 +138,23 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
         
         setIsRefining(true);
 
-        // Determine correct temperature
-        let currentTemperature = DEPTH_CONFIG[feedbackDepth]?.temperature ?? 0.7;
+        // Determine correct thinking level
+        const currentThinkingLevel = DEPTH_CONFIG[feedbackDepth]?.thinkingLevel ?? 'default';
 
         const options = {
           draft: textToRefine,
           fullContextDraft: isTargeted ? fullDraft : undefined,
           selection: isTargeted ? selection : undefined,
-          generationConfig: { model, temperature: currentTemperature },
+          generationConfig: { 
+              model, 
+              temperature: 1.0, // Forced to 1.0 for Gemini 3.1 reasoning stability
+              thinkingConfig: { thinkingLevel: currentThinkingLevel } 
+          },
           focusAreas,
           loreEntries, voiceProfiles, authorVoices,
           feedbackDepth,
-          storyDay
+          storyDay,
+          localWarnings
         };
 
         const result = await refineDraft(options);

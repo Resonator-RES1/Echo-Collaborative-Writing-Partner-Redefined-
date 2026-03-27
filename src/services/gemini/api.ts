@@ -3,7 +3,10 @@ import { getSetting } from "../dbService";
 
 export interface GenerationConfig {
     model: 'gemini-3.1-flash-lite-preview' | 'gemini-3.1-pro-preview' | 'gemini-3-flash-preview';
-    temperature: number;
+    temperature?: number; // Should now always default to 1.0
+    thinkingConfig?: {
+        thinkingLevel: 'low' | 'default' | 'high';
+    };
 }
 
 export interface AiPayload {
@@ -11,6 +14,9 @@ export interface AiPayload {
     prompt: string;
     systemInstruction?: string;
     temperature?: number;
+    thinkingConfig?: {
+        thinkingLevel: 'low' | 'default' | 'high';
+    };
     responseSchema?: any;
     feedbackDepth?: 'casual' | 'balanced' | 'in-depth';
 }
@@ -29,14 +35,18 @@ export async function callAiApi(payload: AiPayload, retryCount = 0): Promise<any
 
     const ai = new GoogleGenAI({ apiKey });
     
-    const { model, prompt, systemInstruction, temperature, responseSchema, feedbackDepth } = payload;
+    const { model, prompt, systemInstruction, temperature, thinkingConfig, responseSchema, feedbackDepth } = payload;
     const modelName = model || "gemini-3.1-flash-lite-preview";
 
     // Intelligence Model & Polish Depth Optimization
     // Tie thinking level to the user's requested polish depth
     let thinkingLevel = ThinkingLevel.LOW; // Default to fast
     
-    if (feedbackDepth === 'in-depth') {
+    if (thinkingConfig?.thinkingLevel) {
+        thinkingLevel = thinkingConfig.thinkingLevel === 'high' ? ThinkingLevel.HIGH : 
+                        thinkingConfig.thinkingLevel === 'low' ? ThinkingLevel.LOW : 
+                        ThinkingLevel.LOW; // Fallback to LOW
+    } else if (feedbackDepth === 'in-depth') {
         thinkingLevel = ThinkingLevel.HIGH; // Deepest reasoning for complex epics
     } else if (feedbackDepth === 'balanced') {
         // Balanced: Pro gets HIGH, Flash gets LOW
@@ -52,7 +62,7 @@ export async function callAiApi(payload: AiPayload, retryCount = 0): Promise<any
             contents: [{ parts: [{ text: prompt }] }],
             config: {
                 systemInstruction,
-                temperature: temperature ?? 0.7,
+                temperature: temperature ?? 1.0, // Forced to 1.0 for Gemini 3.1 reasoning stability
                 responseMimeType: "application/json",
                 responseSchema: responseSchema,
                 thinkingConfig: { thinkingLevel }

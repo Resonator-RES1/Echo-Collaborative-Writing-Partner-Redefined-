@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, useMemo, useReducer, useRef } 
 import { motion, AnimatePresence } from 'motion/react';
 import { Wand2, ChevronDown, ShieldCheck, FileText, BookOpen, History, BarChart3, Sparkles, GitCompare, PenTool, Sun } from 'lucide-react';
 import { RefinedVersion, LoreEntry, VoiceProfile, AuthorVoice, Scene, WorkspaceTab } from '../types';
-import { scanForContext, createScanner } from '../utils/contextScanner';
+import { scanForContext, createScanner, ContinuityIssue } from '../utils/contextScanner';
 import { draftReducer, initialDraftState } from './editor/draftReducer';
 import { FormattingToolbar, FormatType } from './editor/FormattingToolbar';
 import { RichTextEditor } from './editor/RichTextEditor';
@@ -140,7 +140,7 @@ const Editor: React.FC<EditorProps> = ({
   const [showContinuityGuard, setShowContinuityGuard] = useState(false);
   const [showDiff, setShowDiff] = useState(false);
   const [showRecentChanges, setShowRecentChanges] = useState(false);
-  const [continuityIssues, setContinuityIssues] = useState(0);
+  const [continuityIssues, setContinuityIssues] = useState<ContinuityIssue[]>([]);
 
   const [selection, setSelection] = useState<{ text: string; start: number; end: number } | null>(null);
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('draft');
@@ -449,6 +449,7 @@ const Editor: React.FC<EditorProps> = ({
                     editorRef={editorRef}
                     setActiveTab={setActiveTab}
                     scanner={scanner}
+                    localWarnings={continuityIssues}
                   />
               )}
               {activeTab === 'archive' && (
@@ -606,7 +607,7 @@ const Editor: React.FC<EditorProps> = ({
                           className={`pointer-events-auto flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
                               showContinuityGuard 
                                 ? 'bg-primary text-on-primary-fixed' 
-                                : continuityIssues > 0 
+                                : continuityIssues.length > 0 
                                     ? 'bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 ring-1 ring-amber-500/50' 
                                     : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'
                           }`}
@@ -614,9 +615,9 @@ const Editor: React.FC<EditorProps> = ({
                       >
                           <ShieldCheck className="w-3.5 h-3.5" />
                           <span className="hidden md:inline">Continuity Guard</span>
-                          {continuityIssues > 0 && (
+                          {continuityIssues.length > 0 && (
                               <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-on-amber text-[8px] font-black">
-                                  {continuityIssues}
+                                  {continuityIssues.length}
                               </span>
                           )}
                       </button>

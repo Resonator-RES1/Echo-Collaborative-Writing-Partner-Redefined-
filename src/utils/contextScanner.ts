@@ -1,7 +1,5 @@
 import MiniSearch from 'minisearch';
-import { Voy } from 'voy-search';
 import { LoreEntry, VoiceProfile, Scene } from '../types';
-import { GoogleGenAI } from "@google/genai";
 
 export interface ContinuityIssue {
     id: string;
@@ -17,19 +15,16 @@ export interface ContinuityIssue {
 
 export interface ScannerInstances {
     miniSearch: MiniSearch;
-    voyInstance: any;
 }
-
-let isVoyEnabled = true;
 
 export const createScanner = (entries: LoreEntry[], voices: VoiceProfile[]): ScannerInstances => {
     const miniSearch = new MiniSearch({
-        fields: ['title', 'name', 'aliases', 'content'],
+        fields: ['title', 'name', 'aliases'],
         storeFields: ['id', 'type'],
         searchOptions: {
             boost: { title: 2, name: 2, aliases: 1.5 },
-            fuzzy: 0.2,
-            prefix: true
+            fuzzy: 0.1,
+            prefix: false
         }
     });
 
@@ -38,14 +33,12 @@ export const createScanner = (entries: LoreEntry[], voices: VoiceProfile[]): Sca
             id: e.id,
             title: e.title,
             aliases: e.aliases?.join(' ') || '',
-            content: e.content,
             type: 'lore'
         })),
         ...voices.map(v => ({
             id: v.id,
             name: v.name,
             aliases: v.aliases?.join(' ') || '',
-            content: v.soulPattern + ' ' + v.cognitivePatterns,
             type: 'voice'
         }))
     ];
@@ -57,43 +50,7 @@ export const createScanner = (entries: LoreEntry[], voices: VoiceProfile[]): Sca
         setTimeout(addDocuments, 0);
     }
     
-    let voyInstance: any = null;
-    const entriesWithEmbeddings = entries.filter(e => e.embedding && e.embedding.length > 0);
-    if (isVoyEnabled && entriesWithEmbeddings.length > 0) {
-        try {
-            voyInstance = new Voy({
-                embeddings: entriesWithEmbeddings.map(e => ({
-                    id: e.id,
-                    title: e.title,
-                    url: '', // Required by Voy types
-                    embeddings: e.embedding!
-                }))
-            });
-        } catch (error) {
-            console.error("Failed to initialize Voy:", error);
-            isVoyEnabled = false;
-            voyInstance = null;
-        }
-    }
-
-    return { miniSearch, voyInstance };
-};
-
-// Helper to get embeddings from Gemini
-export const getEmbedding = async (text: string): Promise<number[]> => {
-    if (typeof import.meta.env === 'undefined' || !import.meta.env.VITE_GEMINI_API_KEY) return new Array(768).fill(0);
-    
-    try {
-        const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
-        const result = await ai.models.embedContent({
-            model: 'gemini-embedding-2-preview',
-            contents: [text]
-        });
-        return result.embeddings[0].values;
-    } catch (error) {
-        console.error("Embedding error:", error);
-        return new Array(768).fill(0);
-    }
+    return { miniSearch };
 };
 
 export const scanForContext = (text: string, miniSearch: MiniSearch) => {
@@ -176,11 +133,10 @@ export const performLocalScan = (
     // 1. Hard Matches (MiniSearch)
     const hardMatches = miniSearch.search(text);
     
-    // Fallback to fuzzy MiniSearch for conceptual hits if Voy isn't used
+    // 2. Conceptual Hits (Fuzzy MiniSearch)
     const conceptualHits = miniSearch.search(text, {
-        fuzzy: 0.4,
-        prefix: false,
-        boost: { content: 2 }
+        fuzzy: 0.2,
+        prefix: false
     }).filter(hit => !hardMatches.find(hm => hm.id === hit.id));
 
     conceptualHits.slice(0, 2).forEach(hit => {
@@ -196,13 +152,13 @@ export const performLocalScan = (
         }
     });
 
-    // 2. Timeline Guard
+    // 3. Timeline Guard
     issues.push(...detectTimelineIssues(text, currentScene, loreEntries));
 
-    // 3. Social dynamics
+    // 4. Social dynamics
     issues.push(...checkSocialConsistency(text, activeVoices, loreEntries));
 
-    // 4. Pronoun/Gender checks
+    // 5. Pronoun/Gender checks
     activeVoices.forEach(voice => {
         const nameRegex = new RegExp(`\\b${voice.name.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}\\b`, 'gi');
         if (nameRegex.test(text)) {
@@ -229,42 +185,6 @@ export const performLocalScan = (
             }
         }
     });
-
-    return issues;
-};
-
-export const performConceptualScan = async (
-    text: string, 
-    loreEntries: LoreEntry[],
-    voyInstance: any,
-    miniSearch: MiniSearch
-): Promise<ContinuityIssue[]> => {
-    const issues: ContinuityIssue[] = [];
-    if (!text.trim() || !voyInstance || typeof import.meta.env === 'undefined' || !import.meta.env.VITE_GEMINI_API_KEY || !miniSearch) return issues;
-
-    try {
-        const queryVector = await getEmbedding(text);
-        const searchResult = voyInstance.search(new Float32Array(queryVector), 3);
-        const hits = searchResult.neighbors || [];
-        
-        const hardMatches = miniSearch.search(text);
-
-        hits.forEach((hit: any) => {
-            const entry = loreEntries.find(e => e.id === hit.id);
-            // Only flag if it's not already a hard match and not active
-            if (entry && !entry.isActive && !hardMatches.find(hm => hm.id === entry.id)) {
-                issues.push({
-                    id: `conceptual-deep-${entry.id}`,
-                    type: 'conceptual',
-                    severity: 'low',
-                    message: `Deep Thematic Connection: "${entry.title}" strongly resonates with this scene's concepts.`,
-                    linkedEntryId: entry.id
-                });
-            }
-        });
-    } catch (error) {
-        console.error("Voy search error:", error);
-    }
 
     return issues;
 };

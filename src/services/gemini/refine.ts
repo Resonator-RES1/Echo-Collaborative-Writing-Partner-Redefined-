@@ -1,6 +1,7 @@
 import { Type } from "@google/genai";
 import { FOCUS_AREA_PROMPTS } from '../../constants';
 import { FocusArea, LoreEntry, VoiceProfile, RefinedVersion, AuthorVoice, FeedbackDepth, VoiceAudit } from '../../types';
+import { ContinuityIssue } from '../../utils/contextScanner';
 import { callAiApi, GenerationConfig } from './api';
 import { getSystemPrompt } from './prompts';
 
@@ -18,6 +19,7 @@ export interface RefineDraftOptions {
   storyDay?: number;
   previousEchoes?: RefinedVersion[];
   feedbackDepth?: FeedbackDepth;
+  localWarnings?: ContinuityIssue[];
 }
 
 export interface RefineDraftResult {
@@ -73,8 +75,22 @@ export const refineDraft = async (options: RefineDraftOptions): Promise<RefineDr
       chapterNumber,
       storyDay,
       previousEchoes = [],
-      feedbackDepth = 'balanced'
+      feedbackDepth = 'balanced',
+      localWarnings = []
     } = options;
+
+    // --- PAYLOAD AUDITOR ---
+    const auditorActiveLore = loreEntries.filter(e => e.isActive);
+    const auditorActiveVoices = voiceProfiles.filter(v => v.isActive);
+
+    const loreContextSize = auditorActiveLore.reduce((acc, l) => acc + l.content.length + (l.sensoryPalette?.length || 0), 0);
+    const voiceContextSize = auditorActiveVoices.reduce((acc, v) => acc + (v.soulPattern.length) + (v.speechPatterns.length) + (v.cognitivePatterns.length), 0);
+    const totalContextSize = loreContextSize + voiceContextSize;
+
+    if (totalContextSize > 15000) {
+        throw new Error(`Cognitive Overload: Active Context exceeds safe limit (${Math.round(totalContextSize/1000)}k / 15k chars). Deactivate non-essential Lore to protect Refinement Fidelity.`);
+    }
+    // --- END PAYLOAD AUDITOR ---
 
     const systemInstruction = getSystemPrompt();
     
@@ -114,7 +130,11 @@ export const refineDraft = async (options: RefineDraftOptions): Promise<RefineDr
         if (worldContext.length > 0) {
             preamble += '--- WORLD CONTEXT (NARRATIVE GUIDES) ---\n';
             preamble += worldContext.map(l => {
-                let entryText = `- [${l.category}] ${l.title}: ${l.content} ${l.sensoryPalette ? `(Sensory: ${l.sensoryPalette})` : ''}`;
+                let entryText = `- [${l.category}] ${l.title} ${l.aliases?.length ? `(Aliases: ${l.aliases.join(', ')})` : ''}: ${l.content}`;
+                
+                if (l.sensoryPalette) {
+                    entryText += `\n  * Sensory Palette: ${l.sensoryPalette}`;
+                }
                 
                 // Resolve relationships for characters
                 if (l.category === 'Characters' && l.relationships && l.relationships.length > 0) {
@@ -152,13 +172,20 @@ export const refineDraft = async (options: RefineDraftOptions): Promise<RefineDr
         preamble += `CRITICAL: If a character is NOT found in the specific text snippet being refined, ignore their voice profile.\n`;
         preamble += activeVoices.map(v => {
             const engine = [
-                `- ${v.name}:`,
-                `  Core-Motivation: ${v.coreMotivation || 'Unknown'}`,
-                `  Soul-Pattern: ${v.soulPattern}`,
-                `  Speech-Patterns: ${v.speechPatterns}`,
-                `  Idioms: ${v.idioms.join(', ')}`,
-                `  Example Lines: ${v.exampleLines.join(' | ')}`
-            ].join('\n');
+                `- ${v.name} (Gender: ${v.gender}, Archetype: ${v.archetype}) ${v.aliases?.length ? `[Aliases: ${v.aliases.join(', ')}]` : ''}:`,
+                `  Core Motivation: ${v.coreMotivation || 'Unknown'}`,
+                `  Soul Pattern: ${v.soulPattern}`,
+                `  Cognitive Patterns (How they think): ${v.cognitivePatterns || 'N/A'}`,
+                `  Internal Monologue: ${v.internalMonologueStyle || 'N/A'}`,
+                `  Speech Patterns: ${v.speechPatterns}`,
+                `  Conversational Role: ${v.conversationalRole || 'N/A'}`,
+                `  Emotional Expression: ${v.emotionalExpression || 'N/A'}`,
+                `  Conflict Style: ${v.conflictStyle || 'N/A'}`,
+                `  Physical Tells & Behaviors: ${v.physicalTells ? v.physicalTells + ' | ' : ''}${v.behavioralAnchors || ''}`,
+                `  Signature Traits: ${v.signatureTraits?.length ? v.signatureTraits.join(', ') : 'N/A'}`,
+                `  Idioms: ${v.idioms?.length ? v.idioms.join(', ') : 'N/A'}`,
+                `  Example Lines: ${v.exampleLines?.length ? v.exampleLines.join(' | ') : 'N/A'}`
+            ].filter(line => !line.endsWith('N/A') && !line.trim().endsWith(': |')).join('\n');
             return engine;
         }).join('\n\n') + '\n\n';
     }
@@ -199,6 +226,12 @@ export const refineDraft = async (options: RefineDraftOptions): Promise<RefineDr
         preamble += `*** SPECIAL INSTRUCTION (USER OVERRIDE) ***\n${options.customInstruction}\n\n`;
     }
 
+    if (localWarnings.length > 0) {
+        preamble += `*** LOCAL CONTINUITY WARNINGS (SCANNER ALERTS) ***\n`;
+        preamble += `The local scanner has identified the following potential issues in the current draft. You MUST address these in your refinement or justify why they are being ignored in your summary.\n`;
+        preamble += localWarnings.map(w => `- [${w.type.toUpperCase()}] ${w.message}`).join('\n') + '\n\n';
+    }
+
     const weighting = feedbackDepth === 'casual' ? '95% Voice / 5% Focus' : feedbackDepth === 'balanced' ? '80% Voice / 20% Focus' : '70% Voice / 30% Focus';
     preamble += `\n*** DIALING SYSTEM ***\nWeighting: ${weighting}\n\n`;
 
@@ -208,7 +241,7 @@ export const refineDraft = async (options: RefineDraftOptions): Promise<RefineDr
 \n### RESPONSE SCHEMA (JSON)
 Return the following structure:
 {
-  "refined_text": "The polished version of the text. If full chapter, start with a Markdown H1 header (#) for the title. If surgical, return ONLY the refined snippet, PRESERVING all original paragraph breaks, spacing, and structural formatting.",
+  "refined_text": "The polished version of the text. If surgical, return ONLY the refined snippet, PRESERVING all original paragraph breaks, spacing, and structural formatting.",
   "editor_summary": "Concise explanation of refinements + acknowledgment of restraint (2-3 sentences max)",
   "justification": "Detailed surgical post-op of the refinement.",
   "evidence_based_claims": "Specific, measurable changes made to the text.",
@@ -266,7 +299,7 @@ For every character identified in the scene whose Voice Profile is active, you M
         userPrompt = `${preamble}\n\n---\n\n<FULL_DRAFT_CONTEXT>\n${fullContextDraft}\n</FULL_DRAFT_CONTEXT>\n\n<TARGET_SELECTION>\n${selection.text}\n</TARGET_SELECTION>`;
     } else {
         preamble += `\n*** FULL CHAPTER REFINEMENT MODE ***\n`;
-        preamble += `Refine the entire draft provided below. Ensure the first line is a Markdown H1 header (#) containing the title of the piece.\n\n`;
+        preamble += `Refine the entire draft provided below. FORMATTING ENFORCEMENT: Never arbitrarily add titles or headers unless they exist in the original draft. Match the author's exact spacing and Markdown structure.\n\n`;
         userPrompt = preamble ? `${preamble}\n\n---\n\n${draft}` : draft;
     }
 
@@ -275,6 +308,7 @@ For every character identified in the scene whose Voice Profile is active, you M
         prompt: userPrompt,
         systemInstruction,
         temperature: generationConfig.temperature,
+        thinkingConfig: generationConfig.thinkingConfig, // Pass the new parameter
         feedbackDepth,
         responseSchema: {
             type: Type.OBJECT,
@@ -432,7 +466,9 @@ For every character identified in the scene whose Voice Profile is active, you M
         }
     });
 
-    const parsed = JSON.parse(result.text || "{}");
+    const rawText = result.text || "{}";
+    const cleanedJsonString = rawText.replace(/^```json\n?/, '').replace(/```$/, '').trim();
+    const parsed = JSON.parse(cleanedJsonString);
     const cleanText = (text: string) => {
         if (!text) return "";
         return text.replace(/^```markdown\n?/, '').replace(/```$/, '').trim();
