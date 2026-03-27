@@ -154,7 +154,8 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
           loreEntries, voiceProfiles, authorVoices,
           feedbackDepth,
           storyDay,
-          localWarnings
+          localWarnings,
+          isSurgical: isTargeted
         };
 
         const result = await refineDraft(options);
@@ -276,6 +277,14 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
     const activeContext = activeLoreChars + activeVoiceChars;
     const efficiency = totalContext > 0 ? Math.round((1 - (activeContext / totalContext)) * 100) : 0;
 
+    const CONTEXT_LIMIT = 15000;
+    const contextPercentage = Math.min((activeContext / CONTEXT_LIMIT) * 100, 100);
+    const getContextColor = () => {
+        if (contextPercentage > 90) return 'bg-error';
+        if (contextPercentage > 70) return 'bg-accent-amber';
+        return 'bg-primary';
+    };
+
     return (
         <div className="space-y-6">
             <div className="bg-surface-container-low rounded-3xl border border-outline-variant/20 p-4 lg:p-6 shadow-xl space-y-6">
@@ -313,6 +322,28 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
 
                 {presetsOpen && (
                     <div className="space-y-6 lg:space-y-8 animate-in fade-in slide-in-from-top-4 duration-500">
+                        {/* Context Meter */}
+                        <div className="space-y-2">
+                            <div className="flex justify-between items-end">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/50">Context Payload</span>
+                                <span className={`text-[10px] font-black uppercase tracking-widest ${contextPercentage > 90 ? 'text-error' : 'text-on-surface-variant/50'}`}>
+                                    {activeContext.toLocaleString()} / {CONTEXT_LIMIT.toLocaleString()} Chars
+                                </span>
+                            </div>
+                            <div className="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+                                <div 
+                                    className={`h-full transition-all duration-500 ease-out ${getContextColor()}`}
+                                    style={{ width: `${contextPercentage}%` }}
+                                />
+                            </div>
+                            {contextPercentage > 80 && (
+                                <p className="text-[9px] text-accent-amber font-bold italic flex items-center gap-1">
+                                    <AlertCircle className="w-3 h-3" />
+                                    Approaching Cognitive Overload. Consider deactivating non-essential Lore.
+                                </p>
+                            )}
+                        </div>
+
                         <div className="grid grid-cols-1 gap-6 lg:gap-8">
                             <FocusAreaSelector 
                                 focusAreas={focusAreas} 

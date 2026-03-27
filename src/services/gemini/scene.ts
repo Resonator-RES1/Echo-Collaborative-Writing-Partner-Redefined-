@@ -1,6 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const SCENE_MODEL = "gemini-3-flash-preview";
+const SCENE_MODEL = "gemini-3-flash";
 
 const cleanJsonResponse = (text: string | undefined): string => {
     const rawText = text || "[]";

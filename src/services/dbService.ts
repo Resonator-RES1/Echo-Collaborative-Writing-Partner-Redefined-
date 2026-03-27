@@ -161,6 +161,28 @@ export const getEchoes = async (): Promise<RefinedVersion[]> => {
 export const putEcho = async (echo: RefinedVersion): Promise<void> => {
   const db = await getDB();
   await db.put('echoes', echo);
+
+  // --- ARCHIVE AUTO-PRUNER ---
+  const sceneId = echo.sceneId;
+  if (sceneId) {
+    const allEchoes = await db.getAll('echoes');
+    const sceneEchoes = allEchoes.filter(e => e.sceneId === sceneId);
+    
+    if (sceneEchoes.length > 5) {
+      // Sort by timestamp ascending (oldest first)
+      sceneEchoes.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      
+      // Get the oldest ones to delete
+      const echoesToDelete = sceneEchoes.slice(0, sceneEchoes.length - 5);
+      
+      const tx = db.transaction('echoes', 'readwrite');
+      for (const echoToDelete of echoesToDelete) {
+        await tx.store.delete(echoToDelete.id);
+      }
+      await tx.done;
+    }
+  }
+  // --- END AUTO-PRUNER ---
 };
 
 export const deleteEcho = async (id: string): Promise<void> => {

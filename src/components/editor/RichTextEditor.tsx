@@ -2,6 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
+import Typography from '@tiptap/extension-typography';
+import Dropcursor from '@tiptap/extension-dropcursor';
 import { Markdown } from 'tiptap-markdown';
 
 interface RichTextEditorProps {
@@ -31,6 +33,11 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       }),
       Placeholder.configure({
         placeholder,
+      }),
+      Typography,
+      Dropcursor.configure({
+        color: 'var(--color-primary)',
+        width: 2,
       }),
       Markdown.configure({
         html: false,
@@ -64,7 +71,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     },
     editorProps: {
       attributes: {
-        class: `prose prose-theme max-w-none focus:outline-none min-h-full ${className}`,
+        class: `prose prose-theme max-w-none focus:outline-none min-h-full text-base sm:text-lg md:text-xl leading-relaxed sm:leading-loose text-on-surface ${className}`,
       },
     },
   });

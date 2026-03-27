@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Activity, Info, Search, Scale, BookOpen } from 'lucide-react';
+import { Activity, Info, Search, Scale, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
@@ -10,6 +10,9 @@ interface ReportAnalysisProps {
 }
 
 export const ReportAnalysis: React.FC<ReportAnalysisProps> = ({ version }) => {
+    const [isCritiqueExpanded, setIsCritiqueExpanded] = useState(false);
+    const [isTradeoffsExpanded, setIsTradeoffsExpanded] = useState(false);
+    
     const { analysis, expressionProfile } = version;
     if (!analysis) return null;
 
@@ -42,26 +45,42 @@ export const ReportAnalysis: React.FC<ReportAnalysisProps> = ({ version }) => {
                 </div>
 
                 {version.mirrorEditorCritique && (
-                    <div className="bg-surface-container-highest/20 p-5 rounded-xl border border-outline-variant/5 relative overflow-hidden mt-4">
-                        <div className="flex gap-4">
-                            <Search className="w-4 h-4 text-primary/50 shrink-0 mt-1" />
-                            <div>
-                                <h4 className="text-xs font-black uppercase tracking-widest text-on-surface-variant/50 mb-2">Mirror Critique</h4>
-                                <p className="text-sm text-on-surface-variant leading-relaxed">{version.mirrorEditorCritique}</p>
+                    <div className="bg-surface-container-highest/20 rounded-xl border border-outline-variant/5 relative overflow-hidden mt-4">
+                        <button 
+                            onClick={() => setIsCritiqueExpanded(!isCritiqueExpanded)}
+                            className="w-full flex items-center justify-between p-5 hover:bg-surface-container-highest/30 transition-all"
+                        >
+                            <div className="flex gap-4">
+                                <Search className="w-4 h-4 text-primary/50 shrink-0 mt-1" />
+                                <h4 className="text-xs font-black uppercase tracking-widest text-on-surface-variant/50">Mirror Critique</h4>
                             </div>
-                        </div>
+                            {isCritiqueExpanded ? <ChevronUp className="w-4 h-4 text-on-surface-variant/40" /> : <ChevronDown className="w-4 h-4 text-on-surface-variant/40" />}
+                        </button>
+                        {isCritiqueExpanded && (
+                            <div className="px-5 pb-5 pt-0 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <p className="text-sm text-on-surface-variant leading-relaxed pl-8">{version.mirrorEditorCritique}</p>
+                            </div>
+                        )}
                     </div>
                 )}
 
                 {version.whyBehindChange && (
-                    <div className="bg-surface-container-highest/20 p-5 rounded-xl border border-outline-variant/5 relative overflow-hidden mt-4">
-                        <div className="flex gap-4">
-                            <Scale className="w-4 h-4 text-primary/50 shrink-0 mt-1" />
-                            <div>
-                                <h4 className="text-xs font-black uppercase tracking-widest text-on-surface-variant/50 mb-2">Stylistic Trade-offs</h4>
-                                <p className="text-sm text-on-surface-variant leading-relaxed">{version.whyBehindChange}</p>
+                    <div className="bg-surface-container-highest/20 rounded-xl border border-outline-variant/5 relative overflow-hidden mt-4">
+                        <button 
+                            onClick={() => setIsTradeoffsExpanded(!isTradeoffsExpanded)}
+                            className="w-full flex items-center justify-between p-5 hover:bg-surface-container-highest/30 transition-all"
+                        >
+                            <div className="flex gap-4">
+                                <Scale className="w-4 h-4 text-primary/50 shrink-0 mt-1" />
+                                <h4 className="text-xs font-black uppercase tracking-widest text-on-surface-variant/50">Stylistic Trade-offs</h4>
                             </div>
-                        </div>
+                            {isTradeoffsExpanded ? <ChevronUp className="w-4 h-4 text-on-surface-variant/40" /> : <ChevronDown className="w-4 h-4 text-on-surface-variant/40" />}
+                        </button>
+                        {isTradeoffsExpanded && (
+                            <div className="px-5 pb-5 pt-0 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <p className="text-sm text-on-surface-variant leading-relaxed pl-8">{version.whyBehindChange}</p>
+                            </div>
+                        )}
                     </div>
                 )}
 

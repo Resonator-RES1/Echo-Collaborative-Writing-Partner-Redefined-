@@ -20,29 +20,30 @@ export interface RefineDraftOptions {
   previousEchoes?: RefinedVersion[];
   feedbackDepth?: FeedbackDepth;
   localWarnings?: ContinuityIssue[];
+  isSurgical?: boolean;
 }
 
 export interface RefineDraftResult {
   text: string;
   summary: string;
-  analysis: string;
+  analysis?: string;
   justification?: string;
   evidenceBasedClaims?: string;
   whyBehindChange?: string;
   loreLineage?: string;
   mirrorEditorCritique?: string;
-  conflicts: { sentence: string; reason: string }[];
-  metrics: {
+  conflicts?: { sentence: string; reason: string }[];
+  metrics?: {
     sensory_vividness: { score: number; note: string; qualifier: 'By Design' | 'Opportunity' };
     pacing_rhythm: { score: number; note: string; qualifier: 'By Design' | 'Opportunity' };
     dialogue_authenticity: { score: number; note: string; qualifier: 'By Design' | 'Opportunity' };
     voice_consistency: { score: number; note: string; qualifier: 'By Design' };
   };
-  expressionProfile: { vibe: string; score: number; qualifier: 'By Design' | 'Opportunity'; note: string }[];
+  expressionProfile?: { vibe: string; score: number; qualifier: 'By Design' | 'Opportunity'; note: string }[];
   loreCorrections: { original: string; refined: string; reason: string; snippet: string }[];
-  loreFraying: { snippet: string; conflict: string; suggestion: string }[];
+  loreFraying?: { snippet: string; conflict: string; suggestion: string }[];
   voiceAudits?: VoiceAudit[];
-  audit: {
+  audit?: {
     voiceFidelityScore: number;
     voiceFidelityReasoning: string;
     loreCompliance: number;
@@ -52,13 +53,14 @@ export interface RefineDraftResult {
     focusAreaAlignment: number;
     focusAreaAlignmentReasoning: string;
   };
-  restraintLog: { category: string; target: string; justification: string; snippet: string }[];
+  restraintLog?: { category: string; target: string; justification: string; snippet: string }[];
   activeContext: {
     authorVoice?: string;
     characterVoices: string[];
     loreProfiles: string[];
     focusAreas: string[];
   };
+  isSurgical: boolean;
 }
 
 export const refineDraft = async (options: RefineDraftOptions): Promise<RefineDraftResult> => {
@@ -235,9 +237,20 @@ export const refineDraft = async (options: RefineDraftOptions): Promise<RefineDr
     const weighting = feedbackDepth === 'casual' ? '95% Voice / 5% Focus' : feedbackDepth === 'balanced' ? '80% Voice / 20% Focus' : '70% Voice / 30% Focus';
     preamble += `\n*** DIALING SYSTEM ***\nWeighting: ${weighting}\n\n`;
 
-    const isSurgical = !!(fullContextDraft && selection);
+    const isSurgical = options.isSurgical || !!(fullContextDraft && selection);
     
-    const outputInstruction = `
+    const outputInstruction = isSurgical ? `
+\n### RESPONSE SCHEMA (JSON) - SURGICAL MODE (LITE)
+Return the following structure:
+{
+  "refined_text": "The polished version of the text. Return ONLY the refined snippet, PRESERVING all original paragraph breaks, spacing, and structural formatting.",
+  "editor_summary": "Concise explanation of refinements (1 sentence max)",
+  "justification": "Brief stylistic reasoning.",
+  "lore_corrections": [
+    { "original": "Original term/fact", "refined": "Corrected term/fact", "reason": "Lore reference", "snippet": "VERBATIM fixed snippet" }
+  ]
+}
+` : `
 \n### RESPONSE SCHEMA (JSON)
 Return the following structure:
 {
@@ -310,7 +323,28 @@ For every character identified in the scene whose Voice Profile is active, you M
         temperature: generationConfig.temperature,
         thinkingConfig: generationConfig.thinkingConfig, // Pass the new parameter
         feedbackDepth,
-        responseSchema: {
+        responseSchema: isSurgical ? {
+            type: Type.OBJECT,
+            properties: {
+                refined_text: { type: Type.STRING },
+                editor_summary: { type: Type.STRING },
+                justification: { type: Type.STRING },
+                lore_corrections: {
+                    type: Type.ARRAY,
+                    items: {
+                        type: Type.OBJECT,
+                        properties: {
+                            original: { type: Type.STRING },
+                            refined: { type: Type.STRING },
+                            reason: { type: Type.STRING },
+                            snippet: { type: Type.STRING }
+                        },
+                        required: ["original", "refined", "reason", "snippet"]
+                    }
+                }
+            },
+            required: ["refined_text", "editor_summary", "justification", "lore_corrections"]
+        } : {
             type: Type.OBJECT,
             properties: {
                 refined_text: { type: Type.STRING },
@@ -484,12 +518,12 @@ For every character identified in the scene whose Voice Profile is active, you M
         loreLineage: parsed.lore_lineage || "",
         mirrorEditorCritique: parsed.mirror_editor_critique || "",
         conflicts: parsed.conflicts || [],
-        metrics: parsed.expression_profile || {
+        metrics: parsed.expression_profile || (isSurgical ? undefined : {
             sensory_vividness: { score: 5, note: "", qualifier: "Opportunity" },
             pacing_rhythm: { score: 5, note: "", qualifier: "Opportunity" },
             dialogue_authenticity: { score: 5, note: "", qualifier: "Opportunity" },
             voice_consistency: { score: 5, note: "", qualifier: "By Design" }
-        },
+        }),
         expressionProfile: parsed.expression_profile_vibe || [],
         loreCorrections: parsed.lore_corrections || [],
         loreFraying: parsed.lore_fraying || [],
@@ -501,7 +535,8 @@ For every character identified in the scene whose Voice Profile is active, you M
             characterVoices: activeVoices.map(v => v.name),
             loreProfiles: activeLore.map(l => l.title),
             focusAreas: focusAreas
-        }
+        },
+        isSurgical
     };
   } catch (error: any) {
       console.error("Error refining draft:", error);
@@ -534,7 +569,8 @@ For every character identified in the scene whose Voice Profile is active, you M
               characterVoices: [],
               loreProfiles: [],
               focusAreas: []
-          }
+          },
+          isSurgical: options.isSurgical || !!(options.fullContextDraft && options.selection)
       };
   }
 };

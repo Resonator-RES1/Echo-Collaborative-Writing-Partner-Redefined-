@@ -57,9 +57,9 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
     }
 
     return (
-        <div className="flex flex-col flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar animate-in fade-in duration-500 pr-2 pb-12">
+        <div className="flex flex-col flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar animate-in fade-in duration-500 pr-2 pb-12 pt-4">
             {/* Header with Summary - Scrollable */}
-            <div className="bg-surface-container-low rounded-2xl border border-outline-variant/10 p-4 sm:p-6 mb-4 sm:mb-6 shadow-sm relative overflow-hidden">
+            <div className="bg-surface-container-low rounded-3xl border border-outline-variant/10 p-6 sm:p-8 mb-6 sm:mb-8 shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
                 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 mb-4 sm:mb-8 relative z-10">
@@ -68,7 +68,7 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
                             <Sparkles className="w-5 h-5 sm:w-7 sm:h-7 text-primary" />
                         </div>
                         <div>
-                            <h3 className="font-headline text-lg sm:text-2xl font-bold text-on-surface tracking-tight">{version.title || 'Refinement Report'}</h3>
+                            <h3 className="font-headline text-lg sm:text-2xl font-bold text-on-surface tracking-tight break-words">{version.title || 'Refinement Report'}</h3>
                             <p className="text-[9px] sm:text-[10px] text-on-surface-variant/60 uppercase tracking-[0.2em] sm:tracking-[0.3em] font-black">Echo Analysis & Insights</p>
                         </div>
                     </div>
@@ -124,17 +124,21 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
                 <div className="lg:col-span-2">
                     <ReportLoreCorrections loreCorrections={version.loreCorrections} onRevertSpecificLore={onRevertSpecificLore} />
                 </div>
-                <div className="lg:col-span-2">
-                    <ReportLoreFraying loreFraying={version.loreFraying} />
-                </div>
-                <div className="lg:col-span-2">
-                    <ReportRestraintLog restraintLog={version.restraintLog} />
-                </div>
-                <ReportContext activeContext={version.activeContext} />
-                <ReportMetrics metrics={version.metrics} />
-                <div className="lg:col-span-2">
-                    <ReportAudit audit={version.audit} />
-                </div>
+                {!version.isSurgical && (
+                    <>
+                        <div className="lg:col-span-2">
+                            <ReportLoreFraying loreFraying={version.loreFraying} />
+                        </div>
+                        <div className="lg:col-span-2">
+                            <ReportRestraintLog restraintLog={version.restraintLog} />
+                        </div>
+                        <ReportContext activeContext={version.activeContext} />
+                        <ReportMetrics metrics={version.metrics} />
+                        <div className="lg:col-span-2">
+                            <ReportAudit audit={version.audit} />
+                        </div>
+                    </>
+                )}
                 <div className="lg:col-span-2">
                     <ReportAnalysis version={version} />
                 </div>
