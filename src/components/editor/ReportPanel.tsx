@@ -124,22 +124,32 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
             <ReportVoiceResonance voiceAudits={version.voiceAudits} />
 
             {/* Lore Corrections/Fraying */}
-            <div className="mb-6 space-y-6">
-                <ReportLoreCorrections loreCorrections={version.loreCorrections} onRevertSpecificLore={onRevertSpecificLore} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
+                <div className="lg:col-span-2">
+                    <ReportLoreCorrections loreCorrections={version.loreCorrections} onRevertSpecificLore={onRevertSpecificLore} />
+                </div>
                 {!version.isSurgical && (
-                    <ReportLoreFraying loreFraying={version.loreFraying} />
+                    <div className="lg:col-span-2">
+                        <ReportLoreFraying loreFraying={version.loreFraying} />
+                    </div>
                 )}
             </div>
 
             {/* Analysis & Metrics */}
-            <div className="mb-6 space-y-6">
-                <ReportAnalysis version={version} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
+                <div className="lg:col-span-2">
+                    <ReportAnalysis version={version} />
+                </div>
                 {!version.isSurgical && (
                     <>
-                        <ReportRestraintLog restraintLog={version.restraintLog} />
+                        <div className="lg:col-span-2">
+                            <ReportRestraintLog restraintLog={version.restraintLog} />
+                        </div>
                         <ReportContext activeContext={version.activeContext} />
                         <ReportMetrics metrics={version.metrics} />
-                        <ReportAudit audit={version.audit} />
+                        <div className="lg:col-span-2">
+                            <ReportAudit audit={version.audit} />
+                        </div>
                     </>
                 )}
             </div>

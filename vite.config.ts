@@ -14,22 +14,23 @@ export default defineConfig(({ mode }) => {
       },
       plugins: [
         react(),
-        tailwindcss(),
-        wasm(),
-        topLevelAwait()
+        tailwindcss()
       ],
-      base: './',
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
       },
       resolve: {
         alias: {
-          '@/': path.resolve(__dirname, './src/'),
+          '@': path.resolve(__dirname, '.'),
         }
       },
       build: {
         outDir: 'dist',
+        rollupOptions: {
+          output: {
+          }
+        }
       },
       optimizeDeps: {
         include: ['lucide-react', 'react', 'react-dom', 'react-markdown', '@google/genai']
