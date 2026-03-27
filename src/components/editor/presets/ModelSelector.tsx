@@ -38,19 +38,19 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ selectedModel, set
   const modelOptions = [
     { 
       id: 'gemini-3.1-flash-lite-preview', 
-      label: 'Flash Lite', 
+      label: 'Gemini 3.1 Flash Lite', 
       icon: <Zap className="w-4 h-4" />, 
       description: 'Ultra-fast, efficient refinement.' 
     },
     { 
       id: 'gemini-3-flash-preview', 
-      label: 'Flash', 
+      label: 'Gemini 3 Flash', 
       icon: <Cpu className="w-4 h-4" />, 
       description: 'Balanced speed and narrative depth.' 
     },
     { 
       id: 'gemini-3.1-pro-preview', 
-      label: 'Pro', 
+      label: 'Gemini 3.1 Pro', 
       icon: <Brain className="w-4 h-4" />, 
       description: 'Deepest reasoning for complex epics.' 
     },
