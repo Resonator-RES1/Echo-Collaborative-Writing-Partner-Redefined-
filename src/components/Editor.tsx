@@ -380,7 +380,7 @@ const Editor: React.FC<EditorProps> = ({
                           content={draftState.present}
                           onChange={(markdown) => dispatchDraft({ type: 'SET', payload: markdown })}
                           onSelectionChange={setSelection}
-                          className={`font-headline text-xl tracking-tight leading-relaxed text-on-surface/90 ${isZenMode ? 'font-serif' : ''}`}
+                          className="text-base sm:text-lg md:text-xl leading-relaxed sm:leading-loose text-on-surface"
                       />
                       {editorMode === 'polishing' && showDiff && (
                           <div className="mt-4 border-t border-outline-variant/20 pt-4">
