@@ -362,7 +362,7 @@ export function WelcomeScreen({ onEnterWorkspace, onViewManuscript, wordCount, g
 
   return (
     <div className="h-full w-full relative overflow-y-auto scrollbar-none">
-      <div className="min-h-full w-full flex flex-col items-center justify-center relative py-8 md:py-12 px-4">
+      <div className="min-h-full w-full flex flex-col items-center justify-start relative pt-20 pb-8 md:pt-24 md:pb-12 px-4">
         {/* Background Textures */}
         <div className="absolute inset-0 pointer-events-none z-0">
           <div className="absolute top-1/4 left-1/4 w-64 md:w-96 h-64 md:h-96 bg-primary/10 blur-[80px] md:blur-[120px] rounded-full animate-pulse"></div>

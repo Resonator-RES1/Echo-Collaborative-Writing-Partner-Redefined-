@@ -94,12 +94,12 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
                 </div>
                 
                 <div className="p-4 bg-surface-container-low/30">
+                    <h4 className="text-xs font-bold text-on-surface-variant uppercase tracking-tighter mb-2">Echo's Verdict</h4>
                     <div className="flex items-start gap-3">
                         <div className="text-primary mt-0.5 shrink-0">
                             <CheckCircle2 className="w-4 h-4" />
                         </div>
                         <div>
-                            <span className="text-xs font-bold text-on-surface-variant uppercase tracking-tighter mr-2">Echo's Verdict:</span>
                             <span className="text-on-surface-variant text-sm leading-relaxed italic">
                                 {version.summary || "Refinement complete. Review the audit stack below for full transparency."}
                             </span>
@@ -110,42 +110,42 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
 
             {/* Linear Audit Stack */}
             <div className="flex flex-col gap-4 px-4 pb-24">
-                {/* 1. Voice Resonance */}
+                {/* 1. Mirror Editor Analysis */}
+                <ReportAnalysis version={version} />
+
+                {/* 2. Fidelity Audit */}
+                {!version.isSurgical && (
+                    <ReportAudit audit={version.audit} />
+                )}
+
+                {/* 3. Prose Metrics */}
+                {!version.isSurgical && (
+                    <ReportMetrics metrics={version.metrics} />
+                )}
+
+                {/* 4. Preservation Log */}
+                {!version.isSurgical && (
+                    <ReportRestraintLog restraintLog={version.restraintLog} />
+                )}
+
+                {/* 5. Voice Resonance Radar */}
                 <ReportVoiceResonance voiceAudits={version.voiceAudits} />
 
-                {/* 2. Lore Corrections */}
+                {/* 6. Lore Correction */}
                 <ReportLoreCorrections 
                     loreCorrections={version.loreCorrections} 
                     onRevertSpecificLore={onRevertSpecificLore} 
                 />
 
-                {/* 3. Lore Fraying */}
+                {/* 7. Lore Fraying */}
                 {!version.isSurgical && (
                     <ReportLoreFraying loreFraying={version.loreFraying} />
                 )}
 
-                {/* 4. Context Scan */}
+                {/* 8. Active Context */}
                 {!version.isSurgical && (
                     <ReportContext activeContext={version.activeContext} />
                 )}
-
-                {/* 5. Restraint Log */}
-                {!version.isSurgical && (
-                    <ReportRestraintLog restraintLog={version.restraintLog} />
-                )}
-
-                {/* 6. Metrics */}
-                {!version.isSurgical && (
-                    <ReportMetrics metrics={version.metrics} />
-                )}
-
-                {/* 7. Audit Trail */}
-                {!version.isSurgical && (
-                    <ReportAudit audit={version.audit} />
-                )}
-
-                {/* 8. Deep Analysis */}
-                <ReportAnalysis version={version} />
             </div>
 
             {/* Sticky Action Bar */}

@@ -78,7 +78,7 @@ const FloatingDock = ({ currentScreen, setCurrentScreen, isZenMode, wordCount, g
 
   return (
     <nav 
-      className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 p-2 rounded-full bg-surface-container-low/80 backdrop-blur-2xl border border-outline-variant/20 shadow-2xl transition-all duration-700 ${isZenMode ? 'opacity-0 translate-y-20 pointer-events-none' : 'opacity-100 translate-y-0'}`}
+      className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 p-2 rounded-full bg-surface-container-low/80 backdrop-blur-2xl border border-outline-variant/20 shadow-2xl transition-all duration-700 ${isZenMode || currentScreen === 'welcome' ? 'opacity-0 translate-y-20 pointer-events-none' : 'opacity-100 translate-y-0'}`}
     >
       {/* Progress Indicator */}
       <button 
