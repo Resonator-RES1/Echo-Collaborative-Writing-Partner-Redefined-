@@ -264,6 +264,12 @@ Return the following structure:
   "expression_profile_vibe": [
     { "vibe": "Atmospheric", "score": 1-10, "qualifier": "By Design | Opportunity", "note": "string" }
   ],
+  "expression_profile": {
+    "sensory_vividness": { "score": 1-10, "note": "string", "qualifier": "By Design | Opportunity" },
+    "pacing_rhythm": { "score": 1-10, "note": "string", "qualifier": "By Design | Opportunity" },
+    "dialogue_authenticity": { "score": 1-10, "note": "string", "qualifier": "By Design | Opportunity" },
+    "voice_consistency": { "score": 1-10, "note": "string", "qualifier": "By Design | Opportunity" }
+  },
   "analysis": "Specific notes on Lore compliance and why certain voice choices were made.",
   "audit": {
     "voiceFidelityScore": 1-10,

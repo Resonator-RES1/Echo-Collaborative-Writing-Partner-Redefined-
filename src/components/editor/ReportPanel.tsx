@@ -98,16 +98,42 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
             <div className="flex flex-col gap-4 px-4 pb-24">
                 {/* 1. Echo's Verdict */}
                 <div className="bg-surface-container-lowest rounded-lg border border-outline-variant/20 border-l-4 border-primary p-4 shadow-sm">
-                    <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest mb-2">Echo's Verdict</h4>
-                    <div className="flex items-start gap-3">
-                        <div className="text-primary mt-0.5 shrink-0">
-                            <CheckCircle2 className="w-4 h-4" />
+                    {/* Metadata Header */}
+                    <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-start gap-2">
+                            <FileText className="w-4 h-4 text-primary mt-0.5" />
+                            <div>
+                                <h4 className="text-sm font-bold text-on-surface tracking-tight leading-tight">
+                                    {version.title || 'Refinement Report'}
+                                </h4>
+                                <p className="text-[10px] text-on-surface-variant/50 font-medium">
+                                    {version.timestamp ? new Date(version.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'Unknown Date'}
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-on-surface text-sm leading-relaxed italic">
-                                {version.summary || "Refinement complete. Review the audit stack below for full transparency."}
-                            </p>
-                        </div>
+                        <button 
+                            onClick={() => {
+                                const reportText = formatReportForCopy(version);
+                                navigator.clipboard.writeText(reportText);
+                                setCopied(true);
+                                setTimeout(() => setCopied(false), 2000);
+                            }}
+                            className={`p-1.5 rounded border transition-all ${
+                                copied 
+                                ? 'bg-accent-emerald/10 text-accent-emerald border-accent-emerald/30' 
+                                : 'text-on-surface-variant border-outline-variant/20 hover:bg-surface-container-highest'
+                            }`}
+                            title="Copy Report"
+                        >
+                            {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                        </button>
+                    </div>
+
+                    {/* Verdict Content */}
+                    <div className="pt-3 border-t border-outline-variant/10">
+                        <p className="text-on-surface text-sm leading-relaxed italic">
+                            {version.summary || "Refinement complete. Review the audit stack below for full transparency."}
+                        </p>
                     </div>
                 </div>
 

@@ -558,40 +558,84 @@ const Editor: React.FC<EditorProps> = ({
             {/* Task 3: Centered Formatting Toolbar */}
             {activeTab === 'draft' && (
               <div className={`flex justify-center py-6 border-b border-outline-variant/5 transition-all duration-500 ${isZenMode && !isUIVisible ? 'opacity-0 -translate-y-4' : 'opacity-100 translate-y-0'}`}>
-                <div className="max-w-2xl w-full px-4 flex items-center justify-between">
+                <div className="max-w-3xl w-full px-4 relative flex items-center justify-center">
+                  
+                  {/* LEFT: Exit Zen Mode */}
                   {isZenMode && (
+                    <div className="absolute left-4">
                       <button 
                         onClick={() => setIsZenMode(false)}
-                        className="p-2 rounded-full hover:bg-surface-container-highest text-on-surface-variant"
+                        className="p-2 rounded-full hover:bg-surface-container-highest text-on-surface-variant flex items-center gap-2 transition-colors"
                         title="Exit Zen Mode"
                       >
                         <Sun className="w-5 h-5" />
                       </button>
+                    </div>
                   )}
+
+                  {/* CENTER: Formatting Toolbar */}
                   <FormattingToolbar editor={editorRef.current} />
-                  <div className="flex items-center gap-2">
-                    <button 
-                      onClick={() => {
-                        setActiveTab('draft');
-                        setEditorMode('drafting');
-                        setShowDiff(false);
-                      }}
-                      className={`p-2 rounded-lg transition-all ${editorMode === 'drafting' ? 'bg-primary text-on-primary-fixed' : 'text-on-surface-variant hover:bg-surface-container-highest'}`}
-                      title="Drafting Mode"
-                    >
-                      <PenTool className="w-4 h-4" />
-                    </button>
-                    <button 
-                      onClick={() => {
-                        dispatchDraft({ type: 'SET_ORIGINAL', payload: draftState.present });
-                        setEditorMode('polishing');
-                        setShowRecentChanges(false);
-                      }}
-                      className={`p-2 rounded-lg transition-all ${editorMode === 'polishing' ? 'bg-primary text-on-primary-fixed' : 'text-on-surface-variant hover:bg-surface-container-highest'}`}
-                      title="Manual Revision"
-                    >
-                      <Scissors className="w-4 h-4" />
-                    </button>
+
+                  {/* RIGHT: Subtools & Zen Mode Toggles */}
+                  <div className="absolute right-4 flex items-center gap-2">
+                    
+                    {/* Contextual Subtools */}
+                    {editorMode === 'drafting' && (
+                       <button
+                          onClick={() => setShowRecentChanges(!showRecentChanges)}
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all border ${
+                             showRecentChanges 
+                               ? 'bg-primary/10 text-primary border-primary/20 shadow-inner' 
+                               : 'bg-surface-container-low text-on-surface-variant border-outline-variant/10 hover:bg-surface-container-highest'
+                          }`}
+                       >
+                          <History className="w-4 h-4" />
+                          <span className="hidden sm:inline-block">Recent</span>
+                       </button>
+                    )}
+
+                    {editorMode === 'polishing' && (
+                       <button
+                          onClick={() => setShowDiff(!showDiff)}
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all border ${
+                             showDiff 
+                               ? 'bg-primary/10 text-primary border-primary/20 shadow-inner' 
+                               : 'bg-surface-container-low text-on-surface-variant border-outline-variant/10 hover:bg-surface-container-highest'
+                          }`}
+                       >
+                          <GitCompare className="w-4 h-4" />
+                          <span className="hidden sm:inline-block">Local Diff</span>
+                       </button>
+                    )}
+
+                    {/* Mode Toggles (ONLY visible in Zen Mode) */}
+                    {isZenMode && (
+                      <>
+                        <div className="w-px h-6 bg-outline-variant/20 mx-1"></div>
+                        <button 
+                          onClick={() => {
+                            setActiveTab('draft');
+                            setEditorMode('drafting');
+                            setShowDiff(false);
+                          }}
+                          className={`p-2 rounded-lg transition-all ${editorMode === 'drafting' ? 'bg-primary text-on-primary-fixed shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-highest'}`}
+                          title="Drafting Mode"
+                        >
+                          <PenTool className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => {
+                            dispatchDraft({ type: 'SET_ORIGINAL', payload: draftState.present });
+                            setEditorMode('polishing');
+                            setShowRecentChanges(false);
+                          }}
+                          className={`p-2 rounded-lg transition-all ${editorMode === 'polishing' ? 'bg-primary text-on-primary-fixed shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-highest'}`}
+                          title="Manual Revision"
+                        >
+                          <Scissors className="w-4 h-4" />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
