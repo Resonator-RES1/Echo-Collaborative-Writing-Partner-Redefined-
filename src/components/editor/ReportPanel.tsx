@@ -1,3 +1,5 @@
+// --- src/components/editor/ReportPanel.tsx ---
+
 import React, { useState } from 'react';
 import { Activity, CheckCircle2, BarChart3, Copy, Sparkles, Check } from 'lucide-react';
 import { RefinedVersion, LoreCorrection } from '../../types';
@@ -57,11 +59,12 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
     }
 
     return (
-        /* FIXED: Using pr-2 pb-12 from the working snapshot to kill the white space gap */
+        // FIXED: Reverted to the natural padding (pr-2 pb-12) from your old working snapshot. 
+        // This eliminates the 96px white gap at the top.
         <div className="flex flex-col flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar animate-in fade-in duration-500 pr-2 pb-12">
             
-            {/* STATIC HEADER: Echo's Verdict - Now a permanent header as intended */}
-            <div className="bg-surface-container-low rounded-3xl border border-outline-variant/10 shadow-sm relative overflow-hidden mb-6 sm:mb-8 mt-4">
+            {/* TRUE HEADER: Echo's Verdict (Summary) - Static and uncollapsible */}
+            <div className="bg-surface-container-low rounded-3xl border border-outline-variant/10 shadow-sm relative overflow-hidden mb-6 sm:mb-8 mt-4 sm:mt-6">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
                 
                 <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 p-6 sm:p-8 relative z-10">
@@ -81,14 +84,24 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
                             setCopied(true);
                             setTimeout(() => setCopied(false), 2000);
                         }}
+                        title="Copy full report including analysis and metrics"
                         className={`flex items-center justify-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-sm group border border-outline-variant/10 ${
                             copied 
                             ? 'bg-accent-emerald/20 text-accent-emerald border-accent-emerald/30' 
                             : 'bg-surface-container-highest/50 text-on-surface-variant hover:bg-primary hover:text-on-primary'
                         }`}
                     >
-                        {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3 group-hover:scale-110 transition-transform" />}
-                        <span>{copied ? 'Copied!' : 'Copy Report'}</span>
+                        {copied ? (
+                            <>
+                                <Check className="w-3 h-3" />
+                                <span>Copied!</span>
+                            </>
+                        ) : (
+                            <>
+                                <Copy className="w-3 h-3 group-hover:scale-110 transition-transform" />
+                                <span>Copy Report</span>
+                            </>
+                        )}
                     </button>
                 </div>
                 
@@ -112,11 +125,11 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
                 </div>
             </div>
 
-            {/* RADAR: Re-restored directly under the verdict */}
+            {/* Voice Resonance Radar - Rendered permanently right below the header */}
             <ReportVoiceResonance voiceAudits={version.voiceAudits} />
 
-            {/* SECTIONS: Keeping the grid and surgical mode gates */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 mt-6">
+            {/* Lore Corrections/Fraying */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
                 <div className="lg:col-span-2">
                     <ReportLoreCorrections loreCorrections={version.loreCorrections} onRevertSpecificLore={onRevertSpecificLore} />
                 </div>
@@ -127,6 +140,7 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
                 )}
             </div>
 
+            {/* Analysis & Metrics */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
                 <div className="lg:col-span-2">
                     <ReportAnalysis version={version} />
@@ -145,12 +159,14 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
                 )}
             </div>
 
+            {/* Accept Button */}
             <div className="mt-8 mb-8 flex justify-center">
                 <button 
                     onClick={() => onAccept(version)}
                     className="flex items-center justify-center gap-3 sm:gap-4 px-6 py-4 sm:px-12 sm:py-6 bg-primary text-on-primary-fixed font-label uppercase tracking-[0.15em] sm:tracking-[0.25em] text-xs sm:text-base font-black rounded-[2rem] hover:bg-primary/90 transition-all shadow-lg hover:shadow-2xl hover:-translate-y-1.5 active:translate-y-0 active:scale-95 group relative overflow-hidden border-b-4 border-primary/30 w-full sm:w-auto"
                 >
-                    <CheckCircle2 className="w-5 h-5 sm:w-7 sm:h-7" />
+                    <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
+                    <CheckCircle2 className="w-5 h-5 sm:w-7 sm:h-7 group-hover:scale-110 transition-transform" />
                     <span>Accept Refined Version</span>
                 </button>
             </div>
