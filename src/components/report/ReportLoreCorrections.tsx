@@ -11,28 +11,23 @@ interface ReportLoreCorrectionsProps {
 const LoreCorrectionItem = ({ correction, onRevertSpecificLore }: { correction: LoreCorrection, onRevertSpecificLore?: (correction: LoreCorrection) => void }) => {
     const [isReasonExpanded, setIsReasonExpanded] = useState(false);
     return (
-        <div className="p-4 bg-surface-container-highest/30 rounded-2xl border border-outline-variant/10 group">
+        <div className="p-3 bg-surface-container-highest/10 rounded border border-outline-variant/10 group">
             <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xs font-bold text-on-surface-variant/50 line-through">{correction.original}</span>
+                    <div className="flex items-center gap-2 mb-1.5">
+                        <span className="text-[11px] font-bold text-on-surface-variant/50 line-through">{correction.original}</span>
                         <ChevronRight className="w-3 h-3 text-on-surface-variant/30" />
-                        <span className="text-sm font-bold text-on-surface">{correction.refined}</span>
+                        <span className="text-xs font-bold text-on-surface">{correction.refined}</span>
                     </div>
                     <div 
-                        className={`flex gap-2 bg-surface-container-highest/30 p-2 rounded-lg border border-outline-variant/5 mt-2 cursor-pointer transition-all ${isReasonExpanded ? 'ring-1 ring-accent-rose/30 shadow-sm' : ''}`}
+                        className={`flex gap-2 bg-surface-container-highest/20 p-2 rounded border border-outline-variant/5 cursor-pointer transition-all ${isReasonExpanded ? 'ring-1 ring-accent-rose/30' : ''}`}
                         onClick={() => setIsReasonExpanded(!isReasonExpanded)}
                     >
-                        <Info className={`w-3.5 h-3.5 shrink-0 mt-0.5 transition-colors ${isReasonExpanded ? 'text-accent-rose' : 'text-accent-rose/40'}`} />
+                        <Info className={`w-3 h-3 shrink-0 mt-0.5 transition-colors ${isReasonExpanded ? 'text-accent-rose' : 'text-accent-rose/40'}`} />
                         <div className="flex-1">
-                            <p className={`text-[11px] text-on-surface-variant/80 leading-relaxed italic ${!isReasonExpanded ? 'line-clamp-2' : ''}`}>
+                            <p className={`text-[10px] text-on-surface-variant/80 leading-relaxed italic ${!isReasonExpanded ? 'line-clamp-1' : ''}`}>
                                 {correction.reason}
                             </p>
-                            {correction.reason.length > 80 && (
-                                <span className="text-[9px] font-black uppercase tracking-widest text-accent-rose mt-1 block opacity-60">
-                                    {isReasonExpanded ? 'Show Less' : 'Read More'}
-                                </span>
-                            )}
                         </div>
                     </div>
                 </div>
@@ -42,7 +37,7 @@ const LoreCorrectionItem = ({ correction, onRevertSpecificLore }: { correction: 
                             e.stopPropagation();
                             onRevertSpecificLore(correction);
                         }}
-                        className="px-4 py-2 bg-accent-rose/10 text-accent-rose text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-accent-rose hover:text-white transition-all shadow-sm active:scale-95"
+                        className="px-3 py-1 bg-accent-rose/10 text-accent-rose text-[9px] font-bold uppercase tracking-widest rounded border border-accent-rose/20 hover:bg-accent-rose hover:text-white transition-all active:scale-95"
                     >
                         Revert
                     </button>
@@ -53,30 +48,33 @@ const LoreCorrectionItem = ({ correction, onRevertSpecificLore }: { correction: 
 };
 
 export const ReportLoreCorrections: React.FC<ReportLoreCorrectionsProps> = ({ loreCorrections, onRevertSpecificLore }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(true);
 
-    if (!loreCorrections || loreCorrections.length === 0) return null;
+    const hasCorrections = loreCorrections && loreCorrections.length > 0;
 
     return (
-        <div className="bg-surface-container-low rounded-2xl border border-outline-variant/10 shadow-sm overflow-hidden transition-all duration-300">
+        <div className={`bg-surface-container-lowest rounded-lg border border-outline-variant/20 shadow-sm overflow-hidden transition-all duration-300 ${hasCorrections ? 'border-l-4 border-accent-rose' : 'border-l-4 border-accent-emerald'}`}>
             <button 
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="w-full flex items-center justify-between p-6 hover:bg-surface-container-highest/30 transition-colors"
+                className="w-full flex items-center justify-between p-3 hover:bg-surface-container-highest/10 transition-colors"
             >
-                <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-accent-rose/10 flex items-center justify-center">
-                        <ShieldAlert className="w-6 h-6 text-accent-rose" />
+                <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded flex items-center justify-center ${hasCorrections ? 'bg-accent-rose/10 text-accent-rose' : 'bg-accent-emerald/10 text-accent-emerald'}`}>
+                        <ShieldAlert className="w-4 h-4" />
                     </div>
                     <div className="text-left">
-                        <h3 className="font-headline text-xl font-bold text-on-surface">Lore Corrections ({loreCorrections.length})</h3>
-                        <p className="text-[10px] text-on-surface-variant/60 uppercase tracking-[0.2em] font-black">Continuity Enforcement</p>
+                        <h3 className="text-sm font-bold text-on-surface">Lore Corrections {hasCorrections ? `(${loreCorrections.length})` : ''}</h3>
+                        <p className="text-[9px] text-on-surface-variant/60 uppercase font-bold">Continuity Enforcement</p>
                     </div>
                 </div>
-                {isExpanded ? (
-                    <ChevronUp className="w-6 h-6 text-on-surface-variant/50" />
-                ) : (
-                    <ChevronDown className="w-6 h-6 text-on-surface-variant/50" />
-                )}
+                <div className="flex items-center gap-3">
+                    {!hasCorrections && (
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-accent-emerald bg-accent-emerald/10 px-2 py-0.5 rounded">All Clear</span>
+                    )}
+                    <div className="text-on-surface-variant/50">
+                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </div>
+                </div>
             </button>
 
             <AnimatePresence>
@@ -85,19 +83,25 @@ export const ReportLoreCorrections: React.FC<ReportLoreCorrectionsProps> = ({ lo
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        transition={{ duration: 0.2 }}
                         className="overflow-hidden"
                     >
-                        <div className="p-6 pt-0 border-t border-outline-variant/5">
-                            <div className="space-y-4 mt-6">
-                                {loreCorrections.map((correction, idx) => (
-                                    <LoreCorrectionItem 
-                                        key={idx} 
-                                        correction={correction} 
-                                        onRevertSpecificLore={onRevertSpecificLore} 
-                                    />
-                                ))}
-                            </div>
+                        <div className="p-4 pt-0 border-t border-outline-variant/5">
+                            {!hasCorrections ? (
+                                <div className="py-4 text-center">
+                                    <p className="text-xs text-on-surface-variant/60 italic">No lore contradictions found. Continuity is intact.</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-2 mt-4">
+                                    {loreCorrections.map((correction, idx) => (
+                                        <LoreCorrectionItem 
+                                            key={idx} 
+                                            correction={correction} 
+                                            onRevertSpecificLore={onRevertSpecificLore} 
+                                        />
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </motion.div>
                 )}

@@ -110,8 +110,8 @@ export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-surface overflow-hidden">
-      <div className="p-4 md:p-6 border-b border-outline-variant/10">
+    <div className="flex-1 flex flex-col min-h-0 bg-surface overflow-hidden p-4 md:p-8 lg:p-12 animate-in fade-in duration-700">
+      <div className="border-b border-outline-variant/10 pb-4 md:pb-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-6 gap-3 md:gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-xl">

@@ -1,51 +1,55 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { Search, BookOpen, Plus, Download, Upload, Trash2, ChevronRight } from 'lucide-react';
-import { LoreEntry, Screen } from '../types';
+import { Search, BookOpen, Plus, Download, Upload, Trash2, ChevronRight, X } from 'lucide-react';
+import { LoreEntry } from '../types';
 import { LoreEntryForm } from './forms/LoreEntryForm';
+import { motion, AnimatePresence } from 'motion/react';
 
 
 import { useLore } from '../contexts/LoreContext';
 
 interface LoreScreenProps {
-  setCurrentScreen: (screen: Screen) => void;
+  onClose: () => void;
 }
 
-export function LoreScreen({ setCurrentScreen }: LoreScreenProps) {
+export function LoreScreen({ onClose }: LoreScreenProps) {
   const { loreEntries, addLoreEntry, deleteLoreEntry, importLoreEntries } = useLore();
-  const [activeCategory, setActiveCategory] = useState<string>('All');
+  const [view, setView] = useState<'index' | 'focus'>('index');
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['Characters', 'Locations']));
   const [searchQuery, setSearchQuery] = useState('');
   const [editingEntry, setEditingEntry] = useState<LoreEntry | undefined>(undefined);
   const [isCreating, setIsCreating] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 1024);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const toggleCategory = (cat: string) => {
+    const next = new Set(expandedCategories);
+    if (next.has(cat)) next.delete(cat);
+    else next.add(cat);
+    setExpandedCategories(next);
+  };
 
   const handleSaveEntry = async (entry: LoreEntry) => {
     await addLoreEntry(entry);
     setIsCreating(false);
-    setEditingEntry(entry); // Keep it selected after saving
+    setEditingEntry(entry);
+    setView('focus');
   };
 
   const handleEditEntry = (entry: LoreEntry) => {
     setEditingEntry(entry);
     setIsCreating(false);
+    setView('focus');
   };
 
   const handleAddNew = () => {
     setEditingEntry(undefined);
     setIsCreating(true);
+    setView('focus');
   };
 
   const handleCloseForm = () => {
     setIsCreating(false);
     setEditingEntry(undefined);
+    setView('index');
   };
 
   const handleExport = () => {
@@ -77,17 +81,7 @@ export function LoreScreen({ setCurrentScreen }: LoreScreenProps) {
     reader.readAsText(file);
   };
 
-  const filteredEntries = useMemo(() => {
-    return loreEntries.filter(entry => {
-      const matchesCategory = activeCategory === 'All' || entry.category === activeCategory;
-      const matchesSearch = entry.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                            entry.content.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesCategory && matchesSearch;
-    });
-  }, [loreEntries, activeCategory, searchQuery]);
-
   const categories = [
-    'All',
     'Characters',
     'Locations',
     'Items',
@@ -100,175 +94,210 @@ export function LoreScreen({ setCurrentScreen }: LoreScreenProps) {
     'Other'
   ];
 
+  const entriesByCategory = useMemo(() => {
+    const map: Record<string, LoreEntry[]> = {};
+    categories.forEach(cat => {
+      map[cat] = loreEntries.filter(e => e.category === cat && (
+        e.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        e.content.toLowerCase().includes(searchQuery.toLowerCase())
+      ));
+    });
+    return map;
+  }, [loreEntries, searchQuery]);
+
   return (
-    <div className="flex-1 min-h-0 flex flex-col animate-in fade-in duration-700">
-      {/* Header Section */}
-      <section className="shrink-0 mb-4 md:mb-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
-          <div className="space-y-1 md:space-y-2">
-            <h2 className="font-headline text-3xl md:text-5xl font-light text-on-surface">Lore Codex</h2>
-            <p className="font-label text-[10px] md:text-xs uppercase tracking-[0.3em] text-primary/60">World Bible & Context</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={handleExport}
-                className="p-3 rounded-full bg-surface-container-highest text-on-surface-variant hover:text-primary transition-all"
-                title="Export JSON"
-              >
-                <Download className="w-5 h-5" />
-              </button>
-              <button 
-                onClick={() => fileInputRef.current?.click()}
-                className="p-3 rounded-full bg-surface-container-highest text-on-surface-variant hover:text-primary transition-all"
-                title="Import JSON"
-              >
-                <Upload className="w-5 h-5" />
-              </button>
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                onChange={handleImport} 
-                accept=".json" 
-                className="hidden" 
-              />
-            </div>
-          </div>
-        </div>
-      </section>
+    <>
+      {/* Backdrop */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[50]"
+      />
 
-      {/* Main Content Split Pane */}
-      <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-8">
-        {/* Left Pane: List (1/3) */}
-        <div className={`w-full lg:w-1/3 flex flex-col gap-6 min-h-0 ${isMobile && (isCreating || editingEntry) ? 'hidden' : 'flex'}`}>
-          {/* Search Bar */}
-          <div className="relative w-full shrink-0">
-            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-              <Search className="text-primary/50 w-5 h-5" />
-            </div>
-            <input 
-              type="text" 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search Lore Archives..." 
-              className="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-full py-3 pl-12 pr-6 text-on-surface placeholder:text-on-surface-variant/30 focus:ring-2 focus:ring-primary/20 transition-all duration-300 font-body text-sm outline-none"
-            />
-          </div>
-
-          {/* Category Tabs */}
-          <div className="flex overflow-x-auto custom-scrollbar pb-2 shrink-0 gap-2">
-            {categories.map((filter) => (
-              <button 
-                key={filter} 
-                onClick={() => setActiveCategory(filter)}
-                className={`px-4 py-2 rounded-full border whitespace-nowrap font-label text-[10px] uppercase tracking-widest transition-all duration-300 ${
-                  activeCategory === filter ? 'bg-primary text-on-primary-fixed border-primary' : 'border-outline-variant/30 hover:bg-primary/10 text-on-surface-variant'
-                }`}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
-
-          {/* Entry List */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3">
-            {loreEntries.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
-                <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-2">
-                  <BookOpen className="w-8 h-8 text-on-surface-variant/40" />
+      {/* Drawer */}
+      <motion.div 
+        initial={{ x: '100%' }}
+        animate={{ x: 0 }}
+        exit={{ x: '100%' }}
+        transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+        className="fixed top-0 right-0 h-full w-[95vw] md:w-[60vw] lg:w-[45vw] bg-surface-container-lowest/98 backdrop-blur-2xl shadow-2xl border-l border-outline-variant/20 z-[60] flex flex-col overflow-hidden"
+      >
+        <AnimatePresence mode="wait">
+          {view === 'index' ? (
+            <motion.div 
+              key="index"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex-1 flex flex-col min-h-0"
+            >
+              {/* Header */}
+              <header className="p-10 pb-6 flex items-center justify-between shrink-0">
+                <div>
+                  <h2 className="font-headline text-4xl font-light text-on-surface tracking-tight">Lore Codex</h2>
+                  <p className="font-label text-[9px] uppercase tracking-[0.4em] text-primary/40 mt-1">The Sovereign Archives</p>
                 </div>
-                <p className="font-body text-on-surface-variant text-sm px-4">
-                  No lore yet? Start by adding your protagonist to keep Echo consistent.
-                </p>
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={handleExport}
+                    className="p-2.5 rounded-xl hover:bg-surface-container-highest transition-all group"
+                    title="Export"
+                  >
+                    <Download className="w-4 h-4 text-on-surface-variant/60 group-hover:text-primary transition-colors" />
+                  </button>
+                  <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="p-2.5 rounded-xl hover:bg-surface-container-highest transition-all group"
+                    title="Import"
+                  >
+                    <Upload className="w-4 h-4 text-on-surface-variant/60 group-hover:text-primary transition-colors" />
+                  </button>
+                  <input type="file" ref={fileInputRef} onChange={handleImport} accept=".json" className="hidden" />
+                  <button 
+                    onClick={onClose}
+                    className="p-2.5 rounded-xl hover:bg-surface-container-highest transition-all group"
+                  >
+                    <X className="w-5 h-5 text-on-surface-variant/60 group-hover:text-error transition-colors" />
+                  </button>
+                </div>
+              </header>
+
+              {/* Search */}
+              <div className="px-10 mb-8 shrink-0">
+                <div className="relative group">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/20 group-focus-within:text-primary transition-colors" />
+                  <input 
+                    type="text" 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search the archives..."
+                    className="w-full bg-surface-container-low/50 border border-outline-variant/10 rounded-2xl py-4 pl-12 pr-4 text-sm outline-none focus:ring-2 focus:ring-primary/10 transition-all placeholder:text-on-surface-variant/20"
+                  />
+                </div>
+              </div>
+
+              {/* Categories Accordion */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar px-10 pb-32">
+                <div className="space-y-1">
+                  {categories.map(cat => {
+                    const entries = entriesByCategory[cat];
+                    if (searchQuery && entries.length === 0) return null;
+                    const isExpanded = expandedCategories.has(cat);
+
+                    return (
+                      <div key={cat} className="group/cat">
+                        <button 
+                          onClick={() => toggleCategory(cat)}
+                          className="w-full py-4 flex items-center justify-between group transition-all"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className={`w-1 h-4 rounded-full transition-all ${entries.length > 0 ? (isExpanded ? 'bg-primary' : 'bg-primary/30') : 'bg-outline-variant/20'}`} />
+                            <h3 className={`font-headline text-base font-light transition-colors ${isExpanded ? 'text-on-surface' : 'text-on-surface/40 group-hover:text-on-surface/70'}`}>
+                              {cat}
+                            </h3>
+                            <span className="text-[10px] font-mono text-on-surface-variant/20 tracking-tighter">[{entries.length}]</span>
+                          </div>
+                          <ChevronRight className={`w-4 h-4 text-on-surface-variant/20 transition-transform duration-500 ${isExpanded ? 'rotate-90 text-primary/40' : ''}`} />
+                        </button>
+
+                        <AnimatePresence>
+                          {isExpanded && (
+                            <motion.div 
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="pb-4 space-y-1">
+                                {entries.length === 0 ? (
+                                  <p className="text-[10px] text-on-surface-variant/40 italic pl-4.5 py-2">No entries in this category.</p>
+                                ) : (
+                                  entries.map(entry => (
+                                    <div 
+                                      key={entry.id}
+                                      onClick={() => handleEditEntry(entry)}
+                                      className="w-full text-left p-3 pl-4.5 rounded-xl hover:bg-primary/5 group transition-colors flex items-center justify-between cursor-pointer"
+                                    >
+                                      <div className="min-w-0 flex-1">
+                                        <h4 className="text-xs font-medium text-on-surface group-hover:text-primary transition-colors truncate">{entry.title}</h4>
+                                        <p className="text-[10px] text-on-surface-variant/60 truncate">{entry.content}</p>
+                                      </div>
+                                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button 
+                                          onClick={(e) => { e.stopPropagation(); deleteLoreEntry(entry.id); }}
+                                          className="p-1.5 rounded-lg hover:bg-error/10 text-on-surface-variant/40 hover:text-error transition-colors"
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ))
+                                )}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Floating Action Button */}
+              <div className="absolute bottom-8 right-8">
                 <button 
                   onClick={handleAddNew}
-                  className="px-6 py-2 rounded-full bg-primary/10 text-primary font-label text-xs uppercase tracking-widest hover:bg-primary/20 transition-all"
+                  className="flex items-center gap-2 px-6 py-3 bg-primary text-on-primary-fixed rounded-full shadow-2xl shadow-primary/20 hover:scale-105 transition-transform font-label text-[10px] uppercase tracking-widest font-black"
                 >
-                  Add First Entry
+                  <Plus className="w-4 h-4" />
+                  New Entry
                 </button>
               </div>
-            ) : filteredEntries.length === 0 ? (
-              <div className="text-center py-12 text-on-surface-variant text-sm">
-                No entries match your search.
-              </div>
-            ) : (
-              filteredEntries.map(entry => (
-                <div 
-                  key={entry.id} 
-                  onClick={() => handleEditEntry(entry)}
-                  className={`p-4 rounded-2xl border transition-all duration-300 cursor-pointer group ${
-                    editingEntry?.id === entry.id 
-                      ? 'bg-primary/5 border-primary/30 shadow-sm' 
-                      : 'bg-surface-container-lowest border-outline-variant/10 hover:border-primary/20'
-                  }`}
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="font-label text-[9px] uppercase tracking-widest text-primary">{entry.category}</span>
-                    <button 
-                      onClick={(e) => { 
-                        e.stopPropagation(); 
-                        deleteLoreEntry(entry.id);
-                        if (editingEntry?.id === entry.id) handleCloseForm();
-                      }}
-                      className="text-on-surface-variant/30 hover:text-error transition-colors opacity-0 group-hover:opacity-100"
-                      title="Delete Entry"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  </div>
-                  <h4 className="font-headline text-base mb-1 text-on-surface">{entry.title}</h4>
-                  <p className="font-body text-xs text-on-surface-variant line-clamp-2 leading-relaxed">
-                    {entry.content}
-                  </p>
-                </div>
-              ))
-            )}
-          </div>
-          
-          <button 
-            onClick={handleAddNew}
-            className="w-full py-4 rounded-2xl border-2 border-dashed border-outline-variant/30 text-on-surface-variant hover:text-primary hover:border-primary/30 hover:bg-primary/5 transition-all flex items-center justify-center gap-2 font-label text-xs uppercase tracking-widest shrink-0"
-          >
-            <Plus className="w-4 h-4" />
-            New Lore Entry
-          </button>
-        </div>
-
-        {/* Right Pane: Edit Form (2/3) */}
-        <div className={`w-full lg:w-2/3 h-full ${isMobile && !(isCreating || editingEntry) ? 'hidden' : 'block'}`}>
-          {isCreating || editingEntry ? (
-            <div className="flex flex-col h-full">
-              {isMobile && (
+            </motion.div>
+          ) : (
+            <motion.div 
+              key="focus"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="flex-1 flex flex-col min-h-0"
+            >
+              {/* Focus Header */}
+              <header className="p-8 pb-4 flex items-center justify-between shrink-0">
                 <button 
                   onClick={handleCloseForm}
-                  className="flex items-center gap-2 mb-4 text-primary font-label text-[10px] uppercase tracking-widest"
+                  className="flex items-center gap-2 text-primary font-label text-[10px] uppercase tracking-[0.2em] hover:gap-3 transition-all"
                 >
                   <ChevronRight className="w-4 h-4 rotate-180" />
-                  Back to List
+                  Back to Codex
                 </button>
-              )}
-              <LoreEntryForm 
-                onClose={handleCloseForm}
-                onSave={handleSaveEntry}
-                initialData={editingEntry}
-                isModal={false}
-                loreEntries={loreEntries}
-              />
-            </div>
-          ) : (
-            <div className="h-full flex flex-col items-center justify-center text-center p-12 bg-surface-container-lowest/50 rounded-3xl border border-outline-variant/10">
-              <div className="w-24 h-24 rounded-full bg-surface-container flex items-center justify-center mb-6">
-                <BookOpen className="w-10 h-10 text-on-surface-variant/30" />
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={onClose}
+                    className="p-2 rounded-full hover:bg-surface-container-highest transition-colors"
+                  >
+                    <X className="w-5 h-5 text-on-surface-variant" />
+                  </button>
+                </div>
+              </header>
+
+              {/* Notion-style Form */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar px-8 md:px-12 lg:px-16 pt-8 pb-24">
+                <LoreEntryForm 
+                  onClose={handleCloseForm}
+                  onSave={handleSaveEntry}
+                  initialData={editingEntry}
+                  isModal={false}
+                  loreEntries={loreEntries}
+                />
               </div>
-              <h3 className="text-2xl font-headline font-light text-on-surface mb-2">Select an Entry</h3>
-              <p className="text-on-surface-variant max-w-md">
-                Choose a lore entry from the list to view or edit its details, or create a new one to expand your world.
-              </p>
-            </div>
+            </motion.div>
           )}
-        </div>
-      </div>
-    </div>
+        </AnimatePresence>
+      </motion.div>
+    </>
   );
 }
 

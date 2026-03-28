@@ -491,7 +491,7 @@ For every character identified in the scene whose Voice Profile is active, you M
 
     return {
         text: cleanText(parsed.refined_text || ""),
-        summary: parsed.editor_summary || "",
+        summary: parsed.editor_summary || parsed.summary || "",
         analysis: parsed.analysis || "",
         justification: parsed.justification || "",
         evidenceBasedClaims: parsed.evidence_based_claims || "",

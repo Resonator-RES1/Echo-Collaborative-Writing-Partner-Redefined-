@@ -17,9 +17,9 @@ export const RecentChangesList: React.FC<{ original: string; current: string }> 
                     <div key={index} className="p-3 bg-surface-container-highest/30 rounded-lg border border-outline-variant/10 mb-2">
                         {snippet && <span className="text-on-surface-variant/50 text-xs">...{snippet} </span>}
                         {part.added ? (
-                            <span className="bg-emerald-500/20 text-emerald-300 rounded px-1 text-sm">{part.value}</span>
+                            <span className="bg-[var(--highlight-emerald-bg)] text-[var(--highlight-emerald-text)] rounded px-1 text-sm">{part.value}</span>
                         ) : (
-                            <span className="bg-error/20 text-error rounded px-1 text-sm line-through">{part.value}</span>
+                            <span className="bg-[var(--highlight-error-bg)] text-[var(--highlight-error-text)] rounded px-1 text-sm line-through">{part.value}</span>
                         )}
                     </div>
                 );

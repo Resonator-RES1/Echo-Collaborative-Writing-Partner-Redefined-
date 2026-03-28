@@ -8,30 +8,33 @@ interface ReportLoreFrayingProps {
 }
 
 export const ReportLoreFraying: React.FC<ReportLoreFrayingProps> = ({ loreFraying }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(true);
 
-    if (!loreFraying || loreFraying.length === 0) return null;
+    const hasFraying = loreFraying && loreFraying.length > 0;
 
     return (
-        <div className="bg-surface-container-low rounded-2xl border border-outline-variant/10 shadow-sm overflow-hidden transition-all duration-300">
+        <div className={`bg-surface-container-lowest rounded-lg border border-outline-variant/20 shadow-sm overflow-hidden transition-all duration-300 ${hasFraying ? 'border-l-4 border-accent-amber' : 'border-l-4 border-accent-emerald'}`}>
             <button 
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="w-full flex items-center justify-between p-6 hover:bg-surface-container-highest/30 transition-colors"
+                className="w-full flex items-center justify-between p-3 hover:bg-surface-container-highest/10 transition-colors"
             >
-                <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                        <HelpCircle className="w-6 h-6 text-amber-600" />
+                <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded flex items-center justify-center ${hasFraying ? 'bg-accent-amber/10 text-accent-amber' : 'bg-accent-emerald/10 text-accent-emerald'}`}>
+                        <HelpCircle className="w-4 h-4" />
                     </div>
                     <div className="text-left">
-                        <h3 className="font-headline text-xl font-bold text-on-surface">Lore Fraying ({loreFraying.length})</h3>
-                        <p className="text-[10px] text-on-surface-variant/60 uppercase tracking-[0.2em] font-black">Continuity Query</p>
+                        <h3 className="text-sm font-bold text-on-surface">Lore Fraying {hasFraying ? `(${loreFraying.length})` : ''}</h3>
+                        <p className="text-[9px] text-on-surface-variant/60 uppercase font-bold">Continuity Query</p>
                     </div>
                 </div>
-                {isExpanded ? (
-                    <ChevronUp className="w-6 h-6 text-on-surface-variant/50" />
-                ) : (
-                    <ChevronDown className="w-6 h-6 text-on-surface-variant/50" />
-                )}
+                <div className="flex items-center gap-3">
+                    {!hasFraying && (
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-accent-emerald bg-accent-emerald/10 px-2 py-0.5 rounded">All Clear</span>
+                    )}
+                    <div className="text-on-surface-variant/50">
+                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </div>
+                </div>
             </button>
 
             <AnimatePresence>
@@ -40,39 +43,45 @@ export const ReportLoreFraying: React.FC<ReportLoreFrayingProps> = ({ loreFrayin
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        transition={{ duration: 0.2 }}
                         className="overflow-hidden"
                     >
-                        <div className="p-6 pt-0 border-t border-outline-variant/5">
-                            <div className="space-y-4 mt-6">
-                                {loreFraying.map((fraying, idx) => (
-                                    <div key={idx} className="p-4 bg-surface-container-highest/30 rounded-2xl border border-outline-variant/10 group">
-                                        <div className="flex items-start justify-between gap-4">
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <span className="text-sm font-bold text-on-surface italic">"{fraying.snippet}"</span>
-                                                </div>
-                                                <div className="flex flex-col gap-3 mt-3">
-                                                    <div className="flex gap-2 bg-amber-500/5 p-3 rounded-xl border border-amber-500/10">
-                                                        <Info className="w-3.5 h-3.5 text-amber-600/60 shrink-0 mt-0.5" />
-                                                        <div className="flex flex-col gap-1">
-                                                            <p className="text-[11px] text-amber-700 font-bold uppercase tracking-wider">Conflict</p>
-                                                            <p className="text-[11px] text-on-surface-variant/80 leading-relaxed">{fraying.conflict}</p>
-                                                        </div>
+                        <div className="p-4 pt-0 border-t border-outline-variant/5">
+                            {!hasFraying ? (
+                                <div className="py-4 text-center">
+                                    <p className="text-xs text-on-surface-variant/60 italic">No potential lore conflicts detected. Narrative logic is sound.</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-2 mt-4">
+                                    {loreFraying.map((fraying, idx) => (
+                                        <div key={idx} className="p-3 bg-surface-container-highest/10 rounded border border-outline-variant/10 group">
+                                            <div className="flex items-start justify-between gap-4">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <span className="text-xs font-bold text-on-surface italic">"{fraying.snippet}"</span>
                                                     </div>
-                                                    <div className="flex gap-2 bg-surface-container-highest/30 p-3 rounded-xl border border-outline-variant/5">
-                                                        <ChevronRight className="w-3.5 h-3.5 text-on-surface-variant/30 shrink-0 mt-0.5" />
-                                                        <div className="flex flex-col gap-1">
-                                                            <p className="text-[11px] text-on-surface-variant/60 font-bold uppercase tracking-wider">Suggestion</p>
-                                                            <p className="text-[11px] text-on-surface-variant/80 leading-relaxed italic">{fraying.suggestion}</p>
+                                                    <div className="flex flex-col gap-2 mt-2">
+                                                        <div className="flex gap-2 bg-accent-amber/5 p-2 rounded border border-accent-amber/10">
+                                                            <Info className="w-3 h-3 text-accent-amber/60 shrink-0 mt-0.5" />
+                                                            <div className="flex flex-col gap-0.5">
+                                                                <p className="text-[9px] text-accent-amber font-bold uppercase tracking-wider">Conflict</p>
+                                                                <p className="text-[10px] text-on-surface-variant/80 leading-relaxed">{fraying.conflict}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex gap-2 bg-surface-container-highest/20 p-2 rounded border border-outline-variant/5">
+                                                            <ChevronRight className="w-3 h-3 text-on-surface-variant/30 shrink-0 mt-0.5" />
+                                                            <div className="flex flex-col gap-0.5">
+                                                                <p className="text-[9px] text-on-surface-variant/60 font-bold uppercase tracking-wider">Suggestion</p>
+                                                                <p className="text-[10px] text-on-surface-variant/80 leading-relaxed italic">{fraying.suggestion}</p>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </motion.div>
                 )}

@@ -22,16 +22,16 @@
   --on-surface-variant: #cac4d3;
 
   /* Highlight colors */
-  --highlight-emerald-bg: rgba(16, 185, 129, 0.2);
-  --highlight-emerald-text: #6ee7b7;
-  --highlight-red-bg: rgba(239, 68, 68, 0.3);
-  --highlight-red-text: #fca5a5;
-  --highlight-amber-bg: rgba(245, 158, 11, 0.3);
-  --highlight-amber-text: #fcd34d;
-  --highlight-blue-bg: rgba(59, 130, 246, 0.2);
-  --highlight-blue-text: #93c5fd;
-  --highlight-error-bg: rgba(239, 68, 68, 0.2);
-  --highlight-error-text: #fca5a5;
+  --highlight-emerald-bg: rgba(6, 78, 59, 0.4);
+  --highlight-emerald-text: #34d399;
+  --highlight-red-bg: rgba(127, 29, 29, 0.4);
+  --highlight-red-text: #f87171;
+  --highlight-amber-bg: rgba(120, 53, 15, 0.4);
+  --highlight-amber-text: #fbbf24;
+  --highlight-blue-bg: rgba(30, 58, 138, 0.4);
+  --highlight-blue-text: #60a5fa;
+  --highlight-error-bg: rgba(127, 29, 29, 0.3);
+  --highlight-error-text: #f87171;
 }
 
 .parchment {
@@ -51,17 +51,17 @@
   --outline-variant: #d5c4a1;
   --on-surface-variant: #665c54;
 
-  /* Highlight colors for parchment - lighter/more transparent */
-  --highlight-emerald-bg: rgba(5, 150, 105, 0.15);
-  --highlight-emerald-text: #065f46;
-  --highlight-red-bg: rgba(220, 38, 38, 0.15);
-  --highlight-red-text: #991b1b;
-  --highlight-amber-bg: rgba(217, 119, 6, 0.15);
-  --highlight-amber-text: #92400e;
-  --highlight-blue-bg: rgba(2, 132, 199, 0.15);
-  --highlight-blue-text: #075985;
-  --highlight-error-bg: rgba(220, 38, 38, 0.15);
-  --highlight-error-text: #991b1b;
+  /* Highlight colors for parchment - higher contrast */
+  --highlight-emerald-bg: rgba(16, 185, 129, 0.15);
+  --highlight-emerald-text: #064e3b;
+  --highlight-red-bg: rgba(239, 68, 68, 0.15);
+  --highlight-red-text: #7f1d1d;
+  --highlight-amber-bg: rgba(245, 158, 11, 0.15);
+  --highlight-amber-text: #78350f;
+  --highlight-blue-bg: rgba(59, 130, 246, 0.15);
+  --highlight-blue-text: #1e3a8a;
+  --highlight-error-bg: rgba(239, 68, 68, 0.15);
+  --highlight-error-text: #7f1d1d;
 }
 
 @theme {

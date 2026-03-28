@@ -10,14 +10,16 @@ import {
     Home,
     Mic2,
     Layout,
-    Loader2
+    Loader2,
+    Settings,
+    Target
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Toast } from './components/Toast';
-import { TopAppBar } from './components/TopAppBar';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { SettingsScreen } from './components/SettingsScreen';
 import { GlobalSearchModal } from './components/GlobalSearchModal';
+import { GoalsModal } from './components/GoalsModal';
 import { Screen, RefinedVersion, Scene, Chapter, WritingGoal } from './types';
 import * as db from './services/dbService';
 import { useLore } from './contexts/LoreContext';
@@ -41,6 +43,123 @@ const LoadingState = () => (
   </div>
 );
 
+const GlobalHeader = ({ isZenMode }: { isZenMode: boolean }) => (
+  <header className={`fixed top-0 left-0 right-0 z-50 flex flex-col items-center py-4 transition-all duration-700 ${isZenMode ? 'opacity-0 -translate-y-10 pointer-events-none' : 'opacity-100 translate-y-0'}`}>
+    <div className="flex flex-col items-center gap-0.5">
+      <h1 className="font-headline text-2xl md:text-3xl font-light tracking-tighter text-on-surface">
+        ECHO<span className="text-primary">.</span>
+      </h1>
+      <p className="text-[9px] font-black uppercase tracking-[0.4em] text-on-surface-variant/40">
+        Sovereign Sanctuary
+      </p>
+    </div>
+  </header>
+);
+
+interface FloatingDockProps {
+  currentScreen: Screen;
+  setCurrentScreen: (screen: Screen) => void;
+  isZenMode: boolean;
+  wordCount: number;
+  goal: WritingGoal;
+  onOpenGoals: () => void;
+}
+
+const FloatingDock = ({ currentScreen, setCurrentScreen, isZenMode, wordCount, goal, onOpenGoals }: FloatingDockProps) => {
+  const navItems = [
+    { id: 'workspace', label: 'Workspace', icon: Layout },
+    { id: 'manuscript', label: 'Manuscript', icon: FileText },
+    { id: 'lore', label: 'Lore', icon: BookOpen },
+    { id: 'voices', label: 'Voices', icon: Mic2 },
+    { id: 'settings', label: 'Settings', icon: Settings },
+  ];
+
+  const progress = Math.min(100, Math.round((wordCount / goal.targetWords) * 100));
+
+  return (
+    <nav 
+      className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 p-2 rounded-full bg-surface-container-low/80 backdrop-blur-2xl border border-outline-variant/20 shadow-2xl transition-all duration-700 ${isZenMode ? 'opacity-0 translate-y-20 pointer-events-none' : 'opacity-100 translate-y-0'}`}
+    >
+      {/* Progress Indicator */}
+      <button 
+        onClick={onOpenGoals}
+        className="relative w-10 h-10 rounded-full flex items-center justify-center hover:bg-surface-container-highest transition-colors group"
+        title={`${wordCount} / ${goal.targetWords} words`}
+      >
+        <svg className="w-full h-full -rotate-90">
+          <circle
+            cx="20"
+            cy="20"
+            r="16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            className="text-outline-variant/10"
+          />
+          <circle
+            cx="20"
+            cy="20"
+            r="16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeDasharray={100.5}
+            strokeDashoffset={100.5 * (1 - progress / 100)}
+            className="text-primary transition-all duration-500"
+          />
+        </svg>
+        <Target className="w-3.5 h-3.5 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 group-hover:scale-110 transition-transform" />
+      </button>
+
+      <div className="w-px h-6 bg-outline-variant/20 mx-1" />
+
+      {navItems.map((item) => (
+        <button
+          key={item.id}
+          onClick={() => setCurrentScreen(item.id as Screen)}
+          className={`relative flex items-center justify-center w-12 h-12 rounded-full transition-all group ${
+            currentScreen === item.id 
+              ? 'bg-primary text-on-primary-fixed shadow-lg shadow-primary/20' 
+              : 'text-on-surface-variant/60 hover:bg-surface-container-highest hover:text-on-surface'
+          }`}
+          title={item.label}
+        >
+          <item.icon className={`w-5 h-5 transition-transform group-hover:scale-110`} />
+          
+          {/* Tooltip-like label on hover */}
+          <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 px-3 py-1 bg-surface-container-highest text-on-surface text-[10px] font-black uppercase tracking-widest rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-xl border border-outline-variant/10">
+            {item.label}
+          </span>
+
+          {currentScreen === item.id && (
+            <motion.div 
+              layoutId="dock-indicator"
+              className="absolute -bottom-1 w-1 h-1 rounded-full bg-primary"
+            />
+          )}
+        </button>
+      ))}
+
+      <div className="w-px h-6 bg-outline-variant/20 mx-1" />
+
+      <button
+        onClick={() => setCurrentScreen('welcome')}
+        className={`relative flex items-center justify-center w-12 h-12 rounded-full transition-all group ${
+          currentScreen === 'welcome' 
+            ? 'bg-primary text-on-primary-fixed shadow-lg shadow-primary/20' 
+            : 'text-on-surface-variant/60 hover:bg-surface-container-highest hover:text-on-surface'
+        }`}
+        title="Home"
+      >
+        <Home className={`w-5 h-5 transition-transform group-hover:scale-110`} />
+        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 px-3 py-1 bg-surface-container-highest text-on-surface text-[10px] font-black uppercase tracking-widest rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-xl border border-outline-variant/10">
+          Home
+        </span>
+      </button>
+    </nav>
+  );
+};
+
 export default function App() {
   const { isZenMode, setIsZenMode } = useProject();
   const [scenes, setScenes] = useState<Scene[]>([]);
@@ -52,7 +171,14 @@ export default function App() {
   const [versionCount, setVersionCount] = useState<number>(0);
   const [versionHistory, setVersionHistory] = useState<RefinedVersion[]>([]);
   const [currentScreen, setCurrentScreen] = useState<Screen>('welcome');
+  const [lastMainScreen, setLastMainScreen] = useState<Screen>('welcome');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  useEffect(() => {
+    if (['welcome', 'workspace', 'manuscript'].includes(currentScreen)) {
+      setLastMainScreen(currentScreen);
+    }
+  }, [currentScreen]);
   const [isMobile, setIsMobile] = useState(false);
   const [writingGoal, setWritingGoal] = useState<WritingGoal>(() => {
     const saved = localStorage.getItem('echo-writing-goal');
@@ -129,6 +255,7 @@ export default function App() {
   } = useLore();
   
   const [isAppLoaded, setIsAppLoaded] = useState(false);
+  const [showGoals, setShowGoals] = useState(false);
 
   // Background pre-fetching
   useEffect(() => {
@@ -352,7 +479,11 @@ export default function App() {
   }
 
   const renderScreen = () => {
-    switch (currentScreen) {
+    const screenToRender = ['lore', 'voices', 'settings'].includes(currentScreen) 
+      ? lastMainScreen 
+      : currentScreen;
+
+    switch (screenToRender) {
       case 'welcome':
         return (
           <WelcomeScreen 
@@ -365,18 +496,6 @@ export default function App() {
               setCurrentSceneId(id);
               setCurrentScreen('workspace');
             }}
-          />
-        );
-      case 'lore':
-        return (
-          <LoreScreen 
-            setCurrentScreen={setCurrentScreen} 
-          />
-        );
-      case 'voices':
-        return (
-          <VoicesScreen 
-            setCurrentScreen={setCurrentScreen} 
           />
         );
       case 'manuscript':
@@ -396,19 +515,11 @@ export default function App() {
             goal={writingGoal}
             setGoal={setWritingGoal}
             onViewReport={(version) => {
-              // We need to pass this down to the Editor component somehow, or handle it here.
-              // Since Editor manages its own tabs, we might need to lift the tab state or pass a signal.
-              // For now, let's just switch to the workspace screen.
               setCurrentScreen('workspace');
-              // We'll need a way to tell the Editor to open the report tab and select this version.
-              // A simple way is to use a custom event or a global state/context for "selected version to view".
-              // Let's dispatch a custom event that Editor can listen to.
               window.dispatchEvent(new CustomEvent('view-report', { detail: version }));
             }}
           />
         );
-      case 'settings':
-        return <SettingsScreen showToast={showToast} />;
       case 'workspace':
       default:
         return (
@@ -435,34 +546,10 @@ export default function App() {
   };
 
   return (
-    <div className={`h-[100dvh] bg-surface text-on-surface flex flex-col font-body overflow-hidden ${isMobile ? 'pb-20' : ''} ${isZenMode ? 'is-zen' : ''}`}>
+    <div className={`h-[100dvh] bg-surface text-on-surface flex flex-col font-body overflow-hidden ${isZenMode ? 'is-zen' : ''}`}>
       {toast && <Toast key={toast.id} message={toast.message} onClose={() => setToast(null)} />}
       
-      <AnimatePresence>
-        {currentScreen !== 'welcome' && !isZenMode && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="z-50"
-          >
-            <TopAppBar 
-              currentScreen={currentScreen} 
-              setCurrentScreen={setCurrentScreen} 
-              versionCount={versionCount} 
-              showToast={showToast} 
-              wordCount={totalWordCount}
-              isMobile={isMobile}
-              goal={writingGoal}
-              onSaveGoal={(newGoal) => {
-                setWritingGoal(newGoal);
-                localStorage.setItem('echo-writing-goal', JSON.stringify(newGoal));
-              }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <GlobalHeader isZenMode={isZenMode} />
       
       <GlobalSearchModal
         isOpen={isSearchOpen}
@@ -471,46 +558,54 @@ export default function App() {
         onUpdateScene={handleUpdateScene}
         showToast={showToast}
       />
+
+      <GoalsModal 
+        isOpen={showGoals} 
+        onClose={() => setShowGoals(false)} 
+        goal={writingGoal} 
+        onSave={(newGoal) => {
+          setWritingGoal(newGoal);
+          localStorage.setItem('echo-writing-goal', JSON.stringify(newGoal));
+          showToast('Writing goals updated.');
+        }} 
+      />
       
-      <main className={`${currentScreen === 'welcome' ? 'flex-1 min-h-0 flex flex-col overflow-hidden' : `flex-1 min-h-0 flex flex-col overflow-hidden ${isZenMode ? 'zen-container' : 'px-2 sm:px-4 md:px-6 pb-2 sm:pb-4 max-w-7xl mx-auto w-full'} ${isMobile && !isZenMode ? 'pb-20' : ''}`}`}>
+      <main className={`flex-1 min-h-0 flex flex-col overflow-hidden relative z-10 ${currentScreen === 'welcome' ? '' : 'pt-16'}`}>
         <Suspense fallback={<LoadingState />}>
           {renderScreen()}
         </Suspense>
       </main>
 
       <AnimatePresence>
-        {isMobile && !isZenMode && (
-            <motion.nav 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              className="fixed bottom-0 left-0 right-0 z-50 bg-surface-container-low/95 backdrop-blur-xl border-t border-outline-variant/10 px-2 py-2 pb-safe flex items-center justify-around shadow-2xl md:hidden"
-            >
-              {[
-                  { id: 'welcome', label: 'Home', icon: Home },
-                  { id: 'lore', label: 'Lore', icon: BookOpen },
-                  { id: 'workspace', label: 'Workspace', icon: Layout },
-                  { id: 'voices', label: 'Voices', icon: Mic2 },
-                  { id: 'manuscript', label: 'Manuscript', icon: FileText }
-              ].map(item => (
-                  <button
-                      key={item.id}
-                      onClick={() => setCurrentScreen(item.id as Screen)}
-                      className={`flex flex-col items-center gap-1 p-2 transition-all relative ${currentScreen === item.id ? 'text-primary' : 'text-on-surface-variant/60'}`}
-                  >
-                      <item.icon className={`w-5 h-5 transition-transform ${currentScreen === item.id ? 'scale-110 drop-shadow-[0_0_8px_rgba(208,192,255,0.5)]' : ''}`} />
-                      <span className="text-[8px] font-black uppercase tracking-widest">{item.label}</span>
-                      {currentScreen === item.id && (
-                        <motion.div 
-                          layoutId="bottom-nav-indicator"
-                          className="absolute -bottom-1 w-1 h-1 rounded-full bg-primary"
-                        />
-                      )}
-                  </button>
-              ))}
-          </motion.nav>
-      )}
+        {currentScreen === 'lore' && (
+          <LoreScreen 
+            key="lore-drawer"
+            onClose={() => setCurrentScreen(lastMainScreen)} 
+          />
+        )}
+        {currentScreen === 'voices' && (
+          <VoicesScreen 
+            key="voices-drawer"
+            onClose={() => setCurrentScreen(lastMainScreen)} 
+          />
+        )}
+        {currentScreen === 'settings' && (
+          <SettingsScreen 
+            key="settings-modal"
+            showToast={showToast} 
+            onClose={() => setCurrentScreen(lastMainScreen)}
+          />
+        )}
       </AnimatePresence>
+
+      <FloatingDock 
+        currentScreen={currentScreen} 
+        setCurrentScreen={setCurrentScreen} 
+        isZenMode={isZenMode}
+        wordCount={totalWordCount}
+        goal={writingGoal}
+        onOpenGoals={() => setShowGoals(true)}
+      />
     </div>
   );
 }

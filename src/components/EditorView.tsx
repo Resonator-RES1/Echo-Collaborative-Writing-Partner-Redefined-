@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Wand2, ChevronDown, ShieldCheck, FileText, BookOpen, History, BarChart3, Sparkles, GitCompare, PenTool, Sun } from 'lucide-react';
+import { Wand2, ChevronDown, ShieldCheck, FileText, BookOpen, History, BarChart3, Scissors, GitCompare, PenTool, Sun } from 'lucide-react';
 import { RefinedVersion, LoreEntry, VoiceProfile, AuthorVoice, Scene, WorkspaceTab } from '../types';
 import { createScanner, ContinuityIssue } from '../utils/contextScanner';
 import { draftReducer, initialDraftState } from './editor/draftReducer';
@@ -311,7 +311,6 @@ const Editor: React.FC<EditorProps> = ({
                       onActivateVoice={handleActivateVoice}
                       onViewLore={(id) => {
                           setActiveTab('context');
-                          // We could also trigger a scroll or highlight here if needed
                       }}
                       onFix={handleContinuityFix}
                       showToast={showToast}
@@ -319,7 +318,7 @@ const Editor: React.FC<EditorProps> = ({
                   />
               </div>
               <div className={`flex-1 min-h-0 flex flex-col overflow-hidden ${activeTab === 'draft' ? 'flex' : 'hidden'}`}>
-                  <div className={`flex-1 min-h-0 flex flex-col overflow-hidden ${isZenMode ? 'w-full mx-auto' : 'mt-2'}`}>
+                  <div className={`flex-1 min-h-0 flex flex-col overflow-hidden max-w-2xl w-full mx-auto`}>
                       <RichTextEditor
                           editorRef={editorRef}
                           content={draftState.present}
@@ -332,8 +331,6 @@ const Editor: React.FC<EditorProps> = ({
                               <SideBySideDiff 
                                   original={draftState.original} 
                                   polished={draftState.present} 
-                                  report={currentVersion as any}
-                                  onSeeReport={handleSeeReport}
                                   onAcceptChanges={handleAcceptChanges}
                               />
                           </div>
@@ -435,9 +432,8 @@ const Editor: React.FC<EditorProps> = ({
   return (
     <div 
       onClick={handleGutterClick}
-      className={`flex flex-col lg:flex-row gap-4 lg:gap-8 flex-1 min-h-0 animate-in fade-in duration-700 ${isZenMode ? 'is-zen' : ''} ${isZenMode && !isUIVisible ? 'cursor-none' : ''}`}
+      className={`flex flex-row h-full w-full overflow-hidden bg-surface text-on-surface ${isZenMode ? 'is-zen' : ''} ${isZenMode && !isUIVisible ? 'cursor-none' : ''}`}
     >
-      
       <EditorModals 
         showComparison={showComparison}
         showConflicts={showConflicts}
@@ -454,183 +450,126 @@ const Editor: React.FC<EditorProps> = ({
         onAcceptVersion={handleAcceptVersion}
         setActiveTab={setActiveTab}
       />
-      
-      <section className={`flex-1 flex flex-col min-h-0 transition-all duration-500`}>
-        <div className={`bg-surface-container-low/50 backdrop-blur-sm rounded-[0.75rem] shadow-2xl ghost-border flex flex-col flex-1 relative min-h-0 overflow-hidden transition-all duration-500 ${isZenMode ? 'border-none bg-transparent shadow-none p-0' : 'p-4 lg:p-6'}`}>
-          
-          {/* Workspace Process Flow Rail */}
-          {!isZenMode && (
-              <div className="sticky top-0 z-20 bg-surface-container-low/95 backdrop-blur-md py-3 sm:py-5 -mx-4 px-4 lg:-mx-6 lg:px-6 mb-3 sm:mb-5 border-b border-outline-variant/10 overflow-hidden">
-                  <div className="relative flex items-center justify-between max-w-3xl mx-auto px-2 sm:px-12">
-                      {/* Connecting Line Background */}
-                      <div className="absolute left-8 right-8 sm:left-12 sm:right-12 h-[1px] bg-outline-variant/20 top-[16px] sm:top-[20px] z-0" />
-                      
-                      {/* Progress Line */}
-                      <motion.div 
-                        className="absolute left-8 sm:left-12 h-[1px] bg-primary z-0 top-[16px] sm:top-[20px]" 
-                        initial={false}
-                        animate={{ 
-                          width: `calc(${(['draft', 'context', 'refine', 'archive', 'report'].indexOf(activeTab) / 4) * 100}% - 0px)` 
-                        }}
-                        transition={{ duration: 0.8, ease: "easeInOut" }}
-                      />
-                      
-                      {[
-                          { id: 'draft', label: 'Draft', icon: FileText, step: '01' },
-                          { id: 'context', label: 'Context', icon: BookOpen, step: '02' },
-                          { id: 'refine', label: 'Refine', icon: Sparkles, step: '03' },
-                          { id: 'archive', label: 'Archive', icon: History, step: '04' },
-                          { id: 'report', label: 'Report', icon: BarChart3, step: '05' }
-                      ].map((tab, index, array) => {
-                          const isActive = activeTab === tab.id;
-                          const isPast = array.findIndex(t => t.id === activeTab) > index;
-                          
-                          return (
-                              <button
-                                  key={tab.id}
-                                  onClick={() => setActiveTab(tab.id as WorkspaceTab)}
-                                  className="relative z-10 flex flex-col items-center group transition-all duration-300"
-                              >
-                                  {/* Node */}
-                                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-500 border ${
-                                      isActive 
-                                          ? 'bg-primary border-primary text-on-primary-fixed shadow-[0_0_20px_rgba(208,192,255,0.3)] scale-110' 
-                                          : isPast
-                                              ? 'bg-surface-container-highest border-primary/40 text-primary'
-                                              : 'bg-surface-container-low border-outline-variant/30 text-on-surface-variant hover:border-primary/50'
-                                  }`}>
-                                      <tab.icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isActive ? 'animate-pulse' : ''}`} />
-                                  </div>
-                                  
-                                  {/* Label Container */}
-                                  <div className="absolute -bottom-6 sm:-bottom-8 flex flex-col items-center whitespace-nowrap">
-                                      <span className={`hidden sm:block text-[8px] font-mono tracking-tighter transition-opacity duration-300 mb-0.5 ${isActive ? 'opacity-100 text-primary' : 'opacity-30'}`}>
-                                          {tab.step}
-                                      </span>
-                                      <span className={`text-[8px] sm:text-[10px] font-label font-bold uppercase tracking-[0.1em] sm:tracking-[0.2em] transition-all duration-300 ${
-                                          isActive 
-                                            ? 'text-primary scale-105' 
-                                            : 'text-on-surface-variant/40 group-hover:text-primary/60'
-                                      }`}>
-                                          {tab.label}
-                                      </span>
-                                  </div>
 
-                                  {/* Active Indicator Glow */}
-                                  {isActive && (
-                                    <motion.div 
-                                      layoutId="active-flow-glow"
-                                      className="absolute -inset-2 bg-primary/5 rounded-full blur-xl -z-10"
-                                    />
-                                  )}
-                              </button>
-                          );
-                      })}
+      {/* Task 1: Vertical Sidebar (Process Rail) */}
+      {!isZenMode && (
+        <aside className="w-16 sm:w-20 flex flex-col items-center py-6 justify-between bg-surface-container-low/95 backdrop-blur-xl border-r border-outline-variant/10 z-30">
+          <div className="flex flex-col gap-6">
+            {[
+              { id: 'draft', label: 'Draft', icon: FileText, step: '01' },
+              { id: 'context', label: 'Context', icon: BookOpen, step: '02' },
+              { id: 'refine', label: 'Refine', icon: Wand2, step: '03' },
+              { id: 'archive', label: 'Archive', icon: History, step: '04' },
+              { id: 'report', label: 'Report', icon: BarChart3, step: '05' }
+            ].map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as WorkspaceTab)}
+                  className="relative flex flex-col items-center group transition-all duration-300"
+                  title={tab.label}
+                >
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center transition-all duration-500 border ${
+                    isActive 
+                      ? 'bg-primary border-primary text-on-primary-fixed shadow-[0_0_20px_rgba(208,192,255,0.3)]' 
+                      : 'bg-surface-container-low border-outline-variant/30 text-on-surface-variant hover:border-primary/50'
+                  }`}>
+                    <tab.icon className={`w-5 h-5 sm:w-6 sm:h-6 ${isActive ? 'animate-pulse' : ''}`} />
                   </div>
-              </div>
-          )}
-
-          {/* Main Editor Top Bar */}
-          {activeTab === 'draft' && (
-              <div className={`relative bg-surface-container-low/95 backdrop-blur-sm pb-2 border-b border-outline-variant/20 mb-2 sm:mb-3 -mx-4 px-4 lg:-mx-6 lg:px-6 flex items-center justify-between gap-2 sm:gap-4 min-h-[40px] transition-all duration-500 ${isZenMode ? 'zen-ui-element !mx-0 !px-0 mb-8' : ''} ${isZenMode && !isUIVisible ? 'zen-ui-hidden' : 'zen-ui-visible'}`}>
-                  {/* Left: Formatting Toolbar */}
-                  <div className="flex-1 min-w-0 overflow-x-auto hide-scrollbar z-10 pr-[100px] sm:pr-[150px]">
-                      <FormattingToolbar 
-                          editor={editorRef.current}
-                      />
-                  </div>
-                  
-                  {/* Center: Continuity Guard */}
-                  <div className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[calc(50%+4px)] flex justify-center z-20 pointer-events-none transition-all duration-500 ${isZenMode ? 'zen-ui-element' : ''} ${isZenMode && !isUIVisible ? 'zen-ui-hidden' : 'zen-ui-visible'}`}>
-                      <button 
-                          onClick={() => setShowContinuityGuard(!showContinuityGuard)}
-                          className={`pointer-events-auto flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
-                              showContinuityGuard 
-                                ? 'bg-primary text-on-primary-fixed' 
-                                : continuityIssues.length > 0 
-                                    ? 'bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 ring-1 ring-amber-500/50' 
-                                    : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'
-                          }`}
-                          title="Continuity Guard"
-                      >
-                          <ShieldCheck className="w-3.5 h-3.5" />
-                          <span className="hidden md:inline">Continuity Guard</span>
-                          {continuityIssues.length > 0 && (
-                              <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-on-amber text-[8px] font-black">
-                                  {continuityIssues.length}
-                              </span>
-                          )}
-                      </button>
-                  </div>
-
-                  {/* Right: Mode/View Buttons */}
-                  <div className={`flex-none flex justify-end gap-1 sm:gap-2 z-10 transition-all duration-500 ${isZenMode ? 'zen-ui-element' : ''} ${isZenMode && !isUIVisible ? 'zen-ui-hidden' : 'zen-ui-visible'}`}>
-                      <button 
-                          onClick={() => setIsZenMode(!isZenMode)}
-                          className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${isZenMode ? 'bg-amber-500 text-white shadow-[0_0_15px_rgba(245,158,11,0.4)]' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
-                          title="Zen Sanctuary (Esc to exit)"
-                      >
-                          <Sun className={`w-4 h-4 transition-transform duration-700 ${isZenMode ? 'rotate-180 scale-110' : ''}`} />
-                      </button>
-                      <button 
-                          onClick={() => {
-                              setActiveTab('draft');
-                              setEditorMode('drafting');
-                              setShowDiff(false);
-                          }}
-                          className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${editorMode === 'drafting' ? 'bg-primary text-on-primary-fixed' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
-                          title="Drafting Mode"
-                      >
-                          <PenTool className="w-4 h-4" />
-                      </button>
-                      <button 
-                          onClick={() => {
-                              dispatchDraft({ type: 'SET_ORIGINAL', payload: draftState.present });
-                              setEditorMode('polishing');
-                              setShowRecentChanges(false);
-                          }}
-                          className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${editorMode === 'polishing' ? 'bg-primary text-on-primary-fixed' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
-                          title="Polishing Mode"
-                      >
-                          <Sparkles className="w-4 h-4" />
-                      </button>
-
-                      <button 
-                          onClick={() => setActiveTab('refine')}
-                          className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary`}
-                          title="Surgical Refine"
-                      >
-                          <Wand2 className="w-4 h-4" />
-                      </button>
-                      
-                      {editorMode === 'polishing' && (
-                          <button 
-                              onClick={() => setShowDiff(!showDiff)}
-                              className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${showDiff ? 'bg-primary text-on-primary-fixed' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
-                              title="Toggle Diff Viewer"
-                          >
-                              <GitCompare className="w-4 h-4" />
-                          </button>
-                      )}
-                      
-                      {editorMode === 'drafting' && (
-                          <button 
-                              onClick={() => setShowRecentChanges(!showRecentChanges)}
-                              className={`p-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${showRecentChanges ? 'bg-primary text-on-primary-fixed' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
-                              title="Toggle Recent Changes"
-                          >
-                              <History className="w-4 h-4" />
-                          </button>
-                      )}
-                  </div>
-              </div>
-          )}
-
-          <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
-            {renderTabContent()}
+                  <span className={`mt-2 text-[8px] sm:text-[9px] font-label font-bold uppercase tracking-widest transition-all duration-300 ${
+                    isActive ? 'text-primary' : 'text-on-surface-variant/40 group-hover:text-primary/60'
+                  }`}>
+                    {tab.label}
+                  </span>
+                  {isActive && (
+                    <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full shadow-[0_0_10px_rgba(208,192,255,0.5)]" />
+                  )}
+                </button>
+              );
+            })}
           </div>
-        </div>
-      </section>
+
+          <div className="flex flex-col gap-4 pb-4">
+            {/* Continuity Guard */}
+            <button 
+              onClick={() => setShowContinuityGuard(!showContinuityGuard)}
+              className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-2xl transition-all relative ${
+                showContinuityGuard 
+                  ? 'bg-primary text-on-primary-fixed shadow-lg shadow-primary/20' 
+                  : continuityIssues.length > 0 
+                      ? 'bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 ring-1 ring-amber-500/50' 
+                      : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'
+              }`}
+              title="Continuity Guard"
+            >
+              <ShieldCheck className="w-5 h-5" />
+              {continuityIssues.length > 0 && (
+                <span className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-amber-500 text-on-amber text-[8px] font-black">
+                  {continuityIssues.length}
+                </span>
+              )}
+            </button>
+
+            <div className="h-px w-8 bg-outline-variant/20 mx-auto" />
+
+            {/* Mode Buttons */}
+            <button 
+              onClick={() => {
+                setActiveTab('draft');
+                setEditorMode('drafting');
+                setShowDiff(false);
+              }}
+              className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-2xl transition-all ${editorMode === 'drafting' ? 'bg-primary text-on-primary-fixed shadow-lg shadow-primary/20' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
+              title="Drafting Mode"
+            >
+              <PenTool className="w-5 h-5" />
+            </button>
+
+            <button 
+              onClick={() => {
+                dispatchDraft({ type: 'SET_ORIGINAL', payload: draftState.present });
+                setEditorMode('polishing');
+                setShowRecentChanges(false);
+              }}
+              className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-2xl transition-all ${editorMode === 'polishing' ? 'bg-primary text-on-primary-fixed shadow-lg shadow-primary/20' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
+              title="Manual Revision"
+            >
+              <Scissors className="w-5 h-5" />
+            </button>
+
+            <button 
+              onClick={() => setIsZenMode(!isZenMode)}
+              className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-2xl transition-all bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary`}
+              title="Zen Mode"
+            >
+              <Sun className="w-5 h-5" />
+            </button>
+          </div>
+        </aside>
+      )}
+
+      <div className="flex-1 flex flex-col min-h-0 relative">
+        {/* Main Canvas Area */}
+        <main className={`flex-1 flex flex-col min-h-0 overflow-hidden transition-all duration-500 ${isZenMode ? 'p-0' : 'p-4 lg:p-8'}`}>
+          <div className={`flex-1 flex flex-col min-h-0 relative ${isZenMode ? '' : 'bg-surface-container-low/30 backdrop-blur-sm rounded-[2.5rem] border border-outline-variant/10 shadow-inner overflow-hidden'}`}>
+            
+            {/* Task 3: Centered Formatting Toolbar */}
+            {activeTab === 'draft' && (
+              <div className={`flex justify-center py-6 border-b border-outline-variant/5 transition-all duration-500 ${isZenMode && !isUIVisible ? 'opacity-0 -translate-y-4' : 'opacity-100 translate-y-0'}`}>
+                <div className="max-w-2xl w-full px-4">
+                  <FormattingToolbar editor={editorRef.current} />
+                </div>
+              </div>
+            )}
+
+            {/* Content Container */}
+            <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+              {renderTabContent()}
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
   );
 };

@@ -57,22 +57,21 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
     }
 
     return (
-        <div className="flex flex-col flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar animate-in fade-in duration-500 pr-2 pb-12">
+        <div className="flex flex-col flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar animate-in fade-in duration-500 pb-0">
             
-            <div className="bg-surface-container-low rounded-3xl border border-outline-variant/10 shadow-sm relative overflow-hidden mb-6 sm:mb-8 mt-4">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
-                
-                <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 p-6 sm:p-8 relative z-10">
-                    <div className="flex items-center gap-3 sm:gap-4">
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-primary/10 flex items-center justify-center shadow-inner shrink-0">
-                            <Sparkles className="w-5 h-5 sm:w-7 sm:h-7 text-primary" />
+            {/* Executive Document Header */}
+            <div className="bg-surface-container-lowest rounded-lg border border-outline-variant/20 shadow-sm overflow-hidden mb-4 mt-4 mx-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border-b border-outline-variant/10">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center shrink-0">
+                            <Sparkles className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                            <h3 className="font-headline text-lg sm:text-2xl font-bold text-on-surface tracking-tight break-words">
+                            <h3 className="font-headline text-base font-bold text-on-surface tracking-tight">
                                 {version.title || 'Refinement Report'}
                             </h3>
-                            <p className="text-[9px] sm:text-[10px] text-on-surface-variant/60 uppercase tracking-[0.2em] sm:tracking-[0.3em] font-black">
-                                Echo Analysis & Insights
+                            <p className="text-[9px] text-on-surface-variant/60 uppercase tracking-widest font-bold">
+                                Master Audit Log • Echo v2.5
                             </p>
                         </div>
                     </div>
@@ -83,74 +82,79 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
                             setCopied(true);
                             setTimeout(() => setCopied(false), 2000);
                         }}
-                        className={`flex items-center justify-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-sm group border border-outline-variant/10 ${
+                        className={`flex items-center justify-center gap-2 px-3 py-1.5 rounded border text-[10px] font-bold uppercase tracking-wider transition-all ${
                             copied 
-                            ? 'bg-accent-emerald/20 text-accent-emerald border-accent-emerald/30' 
-                            : 'bg-surface-container-highest/50 text-on-surface-variant hover:bg-primary hover:text-on-primary'
+                            ? 'bg-accent-emerald/10 text-accent-emerald border-accent-emerald/30' 
+                            : 'bg-surface-container-highest/30 text-on-surface-variant border-outline-variant/20 hover:bg-surface-container-highest'
                         }`}
                     >
-                        {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3 group-hover:scale-110 transition-transform" />}
-                        <span>{copied ? 'Copied!' : 'Copy Report'}</span>
+                        {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                        <span>{copied ? 'Copied' : 'Copy Report'}</span>
                     </button>
                 </div>
                 
-                <div className="px-6 sm:px-8 pb-6 sm:pb-8 relative z-10">
-                    <div className="h-px w-full bg-outline-variant/10 mb-6 sm:mb-8"></div>
-                    <div className="relative p-6 sm:p-8 bg-surface-container-high rounded-2xl border border-outline-variant/20">
-                        <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                                <Sparkles className="w-6 h-6 text-primary" />
-                            </div>
-                            <div>
-                                <h4 className="text-on-surface font-headline text-lg sm:text-xl font-bold mb-2">
-                                    Echo's Verdict
-                                </h4>
-                                <p className="text-on-surface-variant text-sm sm:text-base leading-relaxed italic">
-                                    {version.summary || "Refinement complete. Review the metrics below."}
-                                </p>
-                            </div>
+                <div className="p-4 bg-surface-container-low/30">
+                    <div className="flex items-start gap-3">
+                        <div className="text-primary mt-0.5 shrink-0">
+                            <CheckCircle2 className="w-4 h-4" />
+                        </div>
+                        <div>
+                            <span className="text-xs font-bold text-on-surface-variant uppercase tracking-tighter mr-2">Echo's Verdict:</span>
+                            <span className="text-on-surface-variant text-sm leading-relaxed italic">
+                                {version.summary || "Refinement complete. Review the audit stack below for full transparency."}
+                            </span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <ReportVoiceResonance voiceAudits={version.voiceAudits} />
+            {/* Linear Audit Stack */}
+            <div className="flex flex-col gap-4 px-4 pb-24">
+                {/* 1. Voice Resonance */}
+                <ReportVoiceResonance voiceAudits={version.voiceAudits} />
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 mt-6">
-                <div className="lg:col-span-2">
-                    <ReportLoreCorrections loreCorrections={version.loreCorrections} onRevertSpecificLore={onRevertSpecificLore} />
-                </div>
+                {/* 2. Lore Corrections */}
+                <ReportLoreCorrections 
+                    loreCorrections={version.loreCorrections} 
+                    onRevertSpecificLore={onRevertSpecificLore} 
+                />
+
+                {/* 3. Lore Fraying */}
                 {!version.isSurgical && (
-                    <div className="lg:col-span-2">
-                        <ReportLoreFraying loreFraying={version.loreFraying} />
-                    </div>
+                    <ReportLoreFraying loreFraying={version.loreFraying} />
                 )}
+
+                {/* 4. Context Scan */}
+                {!version.isSurgical && (
+                    <ReportContext activeContext={version.activeContext} />
+                )}
+
+                {/* 5. Restraint Log */}
+                {!version.isSurgical && (
+                    <ReportRestraintLog restraintLog={version.restraintLog} />
+                )}
+
+                {/* 6. Metrics */}
+                {!version.isSurgical && (
+                    <ReportMetrics metrics={version.metrics} />
+                )}
+
+                {/* 7. Audit Trail */}
+                {!version.isSurgical && (
+                    <ReportAudit audit={version.audit} />
+                )}
+
+                {/* 8. Deep Analysis */}
+                <ReportAnalysis version={version} />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
-                <div className="lg:col-span-2">
-                    <ReportAnalysis version={version} />
-                </div>
-                {!version.isSurgical && (
-                    <>
-                        <div className="lg:col-span-2">
-                            <ReportRestraintLog restraintLog={version.restraintLog} />
-                        </div>
-                        <ReportContext activeContext={version.activeContext} />
-                        <ReportMetrics metrics={version.metrics} />
-                        <div className="lg:col-span-2">
-                            <ReportAudit audit={version.audit} />
-                        </div>
-                    </>
-                )}
-            </div>
-
-            <div className="mt-8 mb-8 flex justify-center">
+            {/* Sticky Action Bar */}
+            <div className="sticky bottom-0 left-0 right-0 bg-surface border-t border-outline-variant/20 p-4 z-50 flex justify-center shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
                 <button 
                     onClick={() => onAccept(version)}
-                    className="flex items-center justify-center gap-3 sm:gap-4 px-6 py-4 sm:px-12 sm:py-6 bg-primary text-on-primary-fixed font-label uppercase tracking-[0.15em] sm:tracking-[0.25em] text-xs sm:text-base font-black rounded-[2rem] hover:bg-primary/90 transition-all shadow-lg hover:shadow-2xl hover:-translate-y-1.5 active:translate-y-0 active:scale-95 group relative overflow-hidden border-b-4 border-primary/30 w-full sm:w-auto"
+                    className="flex items-center justify-center gap-2 px-8 py-3 bg-primary text-on-primary font-bold uppercase tracking-widest text-xs rounded-md hover:bg-primary/90 transition-all shadow-sm active:scale-95 w-full sm:w-auto"
                 >
-                    <CheckCircle2 className="w-5 h-5 sm:w-7 sm:h-7" />
+                    <CheckCircle2 className="w-4 h-4" />
                     <span>Accept Refined Version</span>
                 </button>
             </div>
