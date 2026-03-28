@@ -43,8 +43,8 @@ const LoadingState = () => (
   </div>
 );
 
-const GlobalHeader = ({ isZenMode }: { isZenMode: boolean }) => (
-  <header className={`fixed top-0 left-0 right-0 z-50 flex flex-col items-center py-4 transition-all duration-700 ${isZenMode ? 'opacity-0 -translate-y-10 pointer-events-none' : 'opacity-100 translate-y-0'}`}>
+const GlobalHeader = ({ isZenMode, currentScreen }: { isZenMode: boolean, currentScreen: Screen }) => (
+  <header className={`fixed top-0 left-0 right-0 z-50 flex flex-col items-center py-4 transition-all duration-700 ${isZenMode || currentScreen === 'welcome' ? 'opacity-0 -translate-y-10 pointer-events-none' : 'opacity-100 translate-y-0'}`}>
     <div className="flex flex-col items-center gap-0.5">
       <h1 className="font-headline text-2xl md:text-3xl font-light tracking-tighter text-on-surface">
         ECHO<span className="text-primary">.</span>
@@ -549,7 +549,7 @@ export default function App() {
     <div className={`h-[100dvh] bg-surface text-on-surface flex flex-col font-body overflow-hidden ${isZenMode ? 'is-zen' : ''}`}>
       {toast && <Toast key={toast.id} message={toast.message} onClose={() => setToast(null)} />}
       
-      <GlobalHeader isZenMode={isZenMode} />
+      <GlobalHeader isZenMode={isZenMode} currentScreen={currentScreen} />
       
       <GlobalSearchModal
         isOpen={isSearchOpen}

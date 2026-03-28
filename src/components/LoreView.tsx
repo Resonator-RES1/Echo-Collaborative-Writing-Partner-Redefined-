@@ -137,7 +137,7 @@ export function LoreScreen({ onClose }: LoreScreenProps) {
               <header className="p-10 pb-6 flex items-center justify-between shrink-0">
                 <div>
                   <h2 className="font-headline text-4xl font-light text-on-surface tracking-tight">Lore Codex</h2>
-                  <p className="font-label text-[9px] uppercase tracking-[0.4em] text-primary/40 mt-1">The Sovereign Archives</p>
+                  <p className="font-label text-[10px] uppercase tracking-[0.2em] text-on-surface-variant mt-1">The Sovereign Archives</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <button 
@@ -224,12 +224,12 @@ export function LoreScreen({ onClose }: LoreScreenProps) {
                                         <h4 className="text-xs font-medium text-on-surface group-hover:text-primary transition-colors truncate">{entry.title}</h4>
                                         <p className="text-[10px] text-on-surface-variant/60 truncate">{entry.content}</p>
                                       </div>
-                                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <div className="flex items-center gap-2 transition-opacity">
                                         <button 
                                           onClick={(e) => { e.stopPropagation(); deleteLoreEntry(entry.id); }}
-                                          className="p-1.5 rounded-lg hover:bg-error/10 text-on-surface-variant/40 hover:text-error transition-colors"
+                                          className="p-2 rounded-lg hover:bg-error/10 text-on-surface-variant/40 hover:text-error active:text-error transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center"
                                         >
-                                          <Trash2 className="w-3 h-3" />
+                                          <Trash2 className="w-3.5 h-3.5" />
                                         </button>
                                       </div>
                                     </div>

@@ -380,16 +380,6 @@ export function WelcomeScreen({ onEnterWorkspace, onViewManuscript, wordCount, g
             className="text-center space-y-8 md:space-y-12 max-w-4xl w-full relative z-10"
           >
             <div className="space-y-4 md:space-y-6">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary font-label text-[10px] uppercase tracking-[0.3em] mb-2 md:mb-4"
-              >
-                <Sparkles className="w-3 h-3" />
-                <span>The Voice-Preserving Refiner</span>
-              </motion.div>
-              
               <h1 className="font-headline text-6xl sm:text-7xl md:text-9xl font-light tracking-tighter leading-none">
                 Echo<span className="text-primary">.</span>
               </h1>

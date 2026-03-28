@@ -249,10 +249,10 @@ export function VoicesScreen({
                               deleteAuthorVoice(voice.id);
                               if (editingAuthorVoice?.id === voice.id) handleCloseForm();
                             }}
-                            className="text-on-surface-variant/30 hover:text-error transition-colors opacity-0 group-hover:opacity-100"
+                            className="text-on-surface-variant/40 hover:text-error active:text-error transition-colors p-2 min-w-[32px] min-h-[32px] flex items-center justify-center"
                             title="Delete Voice"
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                         <h4 className="font-headline text-sm mb-1 text-on-surface">{voice.name}</h4>
@@ -289,10 +289,10 @@ export function VoicesScreen({
                               deleteVoiceProfile(voice.id);
                               if (editingProfile?.id === voice.id) handleCloseForm();
                             }}
-                            className="text-on-surface-variant/30 hover:text-error transition-colors opacity-0 group-hover:opacity-100"
+                            className="text-on-surface-variant/40 hover:text-error active:text-error transition-colors p-2 min-w-[32px] min-h-[32px] flex items-center justify-center"
                             title="Delete Voice"
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                         <h4 className="font-headline text-sm mb-1 text-on-surface">{voice.name}</h4>
