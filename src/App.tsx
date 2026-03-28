@@ -24,9 +24,9 @@ import { Screen, RefinedVersion, Scene, Chapter, WritingGoal } from './types';
 import * as db from './services/dbService';
 import { useLore } from './contexts/LoreContext';
 import { useProject } from './contexts/ProjectContext';
+import Editor from './components/EditorView';
 
 // Lazy load main screens
-const Editor = lazy(() => import('./components/EditorView'));
 const LoreScreen = lazy(() => import('./components/LoreView'));
 const VoicesScreen = lazy(() => import('./components/VoicesView'));
 const ManuscriptPanel = React.memo(lazy(() => import('./components/ManuscriptView')));

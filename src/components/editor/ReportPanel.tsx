@@ -57,11 +57,11 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
     }
 
     return (
-        <div className="flex flex-col flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar animate-in fade-in duration-500 pb-0 pt-24">
+        <div className="flex flex-col flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar animate-in fade-in duration-500 pb-0">
             
             {/* Executive Document Header */}
             <div className="bg-surface-container-lowest rounded-lg border border-outline-variant/20 shadow-sm overflow-hidden mb-4 mt-4 mx-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border-b border-outline-variant/10">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4">
                     <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center shrink-0">
                             <Sparkles className="w-5 h-5 text-primary" />
@@ -92,67 +92,66 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
                         <span>{copied ? 'Copied' : 'Copy Report'}</span>
                     </button>
                 </div>
-                
-                <div className="p-4 bg-surface-container-low/30">
-                    <h4 className="text-xs font-bold text-on-surface-variant uppercase tracking-tighter mb-2">Echo's Verdict</h4>
+            </div>
+
+            {/* Linear Audit Stack */}
+            <div className="flex flex-col gap-4 px-4 pb-24">
+                {/* 1. Echo's Verdict */}
+                <div className="bg-surface-container-lowest rounded-lg border border-outline-variant/20 border-l-4 border-primary p-4 shadow-sm">
+                    <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest mb-2">Echo's Verdict</h4>
                     <div className="flex items-start gap-3">
                         <div className="text-primary mt-0.5 shrink-0">
                             <CheckCircle2 className="w-4 h-4" />
                         </div>
                         <div>
-                            <span className="text-on-surface-variant text-sm leading-relaxed italic">
+                            <p className="text-on-surface text-sm leading-relaxed italic">
                                 {version.summary || "Refinement complete. Review the audit stack below for full transparency."}
-                            </span>
+                            </p>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Linear Audit Stack */}
-            <div className="flex flex-col gap-4 px-4 pb-24">
-                {/* 1. Mirror Editor Analysis */}
+                {/* 2. Mirror Editor Analysis */}
                 <ReportAnalysis version={version} />
 
-                {/* 2. Fidelity Audit */}
+                {/* 3. Fidelity Audit */}
                 {!version.isSurgical && (
                     <ReportAudit audit={version.audit} />
                 )}
 
-                {/* 3. Prose Metrics */}
+                {/* 4. Prose Metrics */}
                 {!version.isSurgical && (
                     <ReportMetrics metrics={version.metrics} />
                 )}
 
-                {/* 4. Preservation Log */}
+                {/* 5. Preservation Log */}
                 {!version.isSurgical && (
                     <ReportRestraintLog restraintLog={version.restraintLog} />
                 )}
 
-                {/* 5. Voice Resonance Radar */}
+                {/* 6. Voice Resonance Radar */}
                 <ReportVoiceResonance voiceAudits={version.voiceAudits} />
 
-                {/* 6. Lore Correction */}
+                {/* 7. Lore Correction */}
                 <ReportLoreCorrections 
                     loreCorrections={version.loreCorrections} 
                     onRevertSpecificLore={onRevertSpecificLore} 
                 />
 
-                {/* 7. Lore Fraying */}
+                {/* 8. Lore Fraying */}
                 {!version.isSurgical && (
                     <ReportLoreFraying loreFraying={version.loreFraying} />
                 )}
 
-                {/* 8. Active Context */}
+                {/* 9. Active Context */}
                 {!version.isSurgical && (
                     <ReportContext activeContext={version.activeContext} />
                 )}
-            </div>
 
-            {/* Sticky Action Bar */}
-            <div className="sticky bottom-0 left-0 right-0 bg-surface border-t border-outline-variant/20 p-4 z-50 flex justify-center shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+                {/* Action Button */}
                 <button 
                     onClick={() => onAccept(version)}
-                    className="flex items-center justify-center gap-2 px-8 py-3 bg-primary text-on-primary font-bold uppercase tracking-widest text-xs rounded-md hover:bg-primary/90 transition-all shadow-sm active:scale-95 w-full sm:w-auto"
+                    className="flex items-center justify-center gap-2 px-8 py-3 bg-primary text-on-primary font-bold uppercase tracking-widest text-xs rounded-md hover:bg-primary/90 transition-all shadow-sm active:scale-95 w-full mt-4"
                 >
                     <CheckCircle2 className="w-4 h-4" />
                     <span>Accept Refined Version</span>
