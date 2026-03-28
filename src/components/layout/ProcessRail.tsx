@@ -1,0 +1,137 @@
+import React from 'react';
+import { FileText, BookOpen, Wand2, History, BarChart3, ShieldCheck, PenTool, Scissors, Sun } from 'lucide-react';
+import { WorkspaceTab } from '../../types';
+import { ContinuityIssue } from '../../utils/contextScanner';
+
+interface ProcessRailProps {
+  isZenMode: boolean;
+  setIsZenMode: (isZenMode: boolean) => void;
+  activeTab: WorkspaceTab;
+  setActiveTab: (tab: WorkspaceTab) => void;
+  showContinuityGuard: boolean;
+  setShowContinuityGuard: (show: boolean) => void;
+  continuityIssues: ContinuityIssue[];
+  editorMode: 'polishing' | 'drafting';
+  setEditorMode: (mode: 'polishing' | 'drafting') => void;
+  setShowDiff: (show: boolean) => void;
+  setShowRecentChanges: (show: boolean) => void;
+  dispatchDraft: any;
+  draftState: any;
+}
+
+const ProcessRailComponent: React.FC<ProcessRailProps> = ({
+  isZenMode,
+  setIsZenMode,
+  activeTab,
+  setActiveTab,
+  showContinuityGuard,
+  setShowContinuityGuard,
+  continuityIssues,
+  editorMode,
+  setEditorMode,
+  setShowDiff,
+  setShowRecentChanges,
+  dispatchDraft,
+  draftState
+}) => {
+  if (isZenMode) return null;
+
+  return (
+    <aside className="w-16 sm:w-20 flex flex-col items-center py-6 justify-between bg-surface-container-low/95 backdrop-blur-xl border-r border-outline-variant/10 z-30">
+      <div className="flex flex-col gap-6">
+        {[
+          { id: 'draft', label: 'Draft', icon: FileText, step: '01' },
+          { id: 'context', label: 'Context', icon: BookOpen, step: '02' },
+          { id: 'refine', label: 'Refine', icon: Wand2, step: '03' },
+          { id: 'archive', label: 'Archive', icon: History, step: '04' },
+          { id: 'report', label: 'Report', icon: BarChart3, step: '05' }
+        ].map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as WorkspaceTab)}
+              className="relative flex flex-col items-center group transition-all duration-300"
+              title={tab.label}
+            >
+              <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center transition-all duration-500 border ${
+                isActive 
+                  ? 'bg-primary border-primary text-on-primary-fixed shadow-[0_0_20px_rgba(208,192,255,0.3)]' 
+                  : 'bg-surface-container-low border-outline-variant/30 text-on-surface-variant hover:border-primary/50'
+              }`}>
+                <tab.icon className={`w-5 h-5 sm:w-6 sm:h-6 ${isActive ? 'animate-pulse' : ''}`} />
+              </div>
+              <span className={`mt-2 text-[8px] sm:text-[9px] font-label font-bold uppercase tracking-widest transition-all duration-300 ${
+                isActive ? 'text-primary' : 'text-on-surface-variant/40 group-hover:text-primary/60'
+              }`}>
+                {tab.label}
+              </span>
+              {isActive && (
+                <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full shadow-[0_0_10px_rgba(208,192,255,0.5)]" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="flex flex-col gap-4 pb-4">
+        {/* Continuity Guard */}
+        <button 
+          onClick={() => setShowContinuityGuard(!showContinuityGuard)}
+          className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-2xl transition-all relative ${
+            showContinuityGuard 
+              ? 'bg-primary text-on-primary-fixed shadow-lg shadow-primary/20' 
+              : continuityIssues.length > 0 
+                  ? 'bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 ring-1 ring-amber-500/50' 
+                  : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'
+          }`}
+          title="Continuity Guard"
+        >
+          <ShieldCheck className="w-5 h-5" />
+          {continuityIssues.length > 0 && (
+            <span className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-amber-500 text-on-amber text-[8px] font-black">
+              {continuityIssues.length}
+            </span>
+          )}
+        </button>
+
+        <div className="h-px w-8 bg-outline-variant/20 mx-auto" />
+
+        {/* Mode Buttons */}
+        <button 
+          onClick={() => {
+            setActiveTab('draft');
+            setEditorMode('drafting');
+            setShowDiff(false);
+          }}
+          className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-2xl transition-all ${editorMode === 'drafting' ? 'bg-primary text-on-primary-fixed shadow-lg shadow-primary/20' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
+          title="Drafting Mode"
+        >
+          <PenTool className="w-5 h-5" />
+        </button>
+
+        <button 
+          onClick={() => {
+            dispatchDraft({ type: 'SET_ORIGINAL', payload: draftState.present });
+            setEditorMode('polishing');
+            setShowRecentChanges(false);
+          }}
+          className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-2xl transition-all ${editorMode === 'polishing' ? 'bg-primary text-on-primary-fixed shadow-lg shadow-primary/20' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
+          title="Manual Revision"
+        >
+          <Scissors className="w-5 h-5" />
+        </button>
+
+        <button 
+          onClick={() => setIsZenMode(!isZenMode)}
+          className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-2xl transition-all bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary`}
+          title="Zen Mode"
+        >
+          <Sun className="w-5 h-5" />
+        </button>
+      </div>
+    </aside>
+  );
+};
+
+export const ProcessRail = React.memo(ProcessRailComponent);

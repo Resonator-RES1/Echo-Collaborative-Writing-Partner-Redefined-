@@ -4,7 +4,7 @@ export const formatReportForCopy = (version: RefinedVersion): string => {
     let report = `ECHO REFINEMENT REPORT: ${version.title || 'Untitled'}\n`;
     report += `==========================================\n\n`;
     
-    report += `SUMMARY:\n${version.summary || 'No summary available.'}\n\n`;
+    report += `SUMMARY (ECHO'S VERDICT):\n${version.summary || 'No summary available.'}\n\n`;
     
     if (version.analysis) {
         report += `MIRROR EDITOR ANALYSIS:\n${version.analysis}\n\n`;
@@ -51,6 +51,22 @@ export const formatReportForCopy = (version: RefinedVersion): string => {
         report += `\n`;
     }
     
+    if (version.loreCorrections && version.loreCorrections.length > 0) {
+        report += `LORE CORRECTIONS:\n`;
+        version.loreCorrections.forEach(correction => {
+            report += `- ORIGINAL: "${correction.original}"\n  REFINED: "${correction.refined}"\n  REASON: ${correction.reason}\n`;
+        });
+        report += `\n`;
+    }
+
+    if (version.loreFraying && version.loreFraying.length > 0) {
+        report += `LORE FRAYING:\n`;
+        version.loreFraying.forEach(fray => {
+            report += `- SNIPPET: "${fray.snippet}"\n  CONFLICT: ${fray.conflict}\n  SUGGESTION: ${fray.suggestion}\n`;
+        });
+        report += `\n`;
+    }
+
     if (version.activeContext) {
         report += `ACTIVE CONTEXT:\n`;
         report += `- AUTHOR VOICE: ${version.activeContext.authorVoice || 'None'}\n`;
