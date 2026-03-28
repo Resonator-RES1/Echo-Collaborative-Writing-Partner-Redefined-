@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Activity, CheckCircle2, BarChart3, Copy, Sparkles, Check } from 'lucide-react';
+import { Activity, CheckCircle2, BarChart3, Copy, Sparkles, Check, FileText } from 'lucide-react';
 import { RefinedVersion, LoreCorrection } from '../../types';
 import { ReportContext } from '../report/ReportContext';
 import { ReportAudit } from '../report/ReportAudit';
@@ -59,49 +59,16 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
     return (
         <div className="flex flex-col flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar animate-in fade-in duration-500 pb-0">
             
-            {/* Executive Document Header */}
-            <div className="bg-surface-container-lowest rounded-lg border border-outline-variant/20 shadow-sm overflow-hidden mb-4 mt-4 mx-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center shrink-0">
-                            <Sparkles className="w-5 h-5 text-primary" />
-                        </div>
-                        <div>
-                            <h3 className="font-headline text-base font-bold text-on-surface tracking-tight">
-                                {version.title || 'Refinement Report'}
-                            </h3>
-                            <p className="text-[9px] text-on-surface-variant/60 uppercase tracking-widest font-bold">
-                                Master Audit Log • Echo v2.5
-                            </p>
-                        </div>
-                    </div>
-                    <button 
-                        onClick={() => {
-                            const reportText = formatReportForCopy(version);
-                            navigator.clipboard.writeText(reportText);
-                            setCopied(true);
-                            setTimeout(() => setCopied(false), 2000);
-                        }}
-                        className={`flex items-center justify-center gap-2 px-3 py-1.5 rounded border text-[10px] font-bold uppercase tracking-wider transition-all ${
-                            copied 
-                            ? 'bg-accent-emerald/10 text-accent-emerald border-accent-emerald/30' 
-                            : 'bg-surface-container-highest/30 text-on-surface-variant border-outline-variant/20 hover:bg-surface-container-highest'
-                        }`}
-                    >
-                        {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                        <span>{copied ? 'Copied' : 'Copy Report'}</span>
-                    </button>
-                </div>
-            </div>
-
             {/* Linear Audit Stack */}
-            <div className="flex flex-col gap-4 px-4 pb-24">
+            <div className="flex flex-col gap-4 px-4 pt-4 pb-24">
                 {/* 1. Echo's Verdict */}
                 <div className="bg-surface-container-lowest rounded-lg border border-outline-variant/20 border-l-4 border-primary p-4 shadow-sm">
                     {/* Metadata Header */}
                     <div className="flex items-start justify-between mb-3">
                         <div className="flex items-start gap-2">
-                            <FileText className="w-4 h-4 text-primary mt-0.5" />
+                            <div className="w-7 h-7 rounded bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                                <FileText className="w-4 h-4 text-primary" />
+                            </div>
                             <div>
                                 <h4 className="text-sm font-bold text-on-surface tracking-tight leading-tight">
                                     {version.title || 'Refinement Report'}
@@ -118,14 +85,15 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
                                 setCopied(true);
                                 setTimeout(() => setCopied(false), 2000);
                             }}
-                            className={`p-1.5 rounded border transition-all ${
+                            className={`flex items-center gap-1.5 px-2 py-1 rounded border transition-all text-[10px] font-bold uppercase tracking-wider ${
                                 copied 
                                 ? 'bg-accent-emerald/10 text-accent-emerald border-accent-emerald/30' 
-                                : 'text-on-surface-variant border-outline-variant/20 hover:bg-surface-container-highest'
+                                : 'bg-transparent text-on-surface-variant border-outline-variant/20 hover:bg-surface-container-highest'
                             }`}
                             title="Copy Report"
                         >
                             {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                            <span>{copied ? 'Copied' : 'Copy'}</span>
                         </button>
                     </div>
 
