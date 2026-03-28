@@ -17,6 +17,9 @@ interface ProcessRailProps {
   setShowRecentChanges: (show: boolean) => void;
   dispatchDraft: any;
   draftState: any;
+  selection: { text: string; start: number; end: number } | null;
+  surgicalSelection: { text: string; start: number; end: number } | null;
+  setSurgicalSelection: (sel: { text: string; start: number; end: number } | null) => void;
 }
 
 const ProcessRailComponent: React.FC<ProcessRailProps> = ({
@@ -32,7 +35,10 @@ const ProcessRailComponent: React.FC<ProcessRailProps> = ({
   setShowDiff,
   setShowRecentChanges,
   dispatchDraft,
-  draftState
+  draftState,
+  selection,
+  surgicalSelection,
+  setSurgicalSelection
 }) => {
   if (isZenMode) return null;
 
@@ -115,6 +121,10 @@ const ProcessRailComponent: React.FC<ProcessRailProps> = ({
             dispatchDraft({ type: 'SET_ORIGINAL', payload: draftState.present });
             setEditorMode('polishing');
             setShowRecentChanges(false);
+            setSurgicalSelection(selection);
+            if (selection) {
+              setShowDiff(true);
+            }
           }}
           className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-2xl transition-all ${editorMode === 'polishing' ? 'bg-primary text-on-primary-fixed shadow-lg shadow-primary/20' : 'bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary'}`}
           title="Manual Revision"

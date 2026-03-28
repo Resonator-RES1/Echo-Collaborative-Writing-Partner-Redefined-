@@ -5,6 +5,7 @@ import { VoiceProfileForm } from './forms/VoiceProfileForm';
 import { AuthorVoiceForm } from './forms/AuthorVoiceForm';
 import { motion } from 'motion/react';
 import { useLore } from '../contexts/LoreContext';
+import { EmptyState } from './ui/EmptyState';
 
 interface VoicesScreenProps {
   onClose: () => void;
@@ -299,6 +300,28 @@ export function VoicesScreen({
                         <p className="font-body text-[11px] text-on-surface-variant line-clamp-2 leading-relaxed">
                           {voice.archetype || "No archetype defined."}
                         </p>
+                        {voice.relationships && voice.relationships.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-3">
+                            {voice.relationships.map(rel => {
+                              const target = voiceProfiles.find(p => p.id === rel.targetId);
+                              if (!target) return null;
+                              const initial = target.name.charAt(0).toUpperCase();
+                              return (
+                                <div 
+                                  key={rel.targetId}
+                                  title={`${rel.type} with ${target.name} (Tension: ${rel.tension})`}
+                                  className={`w-5 h-5 rounded-full border flex items-center justify-center text-[8px] font-bold transition-all hover:scale-110 ${
+                                    rel.tension >= 4 ? 'border-red-500 text-red-500 bg-red-500/5' : 
+                                    rel.tension <= 2 ? 'border-emerald-500 text-emerald-500 bg-emerald-500/5' : 
+                                    'border-outline-variant/30 text-on-surface-variant/60 bg-surface-container'
+                                  }`}
+                                >
+                                  {initial}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     ))
                   )
@@ -348,19 +371,21 @@ export function VoicesScreen({
                   )}
                 </div>
               ) : (
-                <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-surface-container-lowest/50 rounded-3xl border border-outline-variant/10">
-                  <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-6">
-                    {activeTab === 'author' ? (
-                      <PenTool className="w-8 h-8 text-on-surface-variant/30" />
-                    ) : (
-                      <User className="w-8 h-8 text-on-surface-variant/30" />
-                    )}
-                  </div>
-                  <h3 className="text-xl font-headline font-light text-on-surface mb-2">Select a Voice</h3>
-                  <p className="text-on-surface-variant text-sm max-w-xs">
-                    Choose a {activeTab === 'author' ? 'author' : 'character'} voice from the list to view or edit.
-                  </p>
-                </div>
+                <EmptyState 
+                  icon={activeTab === 'author' ? PenTool : User}
+                  title={activeTab === 'author' ? "No Authorial Voice" : "No Character Resonance"}
+                  description={activeTab === 'author' ? "Define your narrative style, tone, and perspective to maintain a consistent authorial presence." : "Create character soul-patterns to ensure every line of dialogue rings true to their personality."}
+                  action={
+                    <button 
+                      onClick={handleAddNew}
+                      className={`px-6 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors ${
+                        activeTab === 'author' ? 'bg-secondary/10 text-secondary hover:bg-secondary/20' : 'bg-primary/10 text-primary hover:bg-primary/20'
+                      }`}
+                    >
+                      {activeTab === 'author' ? "Define Author Voice" : "Create Character Voice"}
+                    </button>
+                  }
+                />
               )}
             </div>
           </div>

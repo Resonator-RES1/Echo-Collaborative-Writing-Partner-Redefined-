@@ -192,6 +192,14 @@ export default function App() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  useEffect(() => {
+    const handleToggleSearch = () => {
+      setIsSearchOpen(prev => !prev);
+    };
+    window.addEventListener('toggle-global-search', handleToggleSearch);
+    return () => window.removeEventListener('toggle-global-search', handleToggleSearch);
+  }, []);
+
   // Zen Mode Esc listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -373,6 +381,15 @@ export default function App() {
     showToast("Echo removed from history.");
   }, [showToast]);
 
+  const updateVersion = useCallback(async (updatedVersion: RefinedVersion) => {
+    setVersionHistory(prev => {
+      const updated = prev.map(v => v.id === updatedVersion.id ? updatedVersion : v);
+      db.setAllEchoes(updated);
+      return updated;
+    });
+    await db.putEcho(updatedVersion);
+  }, []);
+
   const filteredVersionHistory = useMemo(() => {
       return versionHistory.filter(v => !v.sceneId || v.sceneId === currentSceneId);
   }, [versionHistory, currentSceneId]);
@@ -539,6 +556,7 @@ export default function App() {
               onAddVersion={addVersion}
               onClearVersionHistory={clearVersionHistory}
               onDeleteVersion={deleteVersion}
+              onUpdateVersion={updateVersion}
               onAcceptVersion={acceptVersion}
           />
         );

@@ -22,6 +22,9 @@ interface EditorCanvasProps {
   setActiveTab: (tab: WorkspaceTab) => void;
   dispatchDraft: any;
   draftState: any;
+  selection: { text: string; start: number; end: number } | null;
+  surgicalSelection: { text: string; start: number; end: number } | null;
+  setSurgicalSelection: (sel: { text: string; start: number; end: number } | null) => void;
   setSelection: any;
   handleAcceptChanges: () => void;
   saveStatus: 'idle' | 'saving' | 'saved';
@@ -43,6 +46,9 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   setActiveTab,
   dispatchDraft,
   draftState,
+  selection,
+  surgicalSelection,
+  setSurgicalSelection,
   setSelection,
   handleAcceptChanges,
   saveStatus,
@@ -121,6 +127,10 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                     dispatchDraft({ type: 'SET_ORIGINAL', payload: draftState.present });
                     setEditorMode('polishing');
                     setShowRecentChanges(false);
+                    setSurgicalSelection(selection);
+                    if (selection) {
+                      setShowDiff(true);
+                    }
                   }}
                   className={`p-2 rounded-lg transition-all ${editorMode === 'polishing' ? 'bg-primary text-on-primary-fixed shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-highest'}`}
                   title="Manual Revision"
@@ -142,11 +152,26 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
               className="text-base sm:text-lg md:text-xl leading-relaxed sm:leading-loose text-on-surface"
           />
           {editorMode === 'polishing' && showDiff && (
-              <div className="mt-4 border-t border-outline-variant/20 pt-4">
+              <div className="mt-4 border-t border-outline-variant/20 pt-4 animate-in slide-in-from-bottom-4 fade-in duration-500">
                   <SideBySideDiff 
-                      original={draftState.original} 
-                      polished={draftState.present} 
-                      onAcceptChanges={handleAcceptChanges}
+                      original={surgicalSelection ? surgicalSelection.text : draftState.original} 
+                      polished={
+                        surgicalSelection 
+                          ? (() => {
+                              const prefix = draftState.original.substring(0, surgicalSelection.start);
+                              const suffix = draftState.original.substring(surgicalSelection.end);
+                              let start = 0;
+                              let end = draftState.present.length;
+                              if (draftState.present.startsWith(prefix)) start = prefix.length;
+                              if (draftState.present.endsWith(suffix)) end = draftState.present.length - suffix.length;
+                              return draftState.present.substring(start, end);
+                            })()
+                          : draftState.present
+                      } 
+                      onAcceptChanges={() => {
+                        setSurgicalSelection(null);
+                        handleAcceptChanges();
+                      }}
                   />
               </div>
           )}

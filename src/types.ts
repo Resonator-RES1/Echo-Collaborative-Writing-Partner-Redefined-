@@ -73,6 +73,7 @@ export interface VoiceProfile {
   internalMonologueStyle?: string;
   conflictStyle?: string;
   aliases?: string[];
+  relationships?: Relationship[];
   lastModified: string;
   isActive?: boolean;
 }
@@ -154,6 +155,9 @@ export interface RefinedVersion {
   sceneId?: string;
   isAccepted?: boolean;
   isSurgical?: boolean;
+  isPinned?: boolean;
+  milestoneLabel?: string;
+  wordCountDelta?: { added: number; removed: number };
   originalSelection?: string;
   refinedSelection?: string;
   usedProfiles?: {

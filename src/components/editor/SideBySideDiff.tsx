@@ -65,7 +65,7 @@ export const SideBySideDiff: React.FC<{
 
                         if (rangeStart > currentPos) {
                             segments.push(
-                                <span key={`${key}-s-${rIdx}`} className="bg-[var(--highlight-emerald-bg)] text-[var(--highlight-emerald-text)] rounded px-1">
+                                <span key={`${key}-s-${rIdx}`} className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold rounded px-1">
                                     {polished.substring(currentPos, rangeStart)}
                                 </span>
                             );
@@ -75,13 +75,13 @@ export const SideBySideDiff: React.FC<{
                         let tooltip = "";
 
                         if (range.type === 'lore') {
-                            className = "bg-[var(--highlight-red-bg)] text-[var(--highlight-red-text)] rounded px-1 border-b border-red-400 cursor-pointer transition-colors hover:bg-red-500/40";
+                            className = "bg-red-500/20 text-red-800 dark:text-red-300 rounded px-1 border-b-2 border-red-500 cursor-pointer transition-colors hover:bg-red-500/40 font-bold relative z-10";
                             tooltip = `Lore Correction: ${range.metadata.reason}`;
                         } else if (range.type === 'fraying') {
-                            className = "bg-[var(--highlight-amber-bg)] text-[var(--highlight-amber-text)] rounded px-1 border-b border-amber-400 cursor-pointer transition-colors hover:bg-amber-500/40";
+                            className = "bg-amber-500/20 text-amber-800 dark:text-amber-300 rounded px-1 border-b-2 border-amber-500 cursor-pointer transition-colors hover:bg-amber-500/40 font-bold relative z-10";
                             tooltip = `Lore Fraying: ${range.metadata.conflict}\nSuggestion: ${range.metadata.suggestion}`;
                         } else {
-                            className = "bg-[var(--highlight-blue-bg)] text-[var(--highlight-blue-text)] rounded px-1 border-b border-blue-400 cursor-pointer transition-colors hover:bg-blue-500/30";
+                            className = "bg-blue-500/20 text-blue-800 dark:text-blue-300 rounded px-1 border-b-2 border-blue-500 cursor-pointer transition-colors hover:bg-blue-500/30 font-bold relative z-10";
                             tooltip = `Restrained: ${range.metadata.justification}`;
                         }
 
@@ -99,18 +99,18 @@ export const SideBySideDiff: React.FC<{
                     
                     if (currentPos < end) {
                         segments.push(
-                            <span key={`${key}-s-end`} className="bg-[var(--highlight-emerald-bg)] text-[var(--highlight-emerald-text)] rounded px-1">
+                            <span key={`${key}-s-end`} className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold rounded px-1">
                                 {polished.substring(currentPos, end)}
                             </span>
                         );
                     }
                     right.push(<span key={key}>{segments}</span>);
                 } else {
-                    right.push(<span key={key} className="bg-[var(--highlight-emerald-bg)] text-[var(--highlight-emerald-text)] rounded px-1">{part.value}</span>);
+                    right.push(<span key={key} className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold rounded px-1">{part.value}</span>);
                 }
                 polishedIndex += part.value.length;
             } else if (part.removed) {
-                left.push(<span key={key} className="bg-[var(--highlight-error-bg)] text-[var(--highlight-error-text)] rounded px-1">{part.value}</span>);
+                left.push(<span key={key} className="bg-red-500/10 text-red-700 dark:text-red-400 line-through rounded px-1">{part.value}</span>);
             } else {
                 const start = polishedIndex;
                 const end = polishedIndex + part.value.length;
@@ -137,13 +137,13 @@ export const SideBySideDiff: React.FC<{
                         let tooltip = "";
 
                         if (range.type === 'lore') {
-                            className = "bg-[var(--highlight-red-bg)] text-[var(--highlight-red-text)] rounded px-1 border-b border-red-400 cursor-pointer transition-colors hover:bg-red-500/40";
+                            className = "bg-red-500/20 text-red-800 dark:text-red-300 rounded px-1 border-b-2 border-red-500 cursor-pointer transition-colors hover:bg-red-500/40 font-bold relative z-10";
                             tooltip = `Lore Correction: ${range.metadata.reason}`;
                         } else if (range.type === 'fraying') {
-                            className = "bg-[var(--highlight-amber-bg)] text-[var(--highlight-amber-text)] rounded px-1 border-b border-amber-400 cursor-pointer transition-colors hover:bg-amber-500/40";
+                            className = "bg-amber-500/20 text-amber-800 dark:text-amber-300 rounded px-1 border-b-2 border-amber-500 cursor-pointer transition-colors hover:bg-amber-500/40 font-bold relative z-10";
                             tooltip = `Lore Fraying: ${range.metadata.conflict}\nSuggestion: ${range.metadata.suggestion}`;
                         } else {
-                            className = "bg-[var(--highlight-blue-bg)] text-[var(--highlight-blue-text)] rounded px-1 border-b border-blue-400 cursor-pointer transition-colors hover:bg-blue-500/30";
+                            className = "bg-blue-500/20 text-blue-800 dark:text-blue-300 rounded px-1 border-b-2 border-blue-500 cursor-pointer transition-colors hover:bg-blue-500/30 font-bold relative z-10";
                             tooltip = `Preserved: ${range.metadata.justification}`;
                         }
 

@@ -3,13 +3,27 @@ import { Search, BookOpen, Plus, Download, Upload, Trash2, ChevronRight, X } fro
 import { LoreEntry } from '../types';
 import { LoreEntryForm } from './forms/LoreEntryForm';
 import { motion, AnimatePresence } from 'motion/react';
-
+import { EmptyState } from './ui/EmptyState';
 
 import { useLore } from '../contexts/LoreContext';
 
 interface LoreScreenProps {
   onClose: () => void;
 }
+
+const CATEGORY_COLORS: Record<string, string> = {
+  'Characters': 'bg-amber-500',
+  'Locations': 'bg-emerald-500',
+  'World Mechanics': 'bg-purple-500',
+  'Timeline': 'bg-blue-500',
+  'Items': 'bg-cyan-500',
+  'Geography & Ecology': 'bg-teal-500',
+  'Societal Strata': 'bg-rose-500',
+  'Historical Context': 'bg-orange-500',
+  'Current State': 'bg-lime-500',
+  'Other': 'bg-slate-500',
+  'Default': 'bg-primary/30'
+};
 
 export function LoreScreen({ onClose }: LoreScreenProps) {
   const { loreEntries, addLoreEntry, deleteLoreEntry, importLoreEntries } = useLore();
@@ -180,69 +194,85 @@ export function LoreScreen({ onClose }: LoreScreenProps) {
 
               {/* Categories Accordion */}
               <div className="flex-1 overflow-y-auto custom-scrollbar px-10 pb-32">
-                <div className="space-y-1">
-                  {categories.map(cat => {
-                    const entries = entriesByCategory[cat];
-                    if (searchQuery && entries.length === 0) return null;
-                    const isExpanded = expandedCategories.has(cat);
+                {loreEntries.length === 0 ? (
+                  <EmptyState 
+                    icon={BookOpen}
+                    title="The Codex is Silent"
+                    description="Your world's history is yet to be written. Document characters, locations, and mechanics to ground your narrative."
+                    action={
+                      <button 
+                        onClick={handleAddNew}
+                        className="px-6 py-2 bg-primary/10 text-primary rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-primary/20 transition-colors"
+                      >
+                        Begin the Archive
+                      </button>
+                    }
+                  />
+                ) : (
+                  <div className="space-y-1">
+                    {categories.map(cat => {
+                      const entries = entriesByCategory[cat];
+                      if (searchQuery && entries.length === 0) return null;
+                      const isExpanded = expandedCategories.has(cat);
 
-                    return (
-                      <div key={cat} className="group/cat">
-                        <button 
-                          onClick={() => toggleCategory(cat)}
-                          className="w-full py-4 flex items-center justify-between group transition-all"
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className={`w-1 h-4 rounded-full transition-all ${entries.length > 0 ? (isExpanded ? 'bg-primary' : 'bg-primary/30') : 'bg-outline-variant/20'}`} />
-                            <h3 className={`font-headline text-base font-light transition-colors ${isExpanded ? 'text-on-surface' : 'text-on-surface/40 group-hover:text-on-surface/70'}`}>
-                              {cat}
-                            </h3>
-                            <span className="text-[10px] font-mono text-on-surface-variant/20 tracking-tighter">[{entries.length}]</span>
-                          </div>
-                          <ChevronRight className={`w-4 h-4 text-on-surface-variant/20 transition-transform duration-500 ${isExpanded ? 'rotate-90 text-primary/40' : ''}`} />
-                        </button>
+                      return (
+                        <div key={cat} className="group/cat">
+                          <button 
+                            onClick={() => toggleCategory(cat)}
+                            className="w-full py-4 flex items-center justify-between group transition-all"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className={`w-1 h-4 rounded-full transition-all ${entries.length > 0 ? (CATEGORY_COLORS[cat] || CATEGORY_COLORS['Default']) : 'bg-outline-variant/20'}`} />
+                              <h3 className={`font-headline text-base font-light transition-colors ${isExpanded ? 'text-on-surface' : 'text-on-surface/40 group-hover:text-on-surface/70'}`}>
+                                {cat}
+                              </h3>
+                              <span className="text-[10px] font-mono text-on-surface-variant/20 tracking-tighter">[{entries.length}]</span>
+                            </div>
+                            <ChevronRight className={`w-4 h-4 text-on-surface-variant/20 transition-transform duration-500 ${isExpanded ? 'rotate-90 text-primary/40' : ''}`} />
+                          </button>
 
-                        <AnimatePresence>
-                          {isExpanded && (
-                            <motion.div 
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: 'auto', opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              className="overflow-hidden"
-                            >
-                              <div className="pb-4 space-y-1">
-                                {entries.length === 0 ? (
-                                  <p className="text-[10px] text-on-surface-variant/40 italic pl-4.5 py-2">No entries in this category.</p>
-                                ) : (
-                                  entries.map(entry => (
-                                    <div 
-                                      key={entry.id}
-                                      onClick={() => handleEditEntry(entry)}
-                                      className="w-full text-left p-3 pl-4.5 rounded-xl hover:bg-primary/5 group transition-colors flex items-center justify-between cursor-pointer"
-                                    >
-                                      <div className="min-w-0 flex-1">
-                                        <h4 className="text-xs font-medium text-on-surface group-hover:text-primary transition-colors truncate">{entry.title}</h4>
-                                        <p className="text-[10px] text-on-surface-variant/60 truncate">{entry.content}</p>
+                          <AnimatePresence>
+                            {isExpanded && (
+                              <motion.div 
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="overflow-hidden"
+                              >
+                                <div className="pb-4 space-y-1">
+                                  {entries.length === 0 ? (
+                                    <p className="text-[10px] text-on-surface-variant/40 italic pl-4.5 py-2">No entries in this category.</p>
+                                  ) : (
+                                    entries.map(entry => (
+                                      <div 
+                                        key={entry.id}
+                                        onClick={() => handleEditEntry(entry)}
+                                        className="w-full text-left p-3 pl-4.5 rounded-xl hover:bg-primary/5 group transition-colors flex items-center justify-between cursor-pointer"
+                                      >
+                                        <div className="min-w-0 flex-1">
+                                          <h4 className="text-xs font-medium text-on-surface group-hover:text-primary transition-colors truncate">{entry.title}</h4>
+                                          <p className="text-[10px] text-on-surface-variant/60 truncate">{entry.content}</p>
+                                        </div>
+                                        <div className="flex items-center gap-2 transition-opacity">
+                                          <button 
+                                            onClick={(e) => { e.stopPropagation(); deleteLoreEntry(entry.id); }}
+                                            className="p-2 rounded-lg hover:bg-error/10 text-on-surface-variant/40 hover:text-error active:text-error transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center"
+                                          >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                          </button>
+                                        </div>
                                       </div>
-                                      <div className="flex items-center gap-2 transition-opacity">
-                                        <button 
-                                          onClick={(e) => { e.stopPropagation(); deleteLoreEntry(entry.id); }}
-                                          className="p-2 rounded-lg hover:bg-error/10 text-on-surface-variant/40 hover:text-error active:text-error transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center"
-                                        >
-                                          <Trash2 className="w-3.5 h-3.5" />
-                                        </button>
-                                      </div>
-                                    </div>
-                                  ))
-                                )}
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    );
-                  })}
-                </div>
+                                    ))
+                                  )}
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Floating Action Button */}

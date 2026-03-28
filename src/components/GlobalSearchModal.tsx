@@ -38,6 +38,7 @@ export function GlobalSearchModal({
   const [query, setQuery] = useState('');
   const [replaceText, setReplaceText] = useState('');
   const [selectedMatches, setSelectedMatches] = useState<Set<string>>(new Set());
+  const [peekMatch, setPeekMatch] = useState<SearchMatch | null>(null);
 
   const onUpdateLore = useCallback(async (lore: LoreEntry) => {
     await addLoreEntry(lore);
@@ -172,110 +173,148 @@ export function GlobalSearchModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-surface border border-outline-variant/20 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-200">
-        <div className="flex items-center justify-between p-4 lg:p-6 border-b border-outline-variant/10 bg-surface-container-lowest">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Search className="w-5 h-5 text-primary" />
+    <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[10vh] p-4 bg-background/40 backdrop-blur-xl animate-in fade-in duration-200">
+      <div className="relative flex gap-4 w-full max-w-2xl">
+        <div className="bg-surface border border-outline-variant/20 rounded-2xl shadow-2xl w-full max-h-[80vh] flex flex-col animate-in zoom-in-95 duration-200 overflow-hidden">
+          <div className="flex items-center justify-between p-4 border-b border-outline-variant/10 bg-surface-container-lowest">
+            <div className="flex items-center gap-3 w-full">
+              <Search className="w-5 h-5 text-primary opacity-70" />
+              <input 
+                  type="text" 
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  className="w-full bg-transparent border-none text-lg text-on-surface focus:outline-none font-headline placeholder:text-on-surface-variant/40"
+                  placeholder="Search lore, voices, or scenes... (Cmd+K to close)"
+                  autoFocus
+              />
             </div>
-            <h2 className="font-headline text-lg lg:text-xl text-on-surface">Global Search & Replace</h2>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-surface-container-highest rounded-full transition-colors text-on-surface-variant">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
 
-        <div className="p-4 lg:p-6 border-b border-outline-variant/10 bg-surface-container-lowest space-y-4">
-            <div className="flex gap-4">
-                <div className="flex-1 space-y-2">
-                    <label className="font-label text-xs uppercase tracking-widest text-on-surface-variant">Search</label>
-                    <input 
-                        type="text" 
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        className="w-full bg-surface border border-outline-variant/20 rounded-xl px-4 py-3 text-on-surface focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all"
-                        placeholder="Find text..."
-                    />
-                </div>
-                <div className="flex-1 space-y-2">
-                    <label className="font-label text-xs uppercase tracking-widest text-on-surface-variant">Replace</label>
-                    <input 
-                        type="text" 
-                        value={replaceText}
-                        onChange={(e) => setReplaceText(e.target.value)}
-                        className="w-full bg-surface border border-outline-variant/20 rounded-xl px-4 py-3 text-on-surface focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all"
-                        placeholder="Replace with..."
-                    />
-                </div>
-            </div>
-            
-            <div className="flex justify-between items-center pt-2">
-                <span className="font-label text-xs uppercase tracking-widest text-on-surface-variant">
-                    {matches.length} matches found
-                </span>
+          {query.length >= 2 && (
+            <div className="p-3 border-b border-outline-variant/10 bg-surface-container-lowest flex gap-3 items-center">
+                <input 
+                    type="text" 
+                    value={replaceText}
+                    onChange={(e) => setReplaceText(e.target.value)}
+                    className="flex-1 bg-surface border border-outline-variant/20 rounded-lg px-3 py-1.5 text-sm text-on-surface focus:outline-none focus:border-primary/50 transition-all"
+                    placeholder="Replace with..."
+                />
                 <button 
                     onClick={handleReplace}
                     disabled={selectedMatches.size === 0}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-on-primary font-label text-xs uppercase tracking-widest hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary text-on-primary font-label text-[10px] uppercase tracking-widest hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm shrink-0"
                 >
-                    <Replace className="w-4 h-4" />
-                    Replace Selected ({selectedMatches.size})
+                    <Replace className="w-3 h-3" />
+                    Replace ({selectedMatches.size})
                 </button>
             </div>
+          )}
+
+          <div className="flex-1 overflow-y-auto p-2 space-y-1 bg-surface custom-scrollbar">
+              {matches.length > 0 && (
+                  <div className="flex items-center gap-2 mb-2 px-3 py-2 cursor-pointer hover:bg-surface-container-lowest rounded-lg transition-colors" onClick={handleSelectAll}>
+                      <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${selectedMatches.size === matches.length ? 'bg-primary border-primary text-on-primary' : 'border-outline-variant/50'}`}>
+                          {selectedMatches.size === matches.length && <Check className="w-3 h-3" />}
+                      </div>
+                      <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Select All</span>
+                  </div>
+              )}
+              
+              {matches.map(match => (
+                  <div 
+                      key={match.id} 
+                      onClick={() => setPeekMatch(match)}
+                      className={`p-3 rounded-xl cursor-pointer transition-all flex gap-3 ${peekMatch?.id === match.id ? 'bg-primary/10 border-primary/30' : 'hover:bg-surface-container-lowest border-transparent'} border`}
+                  >
+                      <div className="pt-0.5" onClick={(e) => { e.stopPropagation(); handleToggleMatch(match.id); }}>
+                          <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${selectedMatches.has(match.id) ? 'bg-primary border-primary text-on-primary' : 'border-outline-variant/50'}`}>
+                              {selectedMatches.has(match.id) && <Check className="w-3 h-3" />}
+                          </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                              <span className="px-1.5 py-0.5 rounded bg-surface-container-highest text-[9px] font-bold uppercase tracking-widest text-on-surface-variant">
+                                  {match.type}
+                              </span>
+                              <span className="text-sm font-medium text-on-surface truncate">{match.title}</span>
+                          </div>
+                          <p className="text-xs text-on-surface-variant font-body leading-relaxed break-words line-clamp-2">
+                              {match.text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')).map((part, i) => 
+                                  part.toLowerCase() === query.toLowerCase() ? 
+                                      <span key={i} className="bg-primary/20 text-primary font-bold px-0.5 rounded">{part}</span> : part
+                              )}
+                          </p>
+                      </div>
+                  </div>
+              ))}
+
+              {query.length >= 2 && matches.length === 0 && (
+                  <div className="text-center py-12 text-on-surface-variant">
+                      <Search className="w-8 h-8 mx-auto mb-3 opacity-20" />
+                      <p className="font-label text-xs uppercase tracking-widest">No matches found</p>
+                  </div>
+              )}
+              
+              {query.length < 2 && (
+                  <div className="text-center py-12 text-on-surface-variant">
+                      <p className="font-label text-xs uppercase tracking-widest">Type to search...</p>
+                  </div>
+              )}
+          </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-2 bg-surface">
-            {matches.length > 0 && (
-                <div className="flex items-center gap-2 mb-4 px-2 cursor-pointer" onClick={handleSelectAll}>
-                    <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${selectedMatches.size === matches.length ? 'bg-primary border-primary text-on-primary' : 'border-outline-variant/50'}`}>
-                        {selectedMatches.size === matches.length && <Check className="w-3 h-3" />}
+        {/* Peek View Card */}
+        {peekMatch && (peekMatch.type === 'lore' || peekMatch.type === 'voiceProfile') && (
+          <div className="hidden md:flex flex-col w-80 bg-surface border border-outline-variant/20 rounded-2xl shadow-2xl max-h-[80vh] overflow-y-auto custom-scrollbar animate-in slide-in-from-left-4 duration-200">
+            <div className="p-4 border-b border-outline-variant/10 bg-surface-container-lowest sticky top-0">
+              <h3 className="font-headline text-sm font-bold text-on-surface uppercase tracking-widest opacity-50">Peek View</h3>
+            </div>
+            <div className="p-5 space-y-4">
+              {peekMatch.type === 'lore' && (
+                <>
+                  <div>
+                    <h4 className="text-lg font-bold text-on-surface mb-1">{peekMatch.item.title}</h4>
+                    <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest">Lore Entry</span>
+                  </div>
+                  <div className="space-y-1">
+                    <h5 className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant">Content</h5>
+                    <p className="text-sm text-on-surface/80 leading-relaxed whitespace-pre-wrap">{peekMatch.item.content}</p>
+                  </div>
+                  {peekMatch.item.sensoryPalette && (
+                    <div className="space-y-1">
+                      <h5 className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant">Sensory Palette</h5>
+                      <p className="text-sm text-on-surface/80 leading-relaxed whitespace-pre-wrap">{peekMatch.item.sensoryPalette}</p>
                     </div>
-                    <span className="font-label text-xs uppercase tracking-widest text-on-surface-variant">Select All</span>
-                </div>
-            )}
-            
-            {matches.map(match => (
-                <div 
-                    key={match.id} 
-                    onClick={() => handleToggleMatch(match.id)}
-                    className={`p-3 rounded-xl border cursor-pointer transition-all flex gap-3 ${selectedMatches.has(match.id) ? 'bg-primary/5 border-primary/30' : 'bg-surface-container-lowest border-outline-variant/10 hover:border-outline-variant/30'}`}
-                >
-                    <div className="pt-0.5">
-                        <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${selectedMatches.has(match.id) ? 'bg-primary border-primary text-on-primary' : 'border-outline-variant/50'}`}>
-                            {selectedMatches.has(match.id) && <Check className="w-3 h-3" />}
-                        </div>
+                  )}
+                </>
+              )}
+              {peekMatch.type === 'voiceProfile' && (
+                <>
+                  <div>
+                    <h4 className="text-lg font-bold text-on-surface mb-1">{peekMatch.item.name}</h4>
+                    <span className="px-2 py-0.5 rounded-full bg-secondary/10 text-secondary text-[10px] font-bold uppercase tracking-widest">Voice Profile</span>
+                  </div>
+                  <div className="space-y-1">
+                    <h5 className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant">Archetype</h5>
+                    <p className="text-sm text-on-surface/80 leading-relaxed">{peekMatch.item.archetype}</p>
+                  </div>
+                  {peekMatch.item.signatureTraits && peekMatch.item.signatureTraits.length > 0 && (
+                    <div className="space-y-1">
+                      <h5 className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant">Signature Traits</h5>
+                      <div className="flex flex-wrap gap-1">
+                        {peekMatch.item.signatureTraits.map((trait: string, idx: number) => (
+                          <span key={idx} className="px-2 py-1 bg-surface-container-highest rounded-md text-xs text-on-surface-variant">
+                            {trait}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                            <span className="px-2 py-0.5 rounded bg-surface-container-highest text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
-                                {match.type}
-                            </span>
-                            <span className="text-sm font-medium text-on-surface truncate">{match.title}</span>
-                        </div>
-                        <p className="text-sm text-on-surface-variant font-body leading-relaxed break-words">
-                            {match.text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')).map((part, i) => 
-                                part.toLowerCase() === query.toLowerCase() ? 
-                                    <span key={i} className="bg-primary/20 text-primary font-bold px-0.5 rounded">{part}</span> : part
-                            )}
-                        </p>
-                    </div>
-                </div>
-            ))}
-
-            {query.length >= 2 && matches.length === 0 && (
-                <div className="text-center py-12 text-on-surface-variant">
-                    <Search className="w-8 h-8 mx-auto mb-3 opacity-20" />
-                    <p className="font-label text-xs uppercase tracking-widest">No matches found</p>
-                </div>
-            )}
-            
-            {query.length < 2 && (
-                <div className="text-center py-12 text-on-surface-variant">
-                    <p className="font-label text-xs uppercase tracking-widest">Type at least 2 characters to search</p>
-                </div>
-            )}
-        </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

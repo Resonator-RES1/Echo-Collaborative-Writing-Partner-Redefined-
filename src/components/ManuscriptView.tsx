@@ -163,7 +163,7 @@ export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
       <div className="flex-1 overflow-hidden flex flex-col">
         {activeTab === 'scenes' && (
           <div className="h-full flex flex-col">
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 p-6">
               <SceneManager 
                 scenes={scenes}
                 chapters={chapters}
@@ -185,9 +185,7 @@ export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
               <div className="flex justify-end mb-4">
                 <button 
                   onClick={() => {
-                    if (window.confirm("Clear all accepted versions? This cannot be undone.")) {
-                      onClearAcceptedVersions();
-                    }
+                    onClearAcceptedVersions();
                   }}
                   className="flex items-center gap-2 px-4 py-2 rounded-xl bg-error/10 text-error hover:bg-error/20 transition-all font-label text-[10px] uppercase tracking-widest"
                 >
@@ -213,9 +211,7 @@ export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
                     </div>
                     <button 
                       onClick={() => {
-                        if (window.confirm("Delete this version?")) {
-                          onDeleteVersion(version.id);
-                        }
+                        onDeleteVersion(version.id);
                       }}
                       className="p-2 text-on-surface-variant hover:text-error hover:bg-error/10 rounded-full transition-colors"
                     >

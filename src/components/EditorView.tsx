@@ -30,6 +30,7 @@ interface EditorProps {
     onAddVersion: (version: RefinedVersion) => void;
     onClearVersionHistory: () => void;
     onDeleteVersion: (id: string) => void;
+    onUpdateVersion: (version: RefinedVersion) => void;
     onAcceptVersion: (version: RefinedVersion) => void;
 }
 
@@ -50,6 +51,7 @@ const Editor: React.FC<EditorProps> = ({
     onAddVersion,
     onClearVersionHistory,
     onDeleteVersion,
+    onUpdateVersion,
     onAcceptVersion
 }) => {
   const { isZenMode, setIsZenMode } = useProject();
@@ -93,6 +95,17 @@ const Editor: React.FC<EditorProps> = ({
       return;
     }
   }, [isZenMode]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('toggle-global-search'));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleGutterClick = (e: React.MouseEvent) => {
     if (!isZenMode) return;
@@ -147,6 +160,7 @@ const Editor: React.FC<EditorProps> = ({
   const [continuityIssues, setContinuityIssues] = useState<ContinuityIssue[]>([]);
 
   const [selection, setSelection] = useState<{ text: string; start: number; end: number } | null>(null);
+  const [surgicalSelection, setSurgicalSelection] = useState<{ text: string; start: number; end: number } | null>(null);
   
   const scanner = useMemo(() => createScanner(loreEntries, voiceProfiles), [loreEntries, voiceProfiles]);
   
@@ -284,6 +298,9 @@ const Editor: React.FC<EditorProps> = ({
                   setActiveTab={setActiveTab}
                   dispatchDraft={dispatchDraft}
                   draftState={draftState}
+                  selection={selection}
+                  surgicalSelection={surgicalSelection}
+                  setSurgicalSelection={setSurgicalSelection}
                   setSelection={setSelection}
                   handleAcceptChanges={handleAcceptChanges}
                   saveStatus={saveStatus}
@@ -332,6 +349,7 @@ const Editor: React.FC<EditorProps> = ({
                     originalDraft={draftState.present}
                     onSelectVersion={handleSelectArchiveVersion}
                     onDeleteVersion={onDeleteVersion}
+                    onUpdateVersion={onUpdateVersion}
                     onClearHistory={onClearVersionHistory}
                     onAcceptVersion={handleAcceptVersion}
                     showToast={showToast}
@@ -389,6 +407,9 @@ const Editor: React.FC<EditorProps> = ({
         setShowRecentChanges={setShowRecentChanges}
         dispatchDraft={dispatchDraft}
         draftState={draftState}
+        selection={selection}
+        surgicalSelection={surgicalSelection}
+        setSurgicalSelection={setSurgicalSelection}
       />
 
       <div className="flex-1 flex flex-col min-h-0 relative">

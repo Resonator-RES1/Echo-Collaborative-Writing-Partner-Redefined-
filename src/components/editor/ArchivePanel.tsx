@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Clock, Trash2, ChevronRight, History, Sparkles, Calendar, Eye, Activity, Copy, ShieldCheck, BarChart3 } from 'lucide-react';
+import { Clock, Trash2, ChevronRight, History, Sparkles, Calendar, Eye, Activity, Copy, ShieldCheck, Bookmark, Flag, BookmarkCheck } from 'lucide-react';
 import { RefinedVersion, LoreCorrection } from '../../types';
 import { SideBySideDiff } from './SideBySideDiff';
 import { formatReportForCopy } from '../../utils/reportFormatter';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface ArchivePanelProps {
     versionHistory: RefinedVersion[];
@@ -10,6 +11,7 @@ interface ArchivePanelProps {
     originalDraft: string;
     onSelectVersion: (index: number) => void;
     onDeleteVersion: (id: string) => void;
+    onUpdateVersion?: (version: RefinedVersion) => void;
     onClearHistory: () => void;
     onAcceptVersion?: (version: RefinedVersion) => void;
     showToast: (message: string) => void;
@@ -23,6 +25,7 @@ export const ArchivePanel: React.FC<ArchivePanelProps> = ({
     originalDraft,
     onSelectVersion,
     onDeleteVersion,
+    onUpdateVersion,
     onClearHistory,
     onAcceptVersion,
     showToast,
@@ -31,20 +34,46 @@ export const ArchivePanel: React.FC<ArchivePanelProps> = ({
 }) => {
     const [viewMode, setViewMode] = useState<'list' | 'detail'>('list');
     const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+    const [pinningId, setPinningId] = useState<string | null>(null);
+    const [milestoneLabel, setMilestoneLabel] = useState('');
 
     if (versionHistory.length === 0) {
         return (
             <div className="flex flex-col flex-1 min-h-0 items-center justify-center text-center p-12 animate-in fade-in duration-700">
                 <div className="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center mb-6">
-                    <History className="w-10 h-10 text-on-surface-variant/20" />
+                    <History className="w-10 h-10 text-on-surface-variant/10" />
                 </div>
-                <h3 className="font-headline text-2xl font-light mb-2">Archive is Empty</h3>
-                <p className="text-on-surface-variant max-w-xs mx-auto text-sm leading-relaxed">
+                <h3 className="font-headline text-2xl font-light mb-2">Archive is Silent</h3>
+                <p className="text-on-surface-variant max-w-xs mx-auto text-sm leading-relaxed italic">
                     Your previous refinements will be stored here for review and comparison.
                 </p>
             </div>
         );
     }
+
+    const handlePin = (version: RefinedVersion) => {
+        if (onUpdateVersion) {
+            onUpdateVersion({
+                ...version,
+                isPinned: true,
+                milestoneLabel: milestoneLabel || 'MILESTONE'
+            });
+            setPinningId(null);
+            setMilestoneLabel('');
+            showToast(`Milestone "${milestoneLabel || 'MILESTONE'}" pinned.`);
+        }
+    };
+
+    const handleUnpin = (version: RefinedVersion) => {
+        if (onUpdateVersion) {
+            onUpdateVersion({
+                ...version,
+                isPinned: false,
+                milestoneLabel: undefined
+            });
+            showToast("Milestone unpinned.");
+        }
+    };
 
     const handleSeeReport = React.useCallback(() => {
         if (selectedIdx !== null) {
@@ -70,7 +99,7 @@ export const ArchivePanel: React.FC<ArchivePanelProps> = ({
                         className="flex items-center gap-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-on-surface-variant hover:text-primary transition-all self-start sm:self-auto"
                     >
                         <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 rotate-180" />
-                        Back
+                        Back to Ledger
                     </button>
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
                         <button 
@@ -167,83 +196,105 @@ export const ArchivePanel: React.FC<ArchivePanelProps> = ({
         <div className="flex flex-col flex-1 min-h-0 overflow-hidden animate-in fade-in duration-500">
             <div className="flex-none flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-8 mb-4 sm:mb-8">
                 <div className="space-y-0.5 sm:space-y-1">
-                    <h3 className="font-headline text-2xl sm:text-3xl font-bold">Echo Archive</h3>
-                    <p className="text-[9px] sm:text-[10px] text-on-surface-variant/60 uppercase tracking-[0.2em] font-black">Refinement History</p>
+                    <h3 className="font-headline text-2xl sm:text-3xl font-bold">Git Ledger</h3>
+                    <p className="text-[9px] sm:text-[10px] text-on-surface-variant/60 uppercase tracking-[0.2em] font-black">Refinement History & Milestones</p>
                 </div>
                 <button 
                     onClick={onClearHistory}
                     className="flex items-center justify-center gap-2 sm:gap-3 px-4 py-3 sm:px-6 sm:py-3 bg-accent-rose/10 border border-accent-rose/30 text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-accent-rose hover:bg-accent-rose hover:text-white rounded-2xl transition-all shadow-sm active:scale-95 group hover:shadow-lg hover:-translate-y-0.5 w-full sm:w-auto"
                 >
                     <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 group-hover:scale-110 transition-transform" />
-                    <span>Clear</span>
+                    <span>Clear Ledger</span>
                 </button>
             </div>
 
-            <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-2 space-y-3 sm:space-y-4">
-                {versionHistory.map((version, index) => (
-                    <div 
-                        key={version.id}
-                        onClick={() => { setSelectedIdx(index); setViewMode('detail'); }}
-                        className={`group p-4 sm:p-6 rounded-3xl border transition-all duration-500 cursor-pointer relative overflow-hidden ${
-                            currentVersionIndex === index 
-                                ? 'bg-primary/5 border-primary/30 shadow-lg shadow-primary/5' 
-                                : 'bg-surface-container-low border-outline-variant/10 hover:border-primary/20 hover:bg-surface-container-highest/30'
-                        }`}
-                    >
-                        {currentVersionIndex === index && (
-                            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary"></div>
-                        )}
-                        
-                        <div className="flex justify-between items-start mb-3 sm:mb-4">
-                            <div className="flex items-center gap-2 sm:gap-3">
-                                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition-colors ${currentVersionIndex === index ? 'bg-primary text-on-primary-fixed' : 'bg-surface-container-highest text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary'}`}>
-                                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
-                                </div>
-                                <div>
-                                    <h4 className={`font-headline text-base sm:text-lg font-bold transition-colors ${currentVersionIndex === index ? 'text-primary' : 'text-on-surface'}`}>
-                                        {version.title || `Refinement ${versionHistory.length - index}`}
-                                    </h4>
-                                    <div className="flex items-center gap-2 sm:gap-3 mt-0.5">
-                                        <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-on-surface-variant/50 font-bold uppercase tracking-widest">
-                                            <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                                            {new Date(version.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                        </div>
-                                        <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-on-surface-variant/50 font-bold uppercase tracking-widest">
-                                            <Calendar className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                                            {new Date(version.timestamp).toLocaleDateString()}
-                                        </div>
-                                    </div>
-                                </div>
+            <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-2">
+                <div className="space-y-1">
+                    {versionHistory.map((version, index) => (
+                        <div 
+                            key={version.id}
+                            className={`group flex items-center gap-4 p-3 rounded-xl transition-all duration-300 cursor-pointer border ${
+                                currentVersionIndex === index 
+                                    ? 'bg-primary/5 border-primary/20' 
+                                    : 'bg-surface-container-lowest border-transparent hover:bg-surface-container-low hover:border-outline-variant/10'
+                            }`}
+                            onClick={() => { setSelectedIdx(index); setViewMode('detail'); }}
+                        >
+                            {/* Timestamp */}
+                            <div className="w-12 shrink-0 font-mono text-[10px] text-on-surface-variant/40">
+                                {new Date(version.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
                             </div>
-                            <button 
-                                onClick={(e) => { e.stopPropagation(); onDeleteVersion(version.id); }}
-                                className="p-2 rounded-full text-on-surface-variant/30 hover:text-error hover:bg-error/10 transition-all opacity-0 group-hover:opacity-100"
-                            >
-                                <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                            </button>
-                        </div>
 
-                        <p className="text-[11px] sm:text-xs text-on-surface-variant line-clamp-2 leading-relaxed mb-3 sm:mb-4 italic">
-                            {version.summary}
-                        </p>
-
-                        <div className="flex items-center justify-between">
-                            <div className="flex gap-1.5 sm:gap-2">
-                                {version.metrics && Object.entries(version.metrics).slice(0, 2).map(([key, metric]: [string, any]) => (
-                                    <div key={key} className="flex items-center gap-1 px-1.5 py-0.5 sm:px-2 sm:py-1 bg-surface-container-highest/50 rounded-lg border border-outline-variant/5">
-                                        <span className="text-[7px] sm:text-[8px] font-black uppercase tracking-tighter text-on-surface-variant/40">{key.split('_')[0]}</span>
-                                        <span className="text-[9px] sm:text-[10px] font-black text-primary">{metric.score}</span>
+                            {/* Delta Badge */}
+                            <div className="w-20 shrink-0 flex items-center gap-1.5">
+                                {version.wordCountDelta ? (
+                                    <div className="flex items-center gap-1 text-[9px] font-bold">
+                                        <span className="text-emerald-500">+{version.wordCountDelta.added}</span>
+                                        <span className="text-on-surface-variant/20">/</span>
+                                        <span className="text-error">-{version.wordCountDelta.removed}</span>
                                     </div>
-                                ))}
+                                ) : (
+                                    <div className="text-[9px] text-on-surface-variant/20 font-bold uppercase tracking-tighter">No Delta</div>
+                                )}
                             </div>
-                            <div className={`flex items-center gap-1 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] transition-all ${currentVersionIndex === index ? 'text-primary' : 'text-on-surface-variant group-hover:text-primary group-hover:translate-x-1'}`}>
-                                View Details
-                                <ChevronRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+
+                            {/* Title & Milestone */}
+                            <div className="flex-1 min-w-0 flex items-center gap-3">
+                                <h4 className={`text-xs font-medium truncate transition-colors ${currentVersionIndex === index ? 'text-primary' : 'text-on-surface'}`}>
+                                    {version.title || `Commit ${versionHistory.length - index}`}
+                                </h4>
+                                {version.isPinned && (
+                                    <span className="px-2 py-0.5 bg-primary text-on-primary-fixed text-[8px] font-black uppercase tracking-widest rounded-full shadow-sm">
+                                        {version.milestoneLabel || 'MASTER'}
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+                                {pinningId === version.id ? (
+                                    <div className="flex items-center gap-1 bg-surface-container-highest rounded-full px-2 py-1 animate-in slide-in-from-right-2">
+                                        <input 
+                                            type="text"
+                                            value={milestoneLabel}
+                                            onChange={e => setMilestoneLabel(e.target.value)}
+                                            placeholder="Label..."
+                                            className="bg-transparent border-none outline-none text-[10px] w-20 text-on-surface placeholder:text-on-surface-variant/30"
+                                            autoFocus
+                                            onKeyDown={e => {
+                                                if (e.key === 'Enter') handlePin(version);
+                                                if (e.key === 'Escape') setPinningId(null);
+                                            }}
+                                        />
+                                        <button onClick={() => handlePin(version)} className="text-primary hover:scale-110 transition-transform">
+                                            <BookmarkCheck className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button 
+                                        onClick={() => {
+                                            if (version.isPinned) handleUnpin(version);
+                                            else setPinningId(version.id);
+                                        }}
+                                        className={`p-2 rounded-full transition-all ${version.isPinned ? 'text-primary bg-primary/10' : 'text-on-surface-variant/40 hover:text-primary hover:bg-primary/10'}`}
+                                        title={version.isPinned ? "Unpin Milestone" : "Pin as Milestone"}
+                                    >
+                                        <Bookmark className={`w-3.5 h-3.5 ${version.isPinned ? 'fill-current' : ''}`} />
+                                    </button>
+                                )}
+                                <button 
+                                    onClick={() => onDeleteVersion(version.id)}
+                                    className="p-2 rounded-full text-on-surface-variant/40 hover:text-error hover:bg-error/10 transition-all"
+                                    title="Delete Commit"
+                                >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                </button>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
         </div>
     );
 };
+

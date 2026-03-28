@@ -10,6 +10,7 @@ import { ReportLoreCorrections } from '../report/ReportLoreCorrections';
 import { ReportLoreFraying } from '../report/ReportLoreFraying';
 import { ReportVoiceResonance } from '../report/ReportVoiceResonance';
 import { formatReportForCopy } from '../../utils/reportFormatter';
+import { EmptyState } from '../ui/EmptyState';
 
 interface ReportPanelProps {
     version: RefinedVersion | null;
@@ -30,29 +31,21 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
 
     if (!version) {
         return (
-            <div className="flex flex-col flex-1 min-h-0 items-center justify-center text-center p-8 animate-in fade-in duration-700">
-                <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-4">
-                    <BarChart3 className="w-8 h-8 text-on-surface-variant/20" />
-                </div>
-                <h3 className="font-headline text-xl font-light mb-1">No Report Available</h3>
-                <p className="text-on-surface-variant max-w-xs mx-auto text-xs leading-relaxed">
-                    Refine your draft or select a version from the Archive to view a detailed refinement report.
-                </p>
-            </div>
+            <EmptyState 
+                icon={BarChart3}
+                title="No Report Available"
+                description="Refine your draft or select a version from the Archive to view a detailed refinement report."
+            />
         );
     }
 
     if (version.text.startsWith('Error:')) {
         return (
-            <div className="flex flex-col flex-1 min-h-0 items-center justify-center text-center p-8 animate-in fade-in duration-700">
-                <div className="w-16 h-16 rounded-full bg-error/10 flex items-center justify-center mb-4">
-                    <Activity className="w-8 h-8 text-error" />
-                </div>
-                <h3 className="font-headline text-xl font-bold text-error mb-1">Refinement Failed</h3>
-                <p className="text-on-surface-variant max-w-xs mx-auto text-sm leading-relaxed">
-                    Check API Quota or network connection. The model was unable to complete the refinement process.
-                </p>
-            </div>
+            <EmptyState 
+                icon={Activity}
+                title="Refinement Failed"
+                description="Check API Quota or network connection. The model was unable to complete the refinement process."
+            />
         );
     }
 

@@ -25,6 +25,7 @@ export interface RefineDraftOptions {
 
 export interface RefineDraftResult {
   text: string;
+  title: string;
   summary: string;
   analysis?: string;
   justification?: string;
@@ -333,6 +334,7 @@ For every character identified in the scene whose Voice Profile is active, you M
             type: Type.OBJECT,
             properties: {
                 refined_text: { type: Type.STRING },
+                title: { type: Type.STRING },
                 editor_summary: { type: Type.STRING },
                 justification: { type: Type.STRING },
                 evidence_based_claims: { type: Type.STRING },
@@ -477,9 +479,9 @@ For every character identified in the scene whose Voice Profile is active, you M
                 }
             },
             required: isSurgical 
-                ? ["refined_text", "editor_summary", "justification"] 
+                ? ["refined_text", "title", "editor_summary", "justification"] 
                 : [
-                    "refined_text", "editor_summary", "expression_profile", "analysis", "audit", 
+                    "refined_text", "title", "editor_summary", "expression_profile", "analysis", "audit", 
                     "conflicts", "lore_corrections", "lore_fraying", "justification", "evidence_based_claims",
                     "why_behind_change", "lore_lineage", "mirror_editor_critique", "restraint_log",
                     "expression_profile_vibe", "voice_audits"
@@ -497,6 +499,7 @@ For every character identified in the scene whose Voice Profile is active, you M
 
     return {
         text: cleanText(parsed.refined_text || ""),
+        title: parsed.title || "",
         summary: parsed.editor_summary || parsed.summary || "",
         analysis: parsed.analysis || "",
         justification: parsed.justification || "",
@@ -529,6 +532,7 @@ For every character identified in the scene whose Voice Profile is active, you M
       console.error("Error refining draft:", error);
       return { 
           text: `Error: ${error.message}`,
+          title: "",
           summary: "",
           analysis: "",
           conflicts: [],

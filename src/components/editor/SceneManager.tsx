@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Scene, Chapter, RefinedVersion } from '../../types';
-import { Plus, Trash2, Edit2, Check, X, Folder, FileText, GripVertical, ChevronRight, ChevronDown, Clock } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, X, Folder, FileText, GripVertical, ChevronRight, ChevronDown, Clock, Settings, CheckCircle2 } from 'lucide-react';
 import * as db from '../../services/dbService';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { getVibeColor } from '../../utils/vibePalette';
 
 interface SceneManagerProps {
   scenes: Scene[];
@@ -16,6 +17,34 @@ interface SceneManagerProps {
   versionHistory: RefinedVersion[];
 }
 
+const VibeStrip: React.FC<{ version?: RefinedVersion }> = ({ version }) => {
+  if (!version?.expressionProfile || version.expressionProfile.length === 0) {
+    return <div className="w-1.5 h-full bg-outline-variant/10 shrink-0" />;
+  }
+
+  const total = version.expressionProfile.reduce((acc, curr) => acc + curr.score, 0);
+  
+  const tooltipText = version.expressionProfile
+    .map(v => `${Math.round((v.score / total) * 100)}% ${v.vibe}`)
+    .join(', ');
+
+  return (
+    <div className="w-1.5 h-full flex flex-col shrink-0 relative group/vibe" title={tooltipText}>
+      {version.expressionProfile.map((v, idx) => (
+        <div 
+          key={`${v.vibe}-${idx}`} 
+          className={`${getVibeColor(v.vibe)}`} 
+          style={{ height: `${(v.score / total) * 100}%` }}
+        />
+      ))}
+      {/* Tooltip */}
+      <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-surface-container-highest text-[10px] font-bold text-on-surface rounded shadow-lg opacity-0 group-hover/vibe:opacity-100 transition-opacity pointer-events-none z-[100] whitespace-nowrap border border-outline-variant/20">
+        {tooltipText}
+      </div>
+    </div>
+  );
+};
+
 export const SceneManager: React.FC<SceneManagerProps> = ({
   scenes,
   chapters,
@@ -28,8 +57,11 @@ export const SceneManager: React.FC<SceneManagerProps> = ({
   versionHistory
 }) => {
   const [editingSceneId, setEditingSceneId] = useState<string | null>(null);
+  const [editingMetadataId, setEditingMetadataId] = useState<string | null>(null);
   const [editingChapterId, setEditingChapterId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
+  const [editDay, setEditDay] = useState<number>(0);
+  const [editTime, setEditTime] = useState('');
   const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set());
 
   const toggleChapter = (chapterId: string) => {
@@ -140,8 +172,30 @@ export const SceneManager: React.FC<SceneManagerProps> = ({
   const startEditingScene = (scene: Scene, e: React.MouseEvent) => {
     e.stopPropagation();
     setEditingSceneId(scene.id);
+    setEditingMetadataId(null);
     setEditingChapterId(null);
     setEditTitle(scene.title);
+  };
+
+  const startEditingMetadata = (scene: Scene, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingMetadataId(scene.id);
+    setEditingSceneId(null);
+    setEditingChapterId(null);
+    setEditDay(scene.storyDay || 0);
+    setEditTime(scene.storyTime || '');
+  };
+
+  const handleSaveMetadata = async (sceneId: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    const scene = scenes.find(s => s.id === sceneId);
+    if (scene) {
+      const updatedScene = { ...scene, storyDay: editDay, storyTime: editTime };
+      setScenes(prev => prev.map(s => s.id === sceneId ? updatedScene : s));
+      await db.putScene(updatedScene);
+      setEditingMetadataId(null);
+      showToast('Scene metadata updated');
+    }
   };
 
   const startEditingChapter = (chapter: Chapter, e: React.MouseEvent) => {
@@ -277,20 +331,30 @@ export const SceneManager: React.FC<SceneManagerProps> = ({
     return versionHistory.some(v => v.sceneId === sceneId && v.isAccepted);
   };
 
-  const renderScene = (scene: Scene, index: number) => (
-    <Draggable key={scene.id} draggableId={scene.id} index={index}>
-      {(provided, snapshot) => (
-        <div
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          onClick={() => handleSelectScene(scene.id)}
-          className={`group flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors mb-1 ${
-            currentSceneId === scene.id 
-              ? 'bg-primary/10 border border-primary/20 text-primary' 
-              : 'hover:bg-surface-container-highest border border-transparent text-on-surface-variant hover:text-on-surface'
-          } ${snapshot.isDragging ? 'shadow-lg bg-surface-container-highest z-50' : ''}`}
-        >
-          {editingSceneId === scene.id ? (
+  const getLatestVersion = (sceneId: string) => {
+    return versionHistory.filter(v => v.sceneId === sceneId).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
+  };
+
+  const renderScene = (scene: Scene, index: number) => {
+    const latestVersion = getLatestVersion(scene.id);
+    
+    return (
+      <Draggable key={scene.id} draggableId={scene.id} index={index}>
+        {(provided, snapshot) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.draggableProps}
+            {...provided.dragHandleProps}
+            onClick={() => handleSelectScene(scene.id)}
+            className={`group flex items-center justify-between rounded-lg cursor-pointer transition-colors mb-1 overflow-hidden ${
+              currentSceneId === scene.id 
+                ? 'bg-primary/10 border border-primary/20 text-primary' 
+                : 'hover:bg-surface-container-highest border border-transparent text-on-surface-variant hover:text-on-surface'
+            } ${snapshot.isDragging ? 'shadow-lg bg-surface-container-highest z-50' : ''}`}
+          >
+            <VibeStrip version={latestVersion} />
+            <div className="flex-1 flex items-center justify-between p-2">
+              {editingSceneId === scene.id ? (
             <div className="flex items-center w-full gap-1" onClick={e => e.stopPropagation()}>
               <input
                 type="text"
@@ -310,10 +374,38 @@ export const SceneManager: React.FC<SceneManagerProps> = ({
                 <X size={14} />
               </button>
             </div>
+          ) : editingMetadataId === scene.id ? (
+            <div className="flex items-center w-full gap-2" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center gap-1 flex-1">
+                <span className="text-[10px] uppercase tracking-widest text-on-surface-variant/60">Day</span>
+                <input
+                  type="number"
+                  value={editDay}
+                  onChange={e => setEditDay(parseInt(e.target.value) || 0)}
+                  className="w-12 bg-surface border border-primary/30 rounded px-1 py-0.5 text-xs outline-none text-on-surface"
+                />
+                <span className="text-[10px] uppercase tracking-widest text-on-surface-variant/60 ml-1">Time</span>
+                <input
+                  type="text"
+                  value={editTime}
+                  onChange={e => setEditTime(e.target.value)}
+                  placeholder="e.g. Morning"
+                  className="flex-1 bg-surface border border-primary/30 rounded px-2 py-0.5 text-xs outline-none text-on-surface"
+                />
+              </div>
+              <div className="flex items-center gap-1">
+                <button onClick={(e) => handleSaveMetadata(scene.id, e)} className="text-emerald-500 p-1 hover:bg-emerald-500/10 rounded">
+                  <Check size={14} />
+                </button>
+                <button onClick={cancelEdit} className="text-red-500 p-1 hover:bg-red-500/10 rounded">
+                  <X size={14} />
+                </button>
+              </div>
+            </div>
           ) : (
             <>
               <div className="flex items-center gap-2 overflow-hidden flex-1">
-                <div {...provided.dragHandleProps} className="text-on-surface-variant/30 hover:text-on-surface-variant cursor-grab active:cursor-grabbing">
+                <div className="text-on-surface-variant/30 hover:text-on-surface-variant cursor-grab active:cursor-grabbing">
                   <GripVertical size={14} />
                 </div>
                 <FileText size={14} className="opacity-50 flex-shrink-0" />
@@ -332,13 +424,20 @@ export const SceneManager: React.FC<SceneManagerProps> = ({
                 </div>
                 {(scene.hasEcho || hasAcceptedVersion(scene.id)) && (
                   <span title="Has accepted refinement" className="flex-shrink-0 flex items-center">
-                    <Check size={12} className="text-emerald-500 ml-1" />
+                    <CheckCircle2 size={12} className="text-emerald-500 ml-1" />
                   </span>
                 )}
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-mono opacity-50">{getWordCount(scene.content)}w</span>
                 <div className="flex items-center transition-opacity">
+                  <button 
+                    onClick={(e) => startEditingMetadata(scene, e)}
+                    className="p-2 text-on-surface-variant/40 hover:text-primary active:text-primary rounded hover:bg-primary/10 min-w-[44px] min-h-[44px] flex items-center justify-center transition-colors"
+                    title="Edit Metadata"
+                  >
+                    <Settings size={14} />
+                  </button>
                   <button 
                     onClick={(e) => startEditingScene(scene, e)}
                     className="p-2 text-on-surface-variant/40 hover:text-primary active:text-primary rounded hover:bg-primary/10 min-w-[44px] min-h-[44px] flex items-center justify-center transition-colors"
@@ -357,10 +456,12 @@ export const SceneManager: React.FC<SceneManagerProps> = ({
               </div>
             </>
           )}
+          </div>
         </div>
       )}
     </Draggable>
   );
+};
 
   const sortedChapters = [...chapters].sort((a, b) => a.order - b.order);
   const unassignedScenes = scenes.filter(s => !s.chapterId).sort((a, b) => a.order - b.order);
@@ -389,8 +490,29 @@ export const SceneManager: React.FC<SceneManagerProps> = ({
         </div>
       </div>
       
-      <div className="flex-1 overflow-y-auto p-2">
+      <div className="flex-1 p-2 overflow-y-auto">
         <DragDropContext onDragEnd={onDragEnd}>
+          <div className="mb-6">
+            <h3 className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2 px-2">Unassigned Scenes</h3>
+            <Droppable droppableId="unassigned" type="scene">
+              {(provided, snapshot) => (
+                <div 
+                  ref={provided.innerRef} 
+                  {...provided.droppableProps}
+                  className={`min-h-[40px] p-1 rounded-lg ${snapshot.isDraggingOver ? 'bg-primary/5 border border-dashed border-primary/30' : 'border border-transparent'}`}
+                >
+                  {unassignedScenes.map((scene, index) => renderScene(scene, index))}
+                  {provided.placeholder}
+                  {unassignedScenes.length === 0 && !snapshot.isDraggingOver && (
+                    <div className="text-xs text-center text-on-surface-variant/50 py-2 italic border border-dashed border-outline-variant/30 rounded">
+                      No unassigned scenes.
+                    </div>
+                  )}
+                </div>
+              )}
+            </Droppable>
+          </div>
+
           <Droppable droppableId="chapters-list" type="chapter">
             {(provided) => (
               <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-2">
@@ -404,6 +526,7 @@ export const SceneManager: React.FC<SceneManagerProps> = ({
                         <div
                           ref={provided.innerRef}
                           {...provided.draggableProps}
+                          {...provided.dragHandleProps}
                           className={`border border-outline-variant/20 rounded-lg overflow-hidden ${snapshot.isDragging ? 'shadow-xl bg-surface-container z-50' : 'bg-surface'}`}
                         >
                           <div 
@@ -433,7 +556,7 @@ export const SceneManager: React.FC<SceneManagerProps> = ({
                             ) : (
                               <>
                                 <div className="flex items-center gap-2 flex-1">
-                                  <div {...provided.dragHandleProps} className="text-on-surface-variant/30 hover:text-on-surface-variant cursor-grab active:cursor-grabbing" onClick={e => e.stopPropagation()}>
+                                  <div className="text-on-surface-variant/30 hover:text-on-surface-variant cursor-grab active:cursor-grabbing" onClick={e => e.stopPropagation()}>
                                     <GripVertical size={14} />
                                   </div>
                                   {isExpanded ? <ChevronDown size={14} className="text-on-surface-variant" /> : <ChevronRight size={14} className="text-on-surface-variant" />}
@@ -497,26 +620,6 @@ export const SceneManager: React.FC<SceneManagerProps> = ({
             )}
           </Droppable>
 
-          <div className="mt-6">
-            <h3 className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2 px-2">Unassigned Scenes</h3>
-            <Droppable droppableId="unassigned" type="scene">
-              {(provided, snapshot) => (
-                <div 
-                  ref={provided.innerRef} 
-                  {...provided.droppableProps}
-                  className={`min-h-[100px] p-1 rounded-lg ${snapshot.isDraggingOver ? 'bg-primary/5 border border-dashed border-primary/30' : 'border border-transparent'}`}
-                >
-                  {unassignedScenes.map((scene, index) => renderScene(scene, index))}
-                  {provided.placeholder}
-                  {unassignedScenes.length === 0 && !snapshot.isDraggingOver && (
-                    <div className="text-xs text-center text-on-surface-variant/50 py-4 italic">
-                      No unassigned scenes.
-                    </div>
-                  )}
-                </div>
-              )}
-            </Droppable>
-          </div>
         </DragDropContext>
       </div>
     </div>

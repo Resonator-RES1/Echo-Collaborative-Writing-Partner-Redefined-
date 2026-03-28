@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Save, Mic2, Quote, Brain, Plus, Trash2, Fingerprint, Cpu } from 'lucide-react';
+import { X, Save, Mic2, Quote, Brain, Plus, Trash2, Fingerprint, Cpu, Sparkles } from 'lucide-react';
 import { VoiceProfile, Gender } from '../../types';
 
 interface VoiceProfileFormProps {
@@ -91,6 +91,44 @@ export function VoiceProfileForm({ onClose, onSave, initialData, isModal = true 
       </div>
 
       <form onSubmit={handleSubmit} className="p-6 space-y-8 overflow-y-auto custom-scrollbar flex-1">
+          {initialData && (
+            <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 space-y-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-primary" />
+                <h4 className="text-[10px] font-label uppercase tracking-widest text-primary font-bold">Voice DNA Quick-Copy</h4>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {initialData.signatureTraits.map((trait, idx) => (
+                  <button
+                    key={`trait-${idx}`}
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(trait);
+                    }}
+                    className="px-3 py-1 bg-surface-container-highest border border-outline-variant/20 rounded-full text-[10px] font-medium text-on-surface-variant hover:bg-primary/10 hover:border-primary/30 hover:text-primary transition-all active:scale-95"
+                    title="Click to copy trait"
+                  >
+                    {trait}
+                  </button>
+                ))}
+                {initialData.idioms.map((idiom, idx) => (
+                  <button
+                    key={`idiom-${idx}`}
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(idiom);
+                    }}
+                    className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-[10px] font-medium text-primary hover:bg-primary/20 transition-all active:scale-95"
+                    title="Click to copy idiom"
+                  >
+                    "{idiom}"
+                  </button>
+                ))}
+              </div>
+              <p className="text-[9px] text-on-surface-variant/40 italic">Click any badge to copy it to your clipboard for use in the editor.</p>
+            </div>
+          )}
+
           {/* Section 1: Identity Card */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-outline-variant/10">
@@ -203,6 +241,7 @@ export function VoiceProfileForm({ onClose, onSave, initialData, isModal = true 
                   <textarea 
                     value={cognitivePatterns} 
                     onChange={(e) => setCognitivePatterns(e.target.value)} 
+                    placeholder="e.g., Analytical, jumps to conclusions, visual thinker"
                     rows={2}
                     className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface resize-none" 
                   />
@@ -212,6 +251,7 @@ export function VoiceProfileForm({ onClose, onSave, initialData, isModal = true 
                   <textarea 
                     value={speechPatterns} 
                     onChange={(e) => setSpeechPatterns(e.target.value)} 
+                    placeholder="e.g., Stutters when nervous, uses complex vocabulary, speaks quickly"
                     rows={2}
                     className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface resize-none" 
                   />
@@ -275,6 +315,7 @@ export function VoiceProfileForm({ onClose, onSave, initialData, isModal = true 
                   <textarea 
                     value={conflictStyle} 
                     onChange={(e) => setConflictStyle(e.target.value)} 
+                    placeholder="e.g., Avoids confrontation, passive-aggressive, aggressive"
                     rows={2}
                     className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface resize-none" 
                   />
@@ -284,6 +325,7 @@ export function VoiceProfileForm({ onClose, onSave, initialData, isModal = true 
                   <textarea 
                     value={conversationalRole} 
                     onChange={(e) => setConversationalRole(e.target.value)} 
+                    placeholder="e.g., The listener, the instigator, the mediator"
                     rows={2}
                     className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface resize-none" 
                   />
@@ -296,6 +338,7 @@ export function VoiceProfileForm({ onClose, onSave, initialData, isModal = true 
                   <textarea 
                     value={physicalTells} 
                     onChange={(e) => setPhysicalTells(e.target.value)} 
+                    placeholder="e.g., Fidgets with rings, avoids eye contact, taps foot"
                     rows={2}
                     className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface resize-none" 
                   />
@@ -305,6 +348,7 @@ export function VoiceProfileForm({ onClose, onSave, initialData, isModal = true 
                   <textarea 
                     value={internalMonologueStyle} 
                     onChange={(e) => setInternalMonologueStyle(e.target.value)} 
+                    placeholder="e.g., Stream of consciousness, cynical, overly analytical"
                     rows={2}
                     className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface resize-none" 
                   />
