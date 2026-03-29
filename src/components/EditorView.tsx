@@ -76,6 +76,15 @@ const Editor: React.FC<EditorProps> = ({
   const [showConstruct, setShowConstruct] = useState(true);
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('draft');
 
+  const [displayPrefs, setDisplayPrefs] = useState(() => {
+    const saved = localStorage.getItem('echo-display-prefs');
+    return saved ? JSON.parse(saved) : { fontSize: 18, lineHeight: 1.8, maxWidth: 'max-w-3xl' };
+  });
+
+  useEffect(() => {
+    localStorage.setItem('echo-display-prefs', JSON.stringify(displayPrefs));
+  }, [displayPrefs]);
+
   const {
     draftState,
     dispatchDraft,
@@ -303,6 +312,8 @@ const Editor: React.FC<EditorProps> = ({
                   setShowDiff={setShowDiff}
                   showConstruct={showConstruct}
                   setShowConstruct={setShowConstruct}
+                  displayPrefs={displayPrefs}
+                  setDisplayPrefs={setDisplayPrefs}
                   setActiveTab={setActiveTab}
                   dispatchDraft={dispatchDraft}
                   draftState={draftState}
@@ -402,7 +413,7 @@ const Editor: React.FC<EditorProps> = ({
 
       {/* Task 3: Left Sidebar (Construct) */}
       {!isZenMode && showConstruct && (
-        <aside className="w-64 flex-shrink-0 bg-surface-container-lowest border-r border-outline-variant/10 overflow-y-auto">
+        <aside className="w-72 lg:w-88 flex-shrink-0 bg-surface-container-lowest border-r border-outline-variant/10 overflow-y-auto">
           <SceneManager 
             scenes={scenes}
             chapters={chapters}
