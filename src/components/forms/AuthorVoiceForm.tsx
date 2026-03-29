@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Save, PenTool, Layout, Zap, Type, Anchor, Quote, Plus } from 'lucide-react';
+import { X, Save, PenTool, Layout, Zap, Type, Anchor, Quote, Plus, Fingerprint, Cpu } from 'lucide-react';
 import { AuthorVoice } from '../../types';
 
 interface AuthorVoiceFormProps {
@@ -13,10 +13,10 @@ export function AuthorVoiceForm({ onClose, onSave, initialData, isModal = true }
   const [name, setName] = useState(initialData?.name || '');
   const [narrativeStyle, setNarrativeStyle] = useState(initialData?.narrativeStyle || '');
   const [proseStructure, setProseStructure] = useState(initialData?.proseStructure || '');
-  const [pacingAndRhythm, setPacingAndRhythm] = useState(initialData?.pacingAndRhythm || '');
-  const [vocabularyAndDiction, setVocabularyAndDiction] = useState(initialData?.vocabularyAndDiction || '');
+  const [pacingRhythm, setPacingRhythm] = useState(initialData?.pacingRhythm || '');
+  const [vocabularyDiction, setVocabularyDiction] = useState(initialData?.vocabularyDiction || '');
   const [thematicAnchors, setThematicAnchors] = useState(initialData?.thematicAnchors || '');
-  const [preview, setPreview] = useState(initialData?.preview || '');
+  const [voicePreview, setVoicePreview] = useState(initialData?.voicePreview || '');
   const [isActive, setIsActive] = useState(initialData?.isActive || false);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -28,10 +28,10 @@ export function AuthorVoiceForm({ onClose, onSave, initialData, isModal = true }
       name,
       narrativeStyle,
       proseStructure,
-      pacingAndRhythm,
-      vocabularyAndDiction,
+      pacingRhythm,
+      vocabularyDiction,
       thematicAnchors,
-      preview,
+      voicePreview,
       isActive,
       lastModified: new Date().toISOString(),
     });
@@ -61,120 +61,144 @@ export function AuthorVoiceForm({ onClose, onSave, initialData, isModal = true }
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto custom-scrollbar flex-1">
-          <div className="grid grid-cols-1 gap-6">
-            <div className="space-y-2">
-              <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
-                Voice Name / Label
-              </label>
-              <input 
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g., Gritty Noir, Whimsical Fantasy"
-                className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all text-on-surface"
-                required
-              />
+      <form onSubmit={handleSubmit} className="p-6 space-y-8 overflow-y-auto custom-scrollbar flex-1">
+          {/* Section 1: Local Scanner Attributes */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-outline-variant/10">
+              <Fingerprint className="w-5 h-5 text-secondary" />
+              <div>
+                <h3 className="text-sm font-bold text-on-surface">Local Scanner Attributes</h3>
+                <p className="text-[10px] text-on-surface-variant">These fields identify the voice within the project context.</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-2">
+                <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
+                  Voice Name / Label
+                </label>
+                <input 
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g., Gritty Noir, Whimsical Fantasy"
+                  className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all text-on-surface"
+                  required
+                />
+              </div>
+
+              <div className="flex items-center gap-3 p-4 bg-secondary/5 rounded-2xl border border-secondary/10">
+                <input 
+                  type="checkbox"
+                  id="isActive"
+                  checked={isActive}
+                  onChange={(e) => setIsActive(e.target.checked)}
+                  className="w-5 h-5 rounded border-outline-variant text-secondary focus:ring-secondary/20"
+                />
+                <label htmlFor="isActive" className="flex flex-col cursor-pointer">
+                  <span className="text-sm font-headline font-bold text-on-surface">Set as Active Master Voice</span>
+                  <span className="text-[10px] font-label text-on-surface-variant uppercase tracking-wider">The primary narrative guide for this project</span>
+                </label>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-4 bg-secondary/5 rounded-2xl border border-secondary/10">
-            <input 
-              type="checkbox"
-              id="isActive"
-              checked={isActive}
-              onChange={(e) => setIsActive(e.target.checked)}
-              className="w-5 h-5 rounded border-outline-variant text-secondary focus:ring-secondary/20"
-            />
-            <label htmlFor="isActive" className="flex flex-col cursor-pointer">
-              <span className="text-sm font-headline font-bold text-on-surface">Set as Active Master Voice</span>
-              <span className="text-[10px] font-label text-on-surface-variant uppercase tracking-wider">The primary narrative guide for this project</span>
-            </label>
-          </div>
-
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
-              <Quote className="w-3.5 h-3.5" />
-              Voice Preview Snippet
-            </label>
-            <textarea 
-              value={preview}
-              onChange={(e) => setPreview(e.target.value)}
-              placeholder="A one-sentence example of this voice..."
-              rows={2}
-              className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all text-on-surface resize-none italic"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
-              <PenTool className="w-3.5 h-3.5" />
-              Narrative Style
-            </label>
-            <textarea 
-              value={narrativeStyle}
-              onChange={(e) => setNarrativeStyle(e.target.value)}
-              placeholder="Describe the overall tone, perspective, and narrative distance..."
-              rows={3}
-              className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all text-on-surface resize-none"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
-                <Layout className="w-3.5 h-3.5" />
-                Prose Structure
-              </label>
-              <textarea 
-                value={proseStructure}
-                onChange={(e) => setProseStructure(e.target.value)}
-                placeholder="Paragraph length, dialogue integration, description density..."
-                rows={3}
-                className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all text-on-surface resize-none"
-              />
+          {/* Section 2: AI Audit Attributes */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-2 pb-2 border-b border-outline-variant/10">
+              <Cpu className="w-5 h-5 text-primary" />
+              <div>
+                <h3 className="text-sm font-bold text-on-surface">AI Audit Attributes (Prose DNA)</h3>
+                <p className="text-[10px] text-on-surface-variant">Advanced stylistic markers used by Echo to mirror your unique prose.</p>
+              </div>
             </div>
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
-                <Zap className="w-3.5 h-3.5" />
-                Pacing & Rhythm
-              </label>
-              <textarea 
-                value={pacingAndRhythm}
-                onChange={(e) => setPacingAndRhythm(e.target.value)}
-                placeholder="Sentence variety, flow, tension building through prose..."
-                rows={3}
-                className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all text-on-surface resize-none"
-              />
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
-                <Type className="w-3.5 h-3.5" />
-                Vocabulary & Diction
-              </label>
-              <textarea 
-                value={vocabularyAndDiction}
-                onChange={(e) => setVocabularyAndDiction(e.target.value)}
-                placeholder="Word choice, complexity, specific jargon or linguistic flavor..."
-                rows={3}
-                className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all text-on-surface resize-none"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
-                <Anchor className="w-3.5 h-3.5" />
-                Thematic Anchors
-              </label>
-              <textarea 
-                value={thematicAnchors}
-                onChange={(e) => setThematicAnchors(e.target.value)}
-                placeholder="Recurring motifs, emotional undertones, core themes..."
-                rows={3}
-                className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all text-on-surface resize-none"
-              />
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
+                  <Quote className="w-3.5 h-3.5" />
+                  Voice Preview Snippet
+                </label>
+                <textarea 
+                  value={voicePreview}
+                  onChange={(e) => setVoicePreview(e.target.value)}
+                  placeholder="A one-sentence example of this voice..."
+                  rows={2}
+                  className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all text-on-surface resize-none italic"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
+                  <PenTool className="w-3.5 h-3.5" />
+                  Narrative Style
+                </label>
+                <textarea 
+                  value={narrativeStyle}
+                  onChange={(e) => setNarrativeStyle(e.target.value)}
+                  placeholder="Describe the overall tone, perspective, and narrative distance..."
+                  rows={3}
+                  className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all text-on-surface resize-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
+                    <Layout className="w-3.5 h-3.5" />
+                    Prose Structure
+                  </label>
+                  <textarea 
+                    value={proseStructure}
+                    onChange={(e) => setProseStructure(e.target.value)}
+                    placeholder="Paragraph length, dialogue integration, description density..."
+                    rows={3}
+                    className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all text-on-surface resize-none"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
+                    <Zap className="w-3.5 h-3.5" />
+                    Pacing & Rhythm
+                  </label>
+                  <textarea 
+                    value={pacingRhythm}
+                    onChange={(e) => setPacingRhythm(e.target.value)}
+                    placeholder="Sentence variety, flow, tension building through prose..."
+                    rows={3}
+                    className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all text-on-surface resize-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
+                    <Type className="w-3.5 h-3.5" />
+                    Vocabulary & Diction
+                  </label>
+                  <textarea 
+                    value={vocabularyDiction}
+                    onChange={(e) => setVocabularyDiction(e.target.value)}
+                    placeholder="Word choice, complexity, specific jargon or linguistic flavor..."
+                    rows={3}
+                    className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all text-on-surface resize-none"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">
+                    <Anchor className="w-3.5 h-3.5" />
+                    Thematic Anchors
+                  </label>
+                  <textarea 
+                    value={thematicAnchors}
+                    onChange={(e) => setThematicAnchors(e.target.value)}
+                    placeholder="Recurring motifs, emotional undertones, core themes..."
+                    rows={3}
+                    className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all text-on-surface resize-none"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 

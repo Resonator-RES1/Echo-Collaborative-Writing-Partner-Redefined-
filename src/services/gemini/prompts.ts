@@ -1,3 +1,7 @@
+import { AuthorVoice, LoreEntry, VoiceProfile, FocusArea, RefinedVersion } from '../../types';
+import { FOCUS_AREA_PROMPTS } from '../../constants';
+import { ContinuityIssue } from '../../utils/contextScanner';
+
 export const getSystemPrompt = () => {
     return `### ROLE: THE CYNICAL MIRROR
 You are a "Mirror Editor." Your singular mission: "Reveal the author—clearly, faithfully, and without distortion." 
@@ -35,4 +39,115 @@ Your report must justify restraint as heavily as it justifies change.
 1. **Restraint Log**: You MUST provide specific snippets of text you consciously chose NOT to change, explaining why they were already perfect.
 2. **Why Behind Change**: You MUST explain the stylistic trade-offs. Why did you choose this specific rhythm?
 3. **Mirror Editor Critique**: Provide a cold, neutral observation of the text's subtext and pacing. Do not flatter the author.`;
+};
+
+export interface BuildPromptOptions {
+  authorVoice?: AuthorVoice;
+  voiceProfiles: VoiceProfile[];
+  loreEntries: LoreEntry[];
+  focusAreas: FocusArea[];
+  storyDay?: number;
+  previousEchoes?: RefinedVersion[];
+  customInstruction?: string;
+  localWarnings?: ContinuityIssue[];
+  feedbackDepth?: string;
+}
+
+export const buildSystemPrompt = (options: BuildPromptOptions) => {
+    const {
+        authorVoice,
+        voiceProfiles,
+        loreEntries,
+        focusAreas,
+        storyDay,
+        previousEchoes = [],
+        customInstruction,
+        localWarnings = [],
+        feedbackDepth = 'balanced'
+    } = options;
+
+    let prompt = getSystemPrompt();
+    prompt += '\n\n### ACTIVE CONTEXT\n';
+
+    if (storyDay !== undefined) {
+        prompt += `<Chronological_Anchor>\nStory Day: ${storyDay}\n</Chronological_Anchor>\n`;
+    }
+
+    if (loreEntries.length > 0) {
+        prompt += '<Axioms_Lore>\n';
+        loreEntries.forEach(l => {
+            prompt += `<Lore_Entry title="${l.title}" category="${l.category}">\n`;
+            prompt += `  <Description>${l.description}</Description>\n`;
+            if (l.sensoryPalette) prompt += `  <Sensory_Palette>${l.sensoryPalette}</Sensory_Palette>\n`;
+            if (l.storyDay !== undefined) prompt += `  <Story_Day>${l.storyDay}</Story_Day>\n`;
+            if (l.category === 'Characters') {
+                if (l.gender) prompt += `  <Gender>${l.gender}</Gender>\n`;
+                if (l.relations) prompt += `  <Relations>${l.relations}</Relations>\n`;
+            }
+            prompt += `</Lore_Entry>\n`;
+        });
+        prompt += '</Axioms_Lore>\n';
+    }
+
+    if (authorVoice) {
+        prompt += '<Master_Voice>\n';
+        prompt += `  <Narrative_Style>${authorVoice.narrativeStyle}</Narrative_Style>\n`;
+        prompt += `  <Prose_Structure>${authorVoice.proseStructure}</Prose_Structure>\n`;
+        prompt += `  <Pacing_Rhythm>${authorVoice.pacingRhythm}</Pacing_Rhythm>\n`;
+        prompt += `  <Vocabulary_Diction>${authorVoice.vocabularyDiction}</Vocabulary_Diction>\n`;
+        prompt += `  <Thematic_Anchors>${authorVoice.thematicAnchors}</Thematic_Anchors>\n`;
+        prompt += '</Master_Voice>\n';
+    }
+
+    if (voiceProfiles.length > 0) {
+        prompt += '<Character_Voices>\n';
+        voiceProfiles.forEach(v => {
+            prompt += `<Voice_DNA name="${v.name}">\n`;
+            prompt += `  <Core_Motivation>${v.coreMotivation}</Core_Motivation>\n`;
+            prompt += `  <Soul_Pattern>${v.soulPattern}</Soul_Pattern>\n`;
+            prompt += `  <Cognitive_Speech>${v.cognitiveSpeech}</Cognitive_Speech>\n`;
+            prompt += `  <Conflict_Style>${v.conflictStyle}</Conflict_Style>\n`;
+            prompt += `  <Conversational_Role>${v.conversationalRole}</Conversational_Role>\n`;
+            prompt += `  <Physical_Tells>${v.physicalTells}</Physical_Tells>\n`;
+            prompt += `  <Internal_Monologue>${v.internalMonologue}</Internal_Monologue>\n`;
+            if (v.signatureTraits?.length) prompt += `  <Signature_Traits>${v.signatureTraits.join(', ')}</Signature_Traits>\n`;
+            if (v.idioms?.length) prompt += `  <Idioms>${v.idioms.join(', ')}</Idioms>\n`;
+            if (v.exampleLines?.length) prompt += `  <Example_Lines>${v.exampleLines.join(' | ')}</Example_Lines>\n`;
+            prompt += `</Voice_DNA>\n`;
+        });
+        prompt += '</Character_Voices>\n';
+    }
+
+    if (previousEchoes.length > 0) {
+        prompt += '<Previous_Echoes>\n';
+        previousEchoes.slice(0, 2).forEach((e, i) => {
+            prompt += `  <Echo index="${i + 1}">${e.text.substring(0, 500)}...</Echo>\n`;
+        });
+        prompt += '</Previous_Echoes>\n';
+    }
+
+    if (focusAreas.length > 0) {
+        prompt += '<Priority_Directives>\n';
+        focusAreas.forEach(area => {
+            prompt += `  <Directive area="${area}">${FOCUS_AREA_PROMPTS[area]}</Directive>\n`;
+        });
+        prompt += '</Priority_Directives>\n';
+    }
+
+    if (customInstruction) {
+        prompt += `<Special_Instruction>\n${customInstruction}\n</Special_Instruction>\n`;
+    }
+
+    if (localWarnings.length > 0) {
+        prompt += '<Continuity_Warnings>\n';
+        localWarnings.forEach(w => {
+            prompt += `  <Warning type="${w.type}">${w.message}</Warning>\n`;
+        });
+        prompt += '</Continuity_Warnings>\n';
+    }
+
+    const weighting = feedbackDepth === 'casual' ? '95% Voice / 5% Focus' : feedbackDepth === 'balanced' ? '80% Voice / 20% Focus' : '70% Voice / 30% Focus';
+    prompt += `\nDialing System Weighting: ${weighting}\n`;
+
+    return prompt;
 };

@@ -1,33 +1,32 @@
 import React, { useState } from 'react';
-import { X, Save, Mic2, Quote, Brain, Plus, Trash2, Fingerprint, Cpu, Sparkles } from 'lucide-react';
-import { VoiceProfile, Gender } from '../../types';
+import { X, Save, Mic2, Quote, Brain, Plus, Trash2, Fingerprint, Cpu, Sparkles, Users } from 'lucide-react';
+import { VoiceProfile, Gender, Relationship } from '../../types';
 
 interface VoiceProfileFormProps {
   onClose: () => void;
   onSave: (profile: VoiceProfile) => void;
   initialData?: VoiceProfile;
   isModal?: boolean;
+  voiceProfiles?: VoiceProfile[];
 }
 
-export function VoiceProfileForm({ onClose, onSave, initialData, isModal = true }: VoiceProfileFormProps) {
+export function VoiceProfileForm({ onClose, onSave, initialData, isModal = true, voiceProfiles = [] }: VoiceProfileFormProps) {
   const [name, setName] = useState(initialData?.name || '');
   const [gender, setGender] = useState<Gender | 'other'>(initialData?.gender || 'unspecified');
   const [archetype, setArchetype] = useState(initialData?.archetype || '');
   const [coreMotivation, setCoreMotivation] = useState(initialData?.coreMotivation || '');
   const [aliases, setAliases] = useState(initialData?.aliases?.join(', ') || '');
   const [soulPattern, setSoulPattern] = useState(initialData?.soulPattern || '');
-  const [cognitivePatterns, setCognitivePatterns] = useState(initialData?.cognitivePatterns || '');
-  const [speechPatterns, setSpeechPatterns] = useState(initialData?.speechPatterns || '');
-  const [emotionalExpression, setEmotionalExpression] = useState(initialData?.emotionalExpression || '');
-  const [behavioralAnchors, setBehavioralAnchors] = useState(initialData?.behavioralAnchors || '');
+  const [cognitiveSpeech, setCognitiveSpeech] = useState(initialData?.cognitiveSpeech || '');
   const [conversationalRole, setConversationalRole] = useState(initialData?.conversationalRole || '');
   const [signatureTraits, setSignatureTraits] = useState(initialData?.signatureTraits?.join(', ') || '');
   const [idioms, setIdioms] = useState(initialData?.idioms?.join(', ') || '');
   const [exampleLines, setExampleLines] = useState<string[]>(initialData?.exampleLines || ['']);
   const [physicalTells, setPhysicalTells] = useState(initialData?.physicalTells || '');
-  const [internalMonologueStyle, setInternalMonologueStyle] = useState(initialData?.internalMonologueStyle || '');
+  const [internalMonologue, setInternalMonologue] = useState(initialData?.internalMonologue || '');
   const [conflictStyle, setConflictStyle] = useState(initialData?.conflictStyle || '');
   const [preview, setPreview] = useState(initialData?.preview || '');
+  const [relationships, setRelationships] = useState<Relationship[]>(initialData?.relationships || []);
 
   const handleAddExampleLine = () => setExampleLines([...exampleLines, '']);
   const handleRemoveExampleLine = (index: number) => setExampleLines(exampleLines.filter((_, i) => i !== index));
@@ -35,6 +34,20 @@ export function VoiceProfileForm({ onClose, onSave, initialData, isModal = true 
     const newLines = [...exampleLines];
     newLines[index] = value;
     setExampleLines(newLines);
+  };
+
+  const handleAddRelationship = () => {
+    setRelationships([...relationships, { targetId: '', type: '', tension: 3, context: '' }]);
+  };
+
+  const handleRemoveRelationship = (index: number) => {
+    setRelationships(relationships.filter((_, i) => i !== index));
+  };
+
+  const handleRelationshipChange = (index: number, field: keyof Relationship, value: any) => {
+    const newRels = [...relationships];
+    newRels[index] = { ...newRels[index], [field]: value };
+    setRelationships(newRels);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -49,18 +62,16 @@ export function VoiceProfileForm({ onClose, onSave, initialData, isModal = true 
       coreMotivation,
       aliases: aliases.split(',').map(s => s.trim()).filter(Boolean),
       soulPattern,
-      cognitivePatterns,
-      speechPatterns,
-      emotionalExpression,
-      behavioralAnchors,
+      cognitiveSpeech,
       conversationalRole,
       signatureTraits: signatureTraits.split(',').map(t => t.trim()).filter(Boolean),
       idioms: idioms.split(',').map(i => i.trim()).filter(Boolean),
       exampleLines: exampleLines.filter(l => l.trim()),
       physicalTells,
-      internalMonologueStyle,
+      internalMonologue,
       conflictStyle,
       preview,
+      relationships: relationships.filter(r => r.targetId),
       lastModified: new Date().toISOString(),
       isActive: true,
     });
@@ -235,27 +246,15 @@ export function VoiceProfileForm({ onClose, onSave, initialData, isModal = true 
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">Cognitive Patterns</label>
-                  <textarea 
-                    value={cognitivePatterns} 
-                    onChange={(e) => setCognitivePatterns(e.target.value)} 
-                    placeholder="e.g., Analytical, jumps to conclusions, visual thinker"
-                    rows={2}
-                    className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface resize-none" 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">Speech Patterns</label>
-                  <textarea 
-                    value={speechPatterns} 
-                    onChange={(e) => setSpeechPatterns(e.target.value)} 
-                    placeholder="e.g., Stutters when nervous, uses complex vocabulary, speaks quickly"
-                    rows={2}
-                    className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface resize-none" 
-                  />
-                </div>
+              <div className="space-y-2">
+                <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">Cognitive Speech Patterns</label>
+                <textarea 
+                  value={cognitiveSpeech} 
+                  onChange={(e) => setCognitiveSpeech(e.target.value)} 
+                  placeholder="How they think and speak. e.g., Analytical, jumps to conclusions, stutters when nervous, uses complex vocabulary."
+                  rows={3}
+                  className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface resize-none" 
+                />
               </div>
 
               <div className="space-y-2">
@@ -346,12 +345,103 @@ export function VoiceProfileForm({ onClose, onSave, initialData, isModal = true 
                 <div className="space-y-2">
                   <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1">Internal Monologue</label>
                   <textarea 
-                    value={internalMonologueStyle} 
-                    onChange={(e) => setInternalMonologueStyle(e.target.value)} 
+                    value={internalMonologue} 
+                    onChange={(e) => setInternalMonologue(e.target.value)} 
                     placeholder="e.g., Stream of consciousness, cynical, overly analytical"
                     rows={2}
                     className="w-full bg-surface-container-highest/50 border border-outline-variant/30 rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-on-surface resize-none" 
                   />
+                </div>
+              </div>
+
+              {/* Social Dynamics Section */}
+              <div className="space-y-4 pt-4 border-t border-outline-variant/10">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-5 h-5 text-primary" />
+                    <div>
+                      <h3 className="text-sm font-bold text-on-surface">Social Dynamics</h3>
+                      <p className="text-[10px] text-on-surface-variant">Define relationships and tension levels for social consistency audits.</p>
+                    </div>
+                  </div>
+                  <button 
+                    type="button" 
+                    onClick={handleAddRelationship}
+                    className="flex items-center gap-1 px-3 py-1.5 bg-primary/10 text-primary rounded-full font-label text-[9px] uppercase tracking-widest hover:bg-primary/20 transition-all"
+                  >
+                    <Plus className="w-3 h-3" />
+                    Add Relation
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {relationships.map((rel, idx) => (
+                    <div key={idx} className="p-4 bg-surface-container-highest/30 border border-outline-variant/20 rounded-2xl space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-label uppercase tracking-widest text-on-surface-variant ml-1">Target</label>
+                          <select 
+                            value={rel.targetId}
+                            onChange={(e) => handleRelationshipChange(idx, 'targetId', e.target.value)}
+                            className="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl px-3 py-2 text-xs text-on-surface outline-none focus:border-primary"
+                          >
+                            <option value="">Select Character...</option>
+                            {voiceProfiles.filter(p => p.id !== initialData?.id).map(p => (
+                              <option key={p.id} value={p.id}>{p.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-label uppercase tracking-widest text-on-surface-variant ml-1">Type</label>
+                          <input 
+                            type="text"
+                            value={rel.type}
+                            onChange={(e) => handleRelationshipChange(idx, 'type', e.target.value)}
+                            placeholder="e.g., Rival, Mentor, Sibling"
+                            className="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl px-3 py-2 text-xs text-on-surface outline-none focus:border-primary"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-label uppercase tracking-widest text-on-surface-variant ml-1">Tension (1-5)</label>
+                          <div className="flex items-center gap-2">
+                            <input 
+                              type="range"
+                              min="1"
+                              max="5"
+                              value={rel.tension}
+                              onChange={(e) => handleRelationshipChange(idx, 'tension', parseInt(e.target.value))}
+                              className="flex-1 accent-primary"
+                            />
+                            <span className={`text-xs font-bold w-4 ${rel.tension >= 4 ? 'text-error' : rel.tension <= 2 ? 'text-emerald-500' : 'text-primary'}`}>
+                              {rel.tension}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 items-start">
+                        <div className="flex-1 space-y-1">
+                          <label className="text-[9px] font-label uppercase tracking-widest text-on-surface-variant ml-1">Context / History</label>
+                          <input 
+                            type="text"
+                            value={rel.context}
+                            onChange={(e) => handleRelationshipChange(idx, 'context', e.target.value)}
+                            placeholder="Brief history of this dynamic..."
+                            className="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl px-3 py-2 text-xs text-on-surface outline-none focus:border-primary"
+                          />
+                        </div>
+                        <button 
+                          type="button"
+                          onClick={() => handleRemoveRelationship(idx)}
+                          className="mt-5 p-2 text-on-surface-variant/40 hover:text-error transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {relationships.length === 0 && (
+                    <p className="text-[10px] text-on-surface-variant/40 italic text-center py-4">No relationships defined yet.</p>
+                  )}
                 </div>
               </div>
             </div>

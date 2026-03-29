@@ -76,12 +76,12 @@ export function GlobalSearchModal({
     // Search Lore
     loreEntries.forEach(lore => {
       let match;
-      while ((match = searchRegex.exec(lore.content)) !== null) {
+      while ((match = searchRegex.exec(lore.description)) !== null) {
         results.push({
           id: `lore-${lore.id}-${match.index}`,
           type: 'lore',
           title: `Lore: ${lore.title}`,
-          text: getSnippet(lore.content, match.index, query.length),
+          text: getSnippet(lore.description, match.index, query.length),
           index: match.index,
           item: lore
         });
@@ -90,7 +90,7 @@ export function GlobalSearchModal({
 
     // Search Voice Profiles
     voiceProfiles.forEach(vp => {
-        const fullText = `${vp.soulPattern} ${vp.speechPatterns} ${vp.behavioralAnchors}`;
+        const fullText = `${vp.soulPattern} ${vp.cognitiveSpeech} ${vp.conversationalRole} ${vp.coreMotivation} ${vp.conflictStyle} ${vp.preview}`;
         let match;
         while ((match = searchRegex.exec(fullText)) !== null) {
           results.push({
@@ -156,12 +156,12 @@ export function GlobalSearchModal({
               });
               onUpdateScene({ ...item, content: newContent, lastModified: new Date().toISOString() });
           } else if (type === 'lore') {
-              let newContent = item.content;
+              let newContent = item.description;
               replacements.forEach(r => {
                   newContent = newContent.substring(0, r.index) + replaceText + newContent.substring(r.index + query.length);
                   replaceCount++;
               });
-              onUpdateLore({ ...item, content: newContent, lastModified: new Date().toISOString() });
+              onUpdateLore({ ...item, description: newContent, lastModified: new Date().toISOString() });
           }
       });
 
@@ -277,8 +277,8 @@ export function GlobalSearchModal({
                     <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest">Lore Entry</span>
                   </div>
                   <div className="space-y-1">
-                    <h5 className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant">Content</h5>
-                    <p className="text-sm text-on-surface/80 leading-relaxed whitespace-pre-wrap">{peekMatch.item.content}</p>
+                    <h5 className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant">Description</h5>
+                    <p className="text-sm text-on-surface/80 leading-relaxed whitespace-pre-wrap">{peekMatch.item.description}</p>
                   </div>
                   {peekMatch.item.sensoryPalette && (
                     <div className="space-y-1">

@@ -367,6 +367,7 @@ export function VoicesScreen({
                       onSave={handleSaveProfile}
                       initialData={editingProfile}
                       isModal={false}
+                      voiceProfiles={voiceProfiles}
                     />
                   )}
                 </div>

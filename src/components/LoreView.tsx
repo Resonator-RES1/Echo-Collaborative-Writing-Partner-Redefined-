@@ -113,7 +113,7 @@ export function LoreScreen({ onClose }: LoreScreenProps) {
     categories.forEach(cat => {
       map[cat] = loreEntries.filter(e => e.category === cat && (
         e.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        e.content.toLowerCase().includes(searchQuery.toLowerCase())
+        e.description.toLowerCase().includes(searchQuery.toLowerCase())
       ));
     });
     return map;
@@ -251,7 +251,7 @@ export function LoreScreen({ onClose }: LoreScreenProps) {
                                       >
                                         <div className="min-w-0 flex-1">
                                           <h4 className="text-xs font-medium text-on-surface group-hover:text-primary transition-colors truncate">{entry.title}</h4>
-                                          <p className="text-[10px] text-on-surface-variant/60 truncate">{entry.content}</p>
+                                          <p className="text-[10px] text-on-surface-variant/60 truncate">{entry.description}</p>
                                         </div>
                                         <div className="flex items-center gap-2 transition-opacity">
                                           <button 

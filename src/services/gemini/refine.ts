@@ -3,7 +3,7 @@ import { FOCUS_AREA_PROMPTS } from '../../constants';
 import { FocusArea, LoreEntry, VoiceProfile, RefinedVersion, AuthorVoice, FeedbackDepth, VoiceAudit } from '../../types';
 import { ContinuityIssue } from '../../utils/contextScanner';
 import { callAiApi, GenerationConfig } from './api';
-import { getSystemPrompt } from './prompts';
+import { getSystemPrompt, buildSystemPrompt } from './prompts';
 
 export interface RefineDraftOptions {
   draft: string;
@@ -86,8 +86,8 @@ export const refineDraft = async (options: RefineDraftOptions): Promise<RefineDr
     const auditorActiveLore = loreEntries.filter(e => e.isActive);
     const auditorActiveVoices = voiceProfiles.filter(v => v.isActive);
 
-    const loreContextSize = auditorActiveLore.reduce((acc, l) => acc + l.content.length + (l.sensoryPalette?.length || 0), 0);
-    const voiceContextSize = auditorActiveVoices.reduce((acc, v) => acc + (v.soulPattern.length) + (v.speechPatterns.length) + (v.cognitivePatterns.length), 0);
+    const loreContextSize = auditorActiveLore.reduce((acc, l) => acc + l.description.length + (l.sensoryPalette?.length || 0), 0);
+    const voiceContextSize = auditorActiveVoices.reduce((acc, v) => acc + (v.soulPattern.length) + (v.cognitiveSpeech.length) + (v.coreMotivation.length), 0);
     const totalContextSize = loreContextSize + voiceContextSize;
 
     if (totalContextSize > 15000) {
@@ -95,148 +95,23 @@ export const refineDraft = async (options: RefineDraftOptions): Promise<RefineDr
     }
     // --- END PAYLOAD AUDITOR ---
 
-    const systemInstruction = getSystemPrompt();
+    const activeLore = loreEntries.filter(e => e.isActive);
+    const activeAuthorVoice = authorVoices.find(v => v.isActive);
+    const activeVoices = voiceProfiles.filter(v => v.isActive);
+
+    const systemInstruction = buildSystemPrompt({
+        authorVoice: activeAuthorVoice,
+        voiceProfiles: activeVoices,
+        loreEntries: activeLore,
+        focusAreas,
+        storyDay,
+        previousEchoes,
+        customInstruction: options.customInstruction,
+        localWarnings,
+        feedbackDepth
+    });
     
     let preamble = '';
-
-    const activeLore = loreEntries.filter(e => e.isActive);
-    if (activeLore.length > 0) {
-        const systemicRules = activeLore.filter(l => 
-          ['World Mechanics', 'Geography & Ecology', 'Societal Strata'].includes(l.category)
-        );
-        const timelineEntries = activeLore.filter(l => l.category === 'Timeline');
-        const worldContext = activeLore.filter(l => 
-          !['World Mechanics', 'Geography & Ecology', 'Societal Strata', 'Timeline'].includes(l.category)
-        );
-
-        if (storyDay !== undefined) {
-            preamble += `*** CHRONOLOGICAL ANCHOR ***\n`;
-            preamble += `Current Story Day: ${storyDay}.\n`;
-            
-            const pastEvents = timelineEntries.filter(e => e.storyDay !== undefined && e.storyDay < storyDay);
-            if (pastEvents.length > 0) {
-                preamble += `Active Timeline Context: [${pastEvents.map(e => e.title).join(', ')}]\n`;
-                preamble += `Past Events Details:\n`;
-                preamble += pastEvents.sort((a, b) => (a.storyDay || 0) - (b.storyDay || 0))
-                    .map(e => `- [Day ${e.storyDay}] ${e.title}: ${e.content}`).join('\n') + '\n';
-            }
-            preamble += `CHRONOLOGICAL GUARD: If the draft contradicts the established timeline (e.g., a dead character appearing or a wound being forgotten), flag this as Lore Fraying (Amber).\n\n`;
-        }
-
-        preamble += '*** ACTIVE LORE (PRIMARY TRUTH) ***\n';
-        
-        if (systemicRules.length > 0) {
-            preamble += '--- SYSTEMIC RULES (HARD CONSTRAINTS) ---\n';
-            preamble += systemicRules.map(l => `- [${l.category}] ${l.title}: ${l.content} ${l.sensoryPalette ? `(Sensory: ${l.sensoryPalette})` : ''}`).join('\n') + '\n';
-        }
-        
-        if (worldContext.length > 0) {
-            preamble += '--- WORLD CONTEXT (NARRATIVE GUIDES) ---\n';
-            preamble += worldContext.map(l => {
-                let entryText = `- [${l.category}] ${l.title} ${l.aliases?.length ? `(Aliases: ${l.aliases.join(', ')})` : ''}: ${l.content}`;
-                
-                if (l.sensoryPalette) {
-                    entryText += `\n  * Sensory Palette: ${l.sensoryPalette}`;
-                }
-                
-                // Resolve relationships for characters
-                if (l.category === 'Characters' && l.relationships && l.relationships.length > 0) {
-                    const rels = l.relationships.map(r => {
-                        const target = loreEntries.find(le => le.id === r.targetId);
-                        return target ? `  * Relationship with ${target.title}: ${r.type} (Tension: ${r.tension}/5) - ${r.context}` : null;
-                    }).filter(Boolean);
-                    
-                    if (rels.length > 0) {
-                        entryText += '\n' + rels.join('\n');
-                    }
-                }
-                
-                return entryText;
-            }).join('\n') + '\n';
-        }
-        preamble += '\n';
-    }
-
-    const activeAuthorVoice = authorVoices.find(v => v.isActive);
-    if (activeAuthorVoice) {
-        preamble += `*** MASTER AUTHOR VOICE (PRIMARY NARRATIVE STYLE) ***\n`;
-        preamble += `CRITICAL: All non-dialogue prose and narration MUST strictly adhere to this style. This is the "Master Voice" for the story's narrative identity.\n`;
-        preamble += `- Style: ${activeAuthorVoice.narrativeStyle}\n`;
-        preamble += `- Structure: ${activeAuthorVoice.proseStructure}\n`;
-        preamble += `- Pacing: ${activeAuthorVoice.pacingAndRhythm}\n`;
-        preamble += `- Vocabulary: ${activeAuthorVoice.vocabularyAndDiction}\n`;
-        preamble += `- Themes: ${activeAuthorVoice.thematicAnchors}\n\n`;
-    }
-
-    const activeVoices = voiceProfiles.filter(v => v.isActive);
-    if (activeVoices.length > 0) {
-        preamble += '*** CHARACTER VOICE ENGINE (STYLISTIC LOGIC) ***\n';
-        preamble += `Character Identity (Name/Gender) is already established in the draft. Use the provided Engine Profiles strictly for stylistic, rhythmic, and systemic logic refinement.\n`;
-        preamble += `CRITICAL: If a character is NOT found in the specific text snippet being refined, ignore their voice profile.\n`;
-        preamble += activeVoices.map(v => {
-            const engine = [
-                `- ${v.name} (Gender: ${v.gender}, Archetype: ${v.archetype}) ${v.aliases?.length ? `[Aliases: ${v.aliases.join(', ')}]` : ''}:`,
-                `  Core Motivation: ${v.coreMotivation || 'Unknown'}`,
-                `  Soul Pattern: ${v.soulPattern}`,
-                `  Cognitive Patterns (How they think): ${v.cognitivePatterns || 'N/A'}`,
-                `  Internal Monologue: ${v.internalMonologueStyle || 'N/A'}`,
-                `  Speech Patterns: ${v.speechPatterns}`,
-                `  Conversational Role: ${v.conversationalRole || 'N/A'}`,
-                `  Emotional Expression: ${v.emotionalExpression || 'N/A'}`,
-                `  Conflict Style: ${v.conflictStyle || 'N/A'}`,
-                `  Physical Tells & Behaviors: ${v.physicalTells ? v.physicalTells + ' | ' : ''}${v.behavioralAnchors || ''}`,
-                `  Signature Traits: ${v.signatureTraits?.length ? v.signatureTraits.join(', ') : 'N/A'}`,
-                `  Idioms: ${v.idioms?.length ? v.idioms.join(', ') : 'N/A'}`,
-                `  Example Lines: ${v.exampleLines?.length ? v.exampleLines.join(' | ') : 'N/A'}`
-            ].filter(line => !line.endsWith('N/A') && !line.trim().endsWith(': |')).join('\n');
-            return engine;
-        }).join('\n\n') + '\n\n';
-    }
-
-    if (previousEchoes.length > 0) {
-        preamble += '*** SLIDING WINDOW CONTEXT (PREVIOUS ECHOES) ***\nUse the following recent story context to maintain narrative continuity, pacing, and plot flow. Do NOT rewrite this context, just use it to inform the current draft:\n' +
-            previousEchoes.slice(0, 2).map((e, i) => `[Previous Context ${i + 1}]:\n${e.text.substring(0, 500)}...`).join('\n\n') + '\n\n';
-    }
-
-    if (focusAreas.length > 0) {
-        const categorizedFocus: Record<string, string[]> = {
-            'Atmosphere & Style': [],
-            'Narrative & Character': [],
-            'Structure & Depth': []
-        };
-        
-        focusAreas.forEach(area => {
-            if (['tone', 'rhythm', 'sensory'].includes(area)) categorizedFocus['Atmosphere & Style'].push(FOCUS_AREA_PROMPTS[area]);
-            else if (['emotion', 'dialogue', 'voiceIntegrity'].includes(area)) categorizedFocus['Narrative & Character'].push(FOCUS_AREA_PROMPTS[area]);
-            else if (['plot', 'mythic', 'structural'].includes(area)) categorizedFocus['Structure & Depth'].push(FOCUS_AREA_PROMPTS[area]);
-        });
-
-        let focusInstructions = '';
-        Object.entries(categorizedFocus).forEach(([category, prompts]) => {
-            if (prompts.length > 0) {
-                focusInstructions += `\n[${category}]\n${prompts.join('\n\n')}\n`;
-            }
-        });
-
-        if (focusInstructions) {
-            preamble += `\n*** PRIORITY DIRECTIVES ***\nSimultaneously optimize for the following focus areas, categorized by narrative layer:\n${focusInstructions}\n\n`;
-        }
-    } else {
-        preamble += `\n*** PRIORITY DIRECTIVES ***\nNo specific focus areas selected. Provide a general, balanced polish.\n\n`;
-    }
-
-    if (options.customInstruction) {
-        preamble += `*** SPECIAL INSTRUCTION (USER OVERRIDE) ***\n${options.customInstruction}\n\n`;
-    }
-
-    if (localWarnings.length > 0) {
-        preamble += `*** LOCAL CONTINUITY WARNINGS (SCANNER ALERTS) ***\n`;
-        preamble += `The local scanner has identified the following potential issues in the current draft. You MUST address these in your refinement or justify why they are being ignored in your summary.\n`;
-        preamble += localWarnings.map(w => `- [${w.type.toUpperCase()}] ${w.message}`).join('\n') + '\n\n';
-    }
-
-    const weighting = feedbackDepth === 'casual' ? '95% Voice / 5% Focus' : feedbackDepth === 'balanced' ? '80% Voice / 20% Focus' : '70% Voice / 30% Focus';
-    preamble += `\n*** DIALING SYSTEM ***\nWeighting: ${weighting}\n\n`;
 
     const isSurgical = options.isSurgical || !!(fullContextDraft && selection);
     
