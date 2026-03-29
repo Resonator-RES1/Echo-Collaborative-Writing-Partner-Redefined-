@@ -232,7 +232,7 @@ export const GuideDeepDive: React.FC = () => {
                                       <p className="text-xs italic text-on-surface-variant/70 leading-relaxed">"{item.example.before}"</p>
                                     </div>
                                     <div className="space-y-2">
-                                      <span className="text-[9px] font-black uppercase tracking-tighter text-primary/40">Echo Refined</span>
+                                      <span className="text-[9px] font-black uppercase tracking-tighter text-primary/40">Echo Audited</span>
                                       <p className="text-xs font-medium text-on-surface leading-relaxed">"{item.example.after}"</p>
                                     </div>
                                   </div>

@@ -176,7 +176,7 @@ export const VersionDisplay: React.FC<VersionDisplayProps> = React.memo(({
                                 <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-4">
                                     <div className="flex items-center gap-2 text-primary mb-3">
                                         <Zap className="w-4 h-4" />
-                                        <span className="text-xs font-bold uppercase tracking-widest">Surgical Refinement View</span>
+                                        <span className="text-xs font-bold uppercase tracking-widest">Surgical Audit View</span>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-2">
@@ -186,7 +186,7 @@ export const VersionDisplay: React.FC<VersionDisplayProps> = React.memo(({
                                             </div>
                                         </div>
                                         <div className="space-y-2">
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-primary/60">Refined Result</span>
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-primary/60">Audited Result</span>
                                             <div className="p-3 bg-surface-container-highest/40 rounded-lg border border-primary/10 text-sm font-medium text-on-surface line-clamp-6 overflow-y-auto max-h-40">
                                                 {currentVersion.refinedSelection}
                                             </div>
@@ -208,7 +208,7 @@ export const VersionDisplay: React.FC<VersionDisplayProps> = React.memo(({
                         </div>
                     </div>
                 ) : (
-                    <p className="text-on-surface-variant/70 italic text-center mt-8">Refined versions of your draft will appear here.</p>
+                    <p className="text-on-surface-variant/70 italic text-center mt-8">Audited versions of your draft will appear here.</p>
                 )}
             </div>
             {textToShow && (

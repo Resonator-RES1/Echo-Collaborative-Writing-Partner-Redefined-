@@ -89,7 +89,7 @@ const GuideItemCard = ({ item }: { item: GuideItem }) => {
                 </div>
                 <div className="h-px bg-outline-variant/10" />
                 <div className="space-y-1">
-                  <span className="text-[9px] font-black uppercase tracking-tighter text-primary/50">Echo Refined</span>
+                  <span className="text-[9px] font-black uppercase tracking-tighter text-primary/50">Echo Audited</span>
                   <p className="text-xs font-medium text-on-surface leading-relaxed">"{item.example.after}"</p>
                 </div>
               </motion.div>
@@ -124,7 +124,7 @@ const MiniMirrorReport = ({ result }: { result: any }) => {
         </div>
       </div>
       <p className="text-xs text-on-surface-variant italic leading-relaxed">
-        {result.summary || "Refinement complete. Voice integrity preserved."}
+        {result.summary || "Audit complete. Voice integrity preserved."}
       </p>
     </motion.div>
   );
@@ -272,7 +272,7 @@ const Playground = () => {
               ) : (
                 <>
                   <Sparkles className="w-4 h-4" />
-                  Test Refine
+                  Test Audit
                 </>
               )}
             </button>
@@ -297,7 +297,7 @@ const Playground = () => {
                       <div className="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center">
                         <Sparkles className="w-6 h-6 opacity-20" />
                       </div>
-                      <span className="text-[10px] font-black uppercase tracking-widest">Awaiting Refinement</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest">Awaiting Audit</span>
                     </div>
                   )}
                 </div>
@@ -499,7 +499,7 @@ export function WelcomeScreen({ onEnterWorkspace, onViewManuscript, wordCount, g
             <div className="pt-8 md:pt-16 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-4 opacity-40">
               <div className="flex flex-col items-center gap-2">
                 <Wand2 className="w-5 h-5" />
-                <span className="text-[9px] md:text-[10px] uppercase tracking-widest">Refinement</span>
+                <span className="text-[9px] md:text-[10px] uppercase tracking-widest">Audit</span>
               </div>
               <div className="flex flex-col items-center gap-2">
                 <BookOpen className="w-5 h-5" />
@@ -700,7 +700,7 @@ export function WelcomeScreen({ onEnterWorkspace, onViewManuscript, wordCount, g
                                               <p className="text-xs italic text-on-surface-variant/70 leading-relaxed">"{item.example.before}"</p>
                                             </div>
                                             <div className="p-5 rounded-2xl bg-primary/5 border border-primary/10 space-y-2 shadow-sm">
-                                              <span className="text-[9px] font-black uppercase tracking-tighter text-primary/40">Refined Box</span>
+                                              <span className="text-[9px] font-black uppercase tracking-tighter text-primary/40">Audited Box</span>
                                               <p className="text-xs font-medium text-on-surface leading-relaxed">"{item.example.after}"</p>
                                             </div>
                                           </div>

@@ -43,14 +43,14 @@ const ProcessRailComponent: React.FC<ProcessRailProps> = ({
   if (isZenMode) return null;
 
   return (
-    <aside className="w-16 sm:w-20 flex flex-col items-center py-6 justify-between bg-surface-container-low/95 backdrop-blur-xl border-r border-outline-variant/10 z-30">
+    <aside className="w-16 sm:w-20 flex flex-col items-center py-6 justify-between bg-surface-container-low/95 backdrop-blur-xl border-l border-outline-variant/10 z-30">
       <div className="flex flex-col gap-6">
         {[
           { id: 'draft', label: 'Draft', icon: FileText, step: '01' },
           { id: 'context', label: 'Context', icon: BookOpen, step: '02' },
-          { id: 'refine', label: 'Refine', icon: Wand2, step: '03' },
-          { id: 'archive', label: 'Archive', icon: History, step: '04' },
-          { id: 'report', label: 'Report', icon: BarChart3, step: '05' }
+          { id: 'refine', label: 'Audit', icon: Wand2, step: '03' },
+          { id: 'archive', label: 'The Ledger', icon: History, step: '04' },
+          { id: 'report', label: 'Audit Log', icon: BarChart3, step: '05' }
         ].map((tab) => {
           const isActive = activeTab === tab.id;
           return (
@@ -73,7 +73,7 @@ const ProcessRailComponent: React.FC<ProcessRailProps> = ({
                 {tab.label}
               </span>
               {isActive && (
-                <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full shadow-[0_0_10px_rgba(208,192,255,0.5)]" />
+                <div className="absolute -right-4 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-l-full shadow-[0_0_10px_rgba(208,192,255,0.5)]" />
               )}
             </button>
           );

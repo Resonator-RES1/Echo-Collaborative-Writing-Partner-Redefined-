@@ -91,7 +91,7 @@ export const refineDraft = async (options: RefineDraftOptions): Promise<RefineDr
     const totalContextSize = loreContextSize + voiceContextSize;
 
     if (totalContextSize > 15000) {
-        throw new Error(`Cognitive Overload: Active Context exceeds safe limit (${Math.round(totalContextSize/1000)}k / 15k chars). Deactivate non-essential Lore to protect Refinement Fidelity.`);
+        throw new Error(`Cognitive Overload: Active Context exceeds safe limit (${Math.round(totalContextSize/1000)}k / 15k chars). Deactivate non-essential Lore to protect Audit Fidelity.`);
     }
     // --- END PAYLOAD AUDITOR ---
 
@@ -319,7 +319,7 @@ For every character identified in the scene whose Voice Profile is active, you M
         userPrompt = `${preamble}\n\n---\n\n<FULL_DRAFT_CONTEXT>\n${fullContextDraft}\n</FULL_DRAFT_CONTEXT>\n\n<TARGET_SELECTION>\n${selection.text}\n</TARGET_SELECTION>`;
     } else {
         preamble += `\n*** FULL CHAPTER REFINEMENT MODE ***\n`;
-        preamble += `Refine the entire draft provided below. FORMATTING ENFORCEMENT: Never arbitrarily add titles or headers unless they exist in the original draft. Match the author's exact spacing and Markdown structure.\n\n`;
+        preamble += `Audit the entire draft provided below. FORMATTING ENFORCEMENT: Never arbitrarily add titles or headers unless they exist in the original draft. Match the author's exact spacing and Markdown structure.\n\n`;
         userPrompt = preamble ? `${preamble}\n\n---\n\n${draft}` : draft;
     }
 

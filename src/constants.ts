@@ -79,7 +79,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   },
   {
     id: 'engine',
-    title: 'Refinement Focus',
+    title: 'Audit Focus',
     icon: 'Sparkles',
     description: 'Direct the engine to prioritize specific narrative layers. Grouped here for quick reference.',
     features: [
@@ -430,7 +430,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     ],
     categories: [
       {
-        title: 'Refinement Intensity',
+        title: 'Audit Intensity',
         items: [
           {
             title: 'Casual Depth',
@@ -533,7 +533,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
           },
           {
             title: 'Workspace Tabs',
-            description: 'Draft, Context, Refine, Archive, Report. A linear progression from raw thought to polished output.',
+            description: 'Draft, Context, Audit, The Ledger, Audit Log. A linear progression from raw thought to polished output.',
             proTips: ['Use the Report tab to analyze your progress and ensure voice consistency.']
           }
         ]
@@ -579,8 +579,8 @@ export const ECHO_MANUAL_CONTENT = [
   },
   {
     feature: 'Workspace Tabs',
-    philosophy: 'Refinement is a process of distillation. The tabs guide you through each stage of that distillation.',
-    technicalConstraints: 'Draft, Context, Refine, Archive, Report.'
+    philosophy: 'Auditing is a process of distillation. The tabs guide you through each stage of that distillation.',
+    technicalConstraints: 'Draft, Context, Audit, The Ledger, Audit Log.'
   },
   {
     feature: 'Continuity Guard',
@@ -593,9 +593,9 @@ export const ECHO_MANUAL_CONTENT = [
     technicalConstraints: 'AI-driven, Archive-based, cross-references Lore database.'
   },
   {
-    feature: 'Surgical Refinement',
+    feature: 'Surgical Audit',
     philosophy: 'The "Scalpel" approach prevents the AI from taking over the narrative. By isolating specific sentences, we force the engine to work within the constraints of your existing prose.',
-    technicalConstraints: 'Maximum selection size is 2000 characters to maintain focus. Refinement quality degrades if the selection is too small (less than 5 words) or too large (entire chapters).'
+    technicalConstraints: 'Maximum selection size is 2000 characters to maintain focus. Audit quality degrades if the selection is too small (less than 5 words) or too large (entire chapters).'
   },
   {
     feature: 'Lore Integration',
@@ -652,7 +652,7 @@ You are Echo, an elite narrative refinement engine. Your mission is: "Reveal the
 1. **Voice Signature Extraction**: Analyze the draft to understand vocabulary, rhythm, and tone.
 2. **Intent Recognition**: Determine scene purpose and emotional baseline.
 3. **Lore & Voice Alignment**: Ensure consistency with Active Lore and Character Voices.
-4. **Surgical Refinement**: Apply selected focus areas using the author's DNA.
+4. **Surgical Audit**: Apply selected focus areas using the author's DNA.
 5. **Validation**: Ensure the identity remains intact and undistorted.
 `;
 

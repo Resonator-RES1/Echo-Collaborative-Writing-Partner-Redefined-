@@ -50,19 +50,19 @@ export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
   const progress = Math.min(100, Math.round((totalWordCount / goal.targetWords) * 100));
 
   const handleExport = () => {
-    const fullManuscript = scenes
+    const fullConstruct = scenes
       .sort((a, b) => a.order - b.order)
       .map(s => `# ${s.title}\n\n${s.content}`)
       .join('\n\n---\n\n');
     
-    const blob = new Blob([fullManuscript], { type: 'text/markdown' });
+    const blob = new Blob([fullConstruct], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `manuscript-${new Date().toISOString().split('T')[0]}.md`;
+    a.download = `construct-${new Date().toISOString().split('T')[0]}.md`;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('Manuscript exported');
+    showToast('Construct exported');
   };
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,8 +118,8 @@ export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
               <Book className="w-5 h-5 md:w-6 md:h-6 text-primary" />
             </div>
             <div>
-              <h1 className="font-headline text-xl md:text-2xl text-on-surface">Manuscript</h1>
-              <p className="text-xs md:text-sm text-on-surface-variant">Manage your story structure and progress</p>
+              <h1 className="font-headline text-xl md:text-2xl text-on-surface">Construct</h1>
+              <p className="text-[10px] text-on-surface-variant/60 uppercase tracking-[0.2em] font-black mt-1">Architectural mapping and narrative assembly.</p>
             </div>
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
@@ -258,7 +258,7 @@ export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
                       <Target className="w-8 h-8 text-primary" />
                     </div>
                     <div>
-                      <h2 className="font-headline text-2xl text-on-surface">Manuscript Progress</h2>
+                      <h2 className="font-headline text-2xl text-on-surface">Construct Progress</h2>
                       <p className="text-sm text-on-surface-variant">Track your journey to completion</p>
                     </div>
                   </div>
@@ -295,7 +295,7 @@ export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
                 <h3 className="font-headline text-xl text-on-surface mb-6">Update Goals</h3>
                 <div className="space-y-6">
                   <div className="space-y-2">
-                    <label className="font-label text-xs uppercase tracking-widest text-on-surface-variant">Manuscript Target (Words)</label>
+                    <label className="font-label text-xs uppercase tracking-widest text-on-surface-variant">Construct Target (Words)</label>
                     <input 
                       type="text" 
                       value={goal.targetWords === 0 ? '' : goal.targetWords}

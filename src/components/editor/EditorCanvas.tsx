@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sun, History, GitCompare, PenTool, Scissors } from 'lucide-react';
+import { Sun, History, GitCompare, PenTool, Scissors, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { FormattingToolbar } from './FormattingToolbar';
 import { RichTextEditor } from './RichTextEditor';
 import { EditorFooter } from './EditorFooter';
@@ -19,6 +19,8 @@ interface EditorCanvasProps {
   setShowRecentChanges: (show: boolean) => void;
   showDiff: boolean;
   setShowDiff: (show: boolean) => void;
+  showConstruct: boolean;
+  setShowConstruct: (show: boolean) => void;
   setActiveTab: (tab: WorkspaceTab) => void;
   dispatchDraft: any;
   draftState: any;
@@ -43,6 +45,8 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   setShowRecentChanges,
   showDiff,
   setShowDiff,
+  showConstruct,
+  setShowConstruct,
   setActiveTab,
   dispatchDraft,
   draftState,
@@ -55,13 +59,22 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   wordCount
 }) => {
   return (
-    <div className={`flex-1 flex flex-col min-h-0 overflow-hidden ${activeTab === 'draft' ? 'flex' : 'hidden'}`}>
+    <div className={`flex-1 flex flex-col min-h-0 overflow-hidden relative ${activeTab === 'draft' ? 'flex' : 'hidden'}`}>
       <div className={`flex justify-center py-6 border-b border-outline-variant/5 transition-all duration-500 ${isZenMode && !isUIVisible ? 'opacity-0 -translate-y-4' : 'opacity-100 translate-y-0'}`}>
-        <div className="max-w-3xl w-full px-4 relative flex items-center justify-center">
+        <div className="w-full px-8 lg:px-16 relative flex items-center justify-center">
           
-          {/* LEFT: Exit Zen Mode */}
-          {isZenMode && (
-            <div className="absolute left-4">
+          {/* LEFT: Exit Zen Mode & Construct Toggle */}
+          <div className="absolute left-4 flex items-center gap-2">
+            {!isZenMode && (
+              <button 
+                onClick={() => setShowConstruct(!showConstruct)}
+                className="p-2 rounded-full hover:bg-surface-container-highest text-on-surface-variant flex items-center gap-2 transition-colors"
+                title={showConstruct ? "Hide Construct" : "Show Construct"}
+              >
+                {showConstruct ? <PanelLeftClose className="w-5 h-5" /> : <PanelLeftOpen className="w-5 h-5" />}
+              </button>
+            )}
+            {isZenMode && (
               <button 
                 onClick={() => setIsZenMode(false)}
                 className="p-2 rounded-full hover:bg-surface-container-highest text-on-surface-variant flex items-center gap-2 transition-colors"
@@ -69,8 +82,8 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
               >
                 <Sun className="w-5 h-5" />
               </button>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* CENTER: Formatting Toolbar */}
           <FormattingToolbar editor={editorRef.current} />
@@ -143,7 +156,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
         </div>
       </div>
 
-      <div className={`flex-1 min-h-0 flex flex-col overflow-hidden max-w-2xl w-full mx-auto`}>
+      <div className={`flex-1 min-h-0 flex flex-col overflow-hidden w-full px-8 lg:px-16`}>
           <RichTextEditor
               editorRef={editorRef}
               content={draftState.present}
@@ -189,7 +202,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
           )}
       </div>
 
-      <div className={`transition-all duration-500 ${isZenMode ? 'zen-ui-element' : ''} ${isZenMode && !isUIVisible ? 'zen-ui-hidden' : 'zen-ui-visible'}`}>
+      <div className={`absolute bottom-4 right-8 z-20 transition-all duration-500 ${isZenMode ? 'zen-ui-element' : ''} ${isZenMode && !isUIVisible ? 'zen-ui-hidden' : 'zen-ui-visible'}`}>
         <EditorFooter 
             saveStatus={saveStatus}
             wordCount={wordCount}

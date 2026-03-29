@@ -36,7 +36,7 @@ export const copyFullGuideToClipboard = () => {
             if (item.example) {
               fullGuide += `\n**The Example:**\n`;
               fullGuide += `- Original Draft: "${item.example.before}"\n`;
-              fullGuide += `- Echo Refined: "${item.example.after}"\n`;
+              fullGuide += `- Echo Audited: "${item.example.after}"\n`;
             }
             fullGuide += `\n`;
           });

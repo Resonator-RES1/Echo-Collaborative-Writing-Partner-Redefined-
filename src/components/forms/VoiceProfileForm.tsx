@@ -202,8 +202,8 @@ export function VoiceProfileForm({ onClose, onSave, initialData, isModal = true 
             <div className="flex items-center gap-2 pb-2 border-b border-outline-variant/10">
               <Cpu className="w-5 h-5 text-secondary" />
               <div>
-                <h3 className="text-sm font-bold text-on-surface">Voice Engine (AI Refinement)</h3>
-                <p className="text-[10px] text-on-surface-variant">Advanced logic used by Echo to mirror this character's unique prose during refinement.</p>
+                <h3 className="text-sm font-bold text-on-surface">Voice Engine (AI Audit)</h3>
+                <p className="text-[10px] text-on-surface-variant">Advanced logic used by Echo to mirror this character's unique prose during auditing.</p>
               </div>
             </div>
 

@@ -11,7 +11,7 @@ export const ReportAudit: React.FC<ReportAuditProps> = ({ audit }) => {
         <div className="space-y-8">
             <div className="flex items-center gap-3 text-on-surface/80">
                 <ShieldCheck className="w-5 h-5 text-primary" />
-                <span className="text-sm font-bold uppercase tracking-widest">Refinement Audit (Transparency)</span>
+                <span className="text-sm font-bold uppercase tracking-widest">Audit Log (Transparency)</span>
             </div>
             
             {/* Voice Fidelity - Central Focus & Enlarged */}

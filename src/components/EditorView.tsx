@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { RefinedVersion, LoreEntry, VoiceProfile, AuthorVoice, Scene, WorkspaceTab } from '../types';
+import { RefinedVersion, LoreEntry, VoiceProfile, AuthorVoice, Scene, WorkspaceTab, Chapter } from '../types';
 import { createScanner, ContinuityIssue } from '../utils/contextScanner';
 import { EditorModals } from './editor/EditorModals';
 import { ContinuityGuard } from './editor/ContinuityGuard';
@@ -7,6 +7,7 @@ import { ContextPanel } from './editor/ContextPanel';
 import { RefinePanel } from './editor/RefinePanel';
 import { ArchivePanel } from './editor/ArchivePanel';
 import { ReportPanel } from './editor/ReportPanel';
+import { SceneManager } from './editor/SceneManager';
 
 import { useLore } from '../contexts/LoreContext';
 import { useProject } from '../contexts/ProjectContext';
@@ -18,9 +19,11 @@ interface EditorProps {
     draft: string;
     setDraft: (draft: string) => void;
     scenes: Scene[];
+    chapters: Chapter[];
     currentSceneId: string | null;
     setCurrentSceneId: (id: string) => void;
     setScenes: React.Dispatch<React.SetStateAction<Scene[]>>;
+    setChapters: React.Dispatch<React.SetStateAction<Chapter[]>>;
     isRefining: boolean;
     setIsRefining: (isRefining: boolean) => void;
     showToast: (message: string) => void;
@@ -39,9 +42,11 @@ const Editor: React.FC<EditorProps> = ({
     draft, 
     setDraft, 
     scenes,
+    chapters,
     currentSceneId,
     setCurrentSceneId,
     setScenes,
+    setChapters,
     isRefining, 
     setIsRefining, 
     showToast, 
@@ -68,6 +73,7 @@ const Editor: React.FC<EditorProps> = ({
   } = useLore();
 
   const [isUIVisible, setIsUIVisible] = useState(true);
+  const [showConstruct, setShowConstruct] = useState(true);
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('draft');
 
   const {
@@ -295,6 +301,8 @@ const Editor: React.FC<EditorProps> = ({
                   setShowRecentChanges={setShowRecentChanges}
                   showDiff={showDiff}
                   setShowDiff={setShowDiff}
+                  showConstruct={showConstruct}
+                  setShowConstruct={setShowConstruct}
                   setActiveTab={setActiveTab}
                   dispatchDraft={dispatchDraft}
                   draftState={draftState}
@@ -392,6 +400,36 @@ const Editor: React.FC<EditorProps> = ({
         setActiveTab={setActiveTab}
       />
 
+      {/* Task 3: Left Sidebar (Construct) */}
+      {!isZenMode && showConstruct && (
+        <aside className="w-64 flex-shrink-0 bg-surface-container-lowest border-r border-outline-variant/10 overflow-y-auto">
+          <SceneManager 
+            scenes={scenes}
+            chapters={chapters}
+            currentSceneId={currentSceneId}
+            setCurrentSceneId={setCurrentSceneId}
+            setScenes={setScenes}
+            setChapters={setChapters}
+            setDraft={setDraft}
+            showToast={showToast}
+            versionHistory={versionHistory}
+          />
+        </aside>
+      )}
+
+      <div className="flex-1 flex flex-col min-h-0 relative">
+        {/* Main Canvas Area */}
+        <main className={`flex-1 flex flex-col min-h-0 overflow-hidden transition-all duration-500 ${isZenMode ? 'p-0' : 'p-4 lg:p-8'}`}>
+          <div className={`flex-1 flex flex-col min-h-0 relative ${isZenMode ? '' : 'bg-surface-container-low/30 backdrop-blur-sm rounded-[2.5rem] border border-outline-variant/10 shadow-inner overflow-hidden'}`}>
+            
+            {/* Content Container */}
+            <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+              {renderTabContent()}
+            </div>
+          </div>
+        </main>
+      </div>
+
       {/* Task 1: Vertical Sidebar (Process Rail) */}
       <ProcessRail
         isZenMode={isZenMode}
@@ -411,19 +449,6 @@ const Editor: React.FC<EditorProps> = ({
         surgicalSelection={surgicalSelection}
         setSurgicalSelection={setSurgicalSelection}
       />
-
-      <div className="flex-1 flex flex-col min-h-0 relative">
-        {/* Main Canvas Area */}
-        <main className={`flex-1 flex flex-col min-h-0 overflow-hidden transition-all duration-500 ${isZenMode ? 'p-0' : 'p-4 lg:p-8'}`}>
-          <div className={`flex-1 flex flex-col min-h-0 relative ${isZenMode ? '' : 'bg-surface-container-low/30 backdrop-blur-sm rounded-[2.5rem] border border-outline-variant/10 shadow-inner overflow-hidden'}`}>
-            
-            {/* Content Container */}
-            <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
-              {renderTabContent()}
-            </div>
-          </div>
-        </main>
-      </div>
     </div>
   );
 };

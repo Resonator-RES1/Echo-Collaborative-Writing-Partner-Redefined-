@@ -199,7 +199,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = (props) => {
             {/* Footer */}
             <div className="p-6 bg-surface-container-high/30 border-t border-outline-variant/10 text-center">
               <p className="font-label text-[9px] uppercase tracking-[0.3em] text-on-surface/30">
-                Echo Engine v2.5.0 • Voice-Preserving Refinement
+                Echo Engine v2.5.0 • Voice-Preserving Audit
               </p>
             </div>
           </motion.div>

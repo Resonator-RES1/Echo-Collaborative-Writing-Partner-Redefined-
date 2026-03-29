@@ -544,9 +544,11 @@ export default function App() {
               draft={draft}
               setDraft={setDraft}
               scenes={scenes}
+              chapters={chapters}
               currentSceneId={currentSceneId}
               setCurrentSceneId={setCurrentSceneId}
               setScenes={setScenes}
+              setChapters={setChapters}
               isRefining={isRefining}
               setIsRefining={setIsRefining}
               showToast={showToast}

@@ -151,9 +151,9 @@ export function VoicesScreen({
           {/* Header Section */}
           <section className="mb-8 flex flex-col gap-4 shrink-0">
             <div className="max-w-2xl">
-              <h2 className="font-headline text-3xl md:text-4xl font-light tracking-tight mb-2">Voice Profiles</h2>
+              <h2 className="font-headline text-3xl md:text-4xl font-light tracking-tight mb-2">Voice DNA</h2>
               <p className="font-headline italic text-sm text-on-surface-variant">
-                Soul-Patterns and Dialogue DNA to anchor personality.
+                Soul-patterns and stylistic fingerprints of character expression.
               </p>
             </div>
             <div className="flex items-center gap-2">

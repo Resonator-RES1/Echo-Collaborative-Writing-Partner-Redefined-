@@ -27,6 +27,12 @@ interface RefinePanelProps {
 export const RefinePanel: React.FC<RefinePanelProps> = (props) => {
     return (
         <div className="flex flex-col flex-1 min-h-0 overflow-y-auto animate-in fade-in duration-500 custom-scrollbar pr-2 pb-12">
+            <div className="flex items-center justify-between mb-8">
+                <div className="space-y-1">
+                    <h3 className="font-headline text-3xl font-bold">Audit</h3>
+                    <p className="text-[10px] text-on-surface-variant/60 uppercase tracking-[0.2em] font-black">Ruthless examination by the Cynical Mirror.</p>
+                </div>
+            </div>
             <div className="max-w-3xl mx-auto w-full">
                 <RefinementPresets 
                     {...props} 

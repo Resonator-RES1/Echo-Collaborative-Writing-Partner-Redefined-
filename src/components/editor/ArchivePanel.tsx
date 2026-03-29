@@ -43,9 +43,9 @@ export const ArchivePanel: React.FC<ArchivePanelProps> = ({
                 <div className="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center mb-6">
                     <History className="w-10 h-10 text-on-surface-variant/10" />
                 </div>
-                <h3 className="font-headline text-2xl font-light mb-2">Archive is Silent</h3>
+                <h3 className="font-headline text-2xl font-light mb-2">The Ledger is Silent</h3>
                 <p className="text-on-surface-variant max-w-xs mx-auto text-sm leading-relaxed italic">
-                    Your previous refinements will be stored here for review and comparison.
+                    Your previous audits will be stored here for review and comparison.
                 </p>
             </div>
         );
@@ -196,8 +196,8 @@ export const ArchivePanel: React.FC<ArchivePanelProps> = ({
         <div className="flex flex-col flex-1 min-h-0 overflow-hidden animate-in fade-in duration-500">
             <div className="flex-none flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-8 mb-4 sm:mb-8">
                 <div className="space-y-0.5 sm:space-y-1">
-                    <h3 className="font-headline text-2xl sm:text-3xl font-bold">Git Ledger</h3>
-                    <p className="text-[9px] sm:text-[10px] text-on-surface-variant/60 uppercase tracking-[0.2em] font-black">Refinement History & Milestones</p>
+                    <h3 className="font-headline text-2xl sm:text-3xl font-bold">The Ledger</h3>
+                    <p className="text-[9px] sm:text-[10px] text-on-surface-variant/60 uppercase tracking-[0.2em] font-black">The chronological history of the project's evolution.</p>
                 </div>
                 <button 
                     onClick={onClearHistory}

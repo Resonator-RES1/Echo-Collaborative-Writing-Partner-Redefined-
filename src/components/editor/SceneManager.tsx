@@ -469,7 +469,10 @@ export const SceneManager: React.FC<SceneManagerProps> = ({
   return (
     <div className="w-full h-full flex flex-col">
       <div className="p-4 border-b border-outline-variant/20 flex justify-between items-center bg-surface-container-highest/50">
-        <h2 className="font-heading font-semibold text-xs tracking-widest text-on-surface-variant uppercase">Manuscript</h2>
+        <div>
+          <h2 className="font-heading font-semibold text-xs tracking-widest text-on-surface-variant uppercase">Construct</h2>
+          <p className="text-[10px] text-on-surface-variant/60 mt-0.5">Architectural mapping and narrative assembly.</p>
+        </div>
         <div className="flex gap-1">
           <button 
             onClick={handleAddChapter}

@@ -173,7 +173,7 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
             const snippet = selection.text.trim().substring(0, 30);
             finalTitle = `Surgical: "${snippet}${selection.text.length > 30 ? '...' : ''}"`;
         } else if (!finalTitle || finalTitle.toLowerCase() === 'title') {
-            finalTitle = `Refinement ${new Date().toLocaleTimeString()}`;
+            finalTitle = `Audit ${new Date().toLocaleTimeString()}`;
         }
 
         const newVersion: RefinedVersion = {
@@ -182,7 +182,7 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
             id: Date.now().toString(),
             timestamp: new Date().toISOString(),
             title: finalTitle,
-            summary: isTargeted ? `Targeted Refinement: ${result.summary}` : result.summary,
+            summary: isTargeted ? `Targeted Audit: ${result.summary}` : result.summary,
             analysis: result.analysis,
             conflicts: result.conflicts,
             metrics: result.metrics,
@@ -235,7 +235,7 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
                             <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl lg:rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all">
                                 <Sparkles className="w-5 h-5 lg:w-6 lg:h-6 text-primary" />
                             </div>
-                            <span>Refinement Setup</span>
+                            <span>Audit Setup</span>
                             <div className="p-1 rounded-full hover:bg-primary/10 transition-all">
                                 {presetsOpen ? <ChevronUp className="w-4 h-4 lg:w-5 lg:h-5"/> : <ChevronDown className="w-4 h-4 lg:w-5 lg:h-5" />}
                             </div>

@@ -150,8 +150,8 @@ export function LoreScreen({ onClose }: LoreScreenProps) {
               {/* Header */}
               <header className="p-10 pb-6 flex items-center justify-between shrink-0">
                 <div>
-                  <h2 className="font-headline text-4xl font-light text-on-surface tracking-tight">Lore Codex</h2>
-                  <p className="font-label text-[10px] uppercase tracking-[0.2em] text-on-surface-variant mt-1">The Sovereign Archives</p>
+                  <h2 className="font-headline text-4xl font-light text-on-surface tracking-tight">Axioms</h2>
+                  <p className="font-label text-[10px] uppercase tracking-[0.2em] text-on-surface-variant mt-1">Fundamental truths and established world constraints.</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <button 

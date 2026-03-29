@@ -13,7 +13,7 @@ export const getRecommendations = (metrics: ProseMetrics) => {
             why: "The scene lacks physical grounding. Adding sensory details will make it more immersive." 
         },
         pacing_rhythm: { 
-            text: "Refine Rhythm", 
+            text: "Audit Rhythm", 
             area: 'rhythm', 
             why: "Sentence flow is repetitive. Varying the cadence will improve narrative drive." 
         },
@@ -31,7 +31,7 @@ export const getRecommendations = (metrics: ProseMetrics) => {
 export const copyReportToClipboard = async (currentVersion: RefinedVersion, showToast: (msg: string) => void) => {
     const { audit, analysis, metrics, summary, activeContext, restraintLog, expressionProfile } = currentVersion;
     
-    let reportMarkdown = `# Refinement Report\n\n`;
+    let reportMarkdown = `# Audit Log\n\n`;
 
     if (activeContext) {
         reportMarkdown += `## Active Context (Source of Truth)\n`;
@@ -42,7 +42,7 @@ export const copyReportToClipboard = async (currentVersion: RefinedVersion, show
     }
 
     if (audit) {
-        reportMarkdown += `## Refinement Audit\n`;
+        reportMarkdown += `## Audit Log\n`;
         reportMarkdown += `**Voice Fidelity Score:** ${audit.voiceFidelityScore}/10\n`;
         reportMarkdown += `*Reasoning:* ${audit.voiceFidelityReasoning}\n\n`;
         

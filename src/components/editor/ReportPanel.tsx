@@ -33,8 +33,8 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
         return (
             <EmptyState 
                 icon={BarChart3}
-                title="No Report Available"
-                description="Refine your draft or select a version from the Archive to view a detailed refinement report."
+                title="No Audit Log Available"
+                description="Audit your draft or select a version from The Ledger to view a detailed audit log."
             />
         );
     }
@@ -43,17 +43,23 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
         return (
             <EmptyState 
                 icon={Activity}
-                title="Refinement Failed"
-                description="Check API Quota or network connection. The model was unable to complete the refinement process."
+                title="Audit Failed"
+                description="Check API Quota or network connection. The model was unable to complete the auditing process."
             />
         );
     }
 
     return (
         <div className="flex flex-col flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar animate-in fade-in duration-500 pb-0">
+            <div className="flex items-center justify-between mb-8 px-4 pt-4">
+                <div className="space-y-1">
+                    <h3 className="font-headline text-3xl font-bold">Audit Log</h3>
+                    <p className="text-[10px] text-on-surface-variant/60 uppercase tracking-[0.2em] font-black">Evidentiary records and performance analysis.</p>
+                </div>
+            </div>
             
             {/* Linear Audit Stack */}
-            <div className="flex flex-col gap-4 px-4 pt-4 pb-24">
+            <div className="flex flex-col gap-4 px-4 pb-24">
                 {/* 1. Echo's Verdict */}
                 <div className="bg-surface-container-lowest rounded-lg border border-outline-variant/20 border-l-4 border-primary p-4 shadow-sm">
                     {/* Metadata Header */}
@@ -64,7 +70,7 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
                             </div>
                             <div>
                                 <h4 className="text-sm font-bold text-on-surface tracking-tight leading-tight">
-                                    {version.title || 'Refinement Report'}
+                                    {version.title || 'Audit Log'}
                                 </h4>
                                 <p className="text-[10px] text-on-surface-variant/50 font-medium">
                                     {version.timestamp ? new Date(version.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'Unknown Date'}
@@ -83,7 +89,7 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
                                 ? 'bg-accent-emerald/10 text-accent-emerald border-accent-emerald/30' 
                                 : 'bg-transparent text-on-surface-variant border-outline-variant/20 hover:bg-surface-container-highest'
                             }`}
-                            title="Copy Report"
+                            title="Copy Audit Log"
                         >
                             {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                             <span>{copied ? 'Copied' : 'Copy'}</span>
@@ -93,7 +99,7 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
                     {/* Verdict Content */}
                     <div className="pt-3 border-t border-outline-variant/10">
                         <p className="text-on-surface text-sm leading-relaxed italic">
-                            {version.summary || "Refinement complete. Review the audit stack below for full transparency."}
+                            {version.summary || "Audit complete. Review the audit stack below for full transparency."}
                         </p>
                     </div>
                 </div>
@@ -141,7 +147,7 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
                     className="flex items-center justify-center gap-2 px-8 py-3 bg-primary text-on-primary font-bold uppercase tracking-widest text-xs rounded-md hover:bg-primary/90 transition-all shadow-sm active:scale-95 w-full mt-4"
                 >
                     <CheckCircle2 className="w-4 h-4" />
-                    <span>Accept Refined Version</span>
+                    <span>Accept Audited Version</span>
                 </button>
             </div>
         </div>
