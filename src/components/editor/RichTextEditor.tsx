@@ -13,6 +13,9 @@ interface RichTextEditorProps {
   placeholder?: string;
   className?: string;
   editorRef?: React.MutableRefObject<any>;
+  fontSize?: number;
+  lineHeight?: number;
+  paragraphSpacing?: number;
 }
 
 export const RichTextEditor: React.FC<RichTextEditorProps> = ({
@@ -22,6 +25,9 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   placeholder = 'The canvas is yours. Begin your narrative...',
   className = '',
   editorRef,
+  fontSize,
+  lineHeight,
+  paragraphSpacing = 1.5,
 }) => {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -72,7 +78,12 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     },
     editorProps: {
       attributes: {
-        class: `prose prose-theme max-w-none focus:outline-none min-h-full text-base sm:text-lg md:text-xl leading-relaxed sm:leading-loose text-on-surface ${className}`,
+        class: `prose prose-theme max-w-none focus:outline-none min-h-full text-on-surface ${className}`,
+        style: `
+          ${fontSize ? `font-size: ${fontSize}px;` : ''} 
+          ${lineHeight ? `line-height: ${lineHeight};` : ''}
+          --paragraph-spacing: ${paragraphSpacing}em;
+        `,
       },
     },
   });
@@ -85,6 +96,24 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       }
     };
   }, []);
+
+  // Sync display preferences
+  useEffect(() => {
+    if (editor) {
+      editor.setOptions({
+        editorProps: {
+          attributes: {
+            class: `prose prose-theme max-w-none focus:outline-none min-h-full text-on-surface ${className}`,
+            style: `
+              ${fontSize ? `font-size: ${fontSize}px;` : ''} 
+              ${lineHeight ? `line-height: ${lineHeight};` : ''}
+              --paragraph-spacing: ${paragraphSpacing}em;
+            `,
+          },
+        },
+      });
+    }
+  }, [editor, fontSize, lineHeight, paragraphSpacing, className]);
 
   // Sync external content changes (e.g. from Echo Archive or Scene switching)
   useEffect(() => {
@@ -101,7 +130,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   }, [editor, editorRef]);
 
   return (
-    <div className="w-full flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+    <div className="w-full min-h-full">
       <EditorContent editor={editor} className="min-h-full" />
     </div>
   );

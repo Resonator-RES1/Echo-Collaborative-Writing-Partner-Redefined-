@@ -1,13 +1,17 @@
 import React from 'react';
-import { Bold, Italic, List, ListOrdered, Quote, Heading3, BookOpen, Users, Strikethrough, Code, Sparkles } from 'lucide-react';
+import { Bold, Italic, List, ListOrdered, Quote, Heading3, BookOpen, Users, Strikethrough, Code, Sparkles, Settings2 } from 'lucide-react';
 import { Editor } from '@tiptap/react';
 
 interface FormattingToolbarProps {
     editor: Editor | null;
+    onToggleDisplayHUD?: () => void;
+    showDisplayHUD?: boolean;
 }
 
 export const FormattingToolbar: React.FC<FormattingToolbarProps> = React.memo(({ 
-    editor 
+    editor,
+    onToggleDisplayHUD,
+    showDisplayHUD
 }) => {
     const formatButtons = [
         { type: 'bold', icon: Bold, title: 'Bold', action: () => editor?.chain().focus().toggleBold().run(), isActive: () => editor?.isActive('bold') },
@@ -36,6 +40,20 @@ export const FormattingToolbar: React.FC<FormattingToolbarProps> = React.memo(({
                         <btn.icon className="w-4 h-4" />
                     </button>
                  ))}
+                 
+                 <div className="w-px h-4 bg-outline-variant/20 mx-1" />
+                 
+                 <button
+                    onClick={onToggleDisplayHUD}
+                    title="Display Settings"
+                    className={`p-2 rounded-[0.5rem] transition-all duration-200 ${
+                        showDisplayHUD 
+                        ? 'bg-primary/10 text-primary' 
+                        : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-highest'
+                    }`}
+                >
+                    <Settings2 className="w-4 h-4" />
+                </button>
             </div>
         </div>
     );

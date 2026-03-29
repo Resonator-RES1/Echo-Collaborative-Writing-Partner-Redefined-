@@ -156,6 +156,15 @@
     --tw-prose-td-borders: var(--color-outline-variant);
   }
   
+  .prose-theme p {
+    margin-top: var(--paragraph-spacing, 1.5em);
+    margin-bottom: var(--paragraph-spacing, 1.5em);
+  }
+  .prose-theme h3 {
+    margin-top: calc(var(--paragraph-spacing, 1.5em) * 1.5);
+    margin-bottom: var(--paragraph-spacing, 1.5em);
+  }
+  
   .glass-panel {
     backdrop-filter: blur(12px);
     background-color: var(--surface-container-low);

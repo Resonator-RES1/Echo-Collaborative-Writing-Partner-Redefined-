@@ -32,7 +32,7 @@ interface EditorCanvasProps {
   handleAcceptChanges: () => void;
   saveStatus: 'idle' | 'saving' | 'saved';
   wordCount: number;
-  displayPrefs: { fontSize: number; lineHeight: number; maxWidth: string };
+  displayPrefs: { fontSize: number; lineHeight: number; paragraphSpacing: number; maxWidth: string };
   setDisplayPrefs: (prefs: any) => void;
 }
 
@@ -63,113 +63,32 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
   displayPrefs,
   setDisplayPrefs
 }) => {
-  const [showDisplaySettings, setShowDisplaySettings] = useState(false);
+  const [showDisplayHUD, setShowDisplayHUD] = useState(false);
 
   return (
     <div className={`flex-1 flex flex-col min-h-0 overflow-hidden relative ${activeTab === 'draft' ? 'flex' : 'hidden'}`}>
-      <div className={`flex justify-center py-6 border-b border-outline-variant/5 transition-all duration-500 ${isZenMode && !isUIVisible ? 'opacity-0 -translate-y-4' : 'opacity-100 translate-y-0'}`}>
-        <div className="w-full px-8 lg:px-16 relative flex items-center justify-center">
-          
-          {/* LEFT: Exit Zen Mode & Construct Toggle */}
-          <div className="absolute left-4 flex items-center gap-2">
-            {!isZenMode && (
-              <button 
-                onClick={() => setShowConstruct(!showConstruct)}
-                className="p-2 rounded-full hover:bg-surface-container-highest text-on-surface-variant flex items-center gap-2 transition-colors"
-                title={showConstruct ? "Hide Construct" : "Show Construct"}
-              >
-                {showConstruct ? <PanelLeftClose className="w-5 h-5" /> : <PanelLeftOpen className="w-5 h-5" />}
-              </button>
-            )}
+      {/* Top Toolbar Area */}
+      <div className={`flex flex-col border-b border-outline-variant/5 transition-all duration-500 ${isZenMode && !isUIVisible ? 'opacity-0 -translate-y-4' : 'opacity-100 translate-y-0'}`}>
+        <div className="h-14 px-8 flex items-center justify-between bg-surface-container-low/30 backdrop-blur-sm">
+          <div className="flex items-center gap-2">
             {isZenMode && (
               <button 
                 onClick={() => setIsZenMode(false)}
-                className="p-2 rounded-full hover:bg-surface-container-highest text-on-surface-variant flex items-center gap-2 transition-colors"
+                className="p-2 rounded-full hover:bg-surface-container-highest text-on-surface-variant transition-colors"
                 title="Exit Zen Mode"
               >
-                {isZenMode ? <Sun className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+                <Sun className="w-5 h-5" />
               </button>
             )}
           </div>
 
-          {/* CENTER: Formatting Toolbar */}
-          <FormattingToolbar editor={editorRef.current} />
+          <FormattingToolbar 
+            editor={editorRef.current} 
+            onToggleDisplayHUD={() => setShowDisplayHUD(!showDisplayHUD)}
+            showDisplayHUD={showDisplayHUD}
+          />
 
-          {/* RIGHT: Subtools & Zen Mode Toggles */}
-          <div className="absolute right-4 flex items-center gap-2">
-            
-            {/* Display Settings Toggle */}
-            <div className="relative">
-              <button
-                onClick={() => setShowDisplaySettings(!showDisplaySettings)}
-                className={`p-2 rounded-lg transition-all ${showDisplaySettings ? 'bg-primary/10 text-primary border-primary/20' : 'text-on-surface-variant hover:bg-surface-container-highest'}`}
-                title="Display Settings"
-              >
-                <Type className="w-5 h-5" />
-              </button>
-
-              <AnimatePresence>
-                {showDisplaySettings && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute right-0 mt-2 w-64 p-4 bg-surface-container-highest/95 backdrop-blur-xl border border-outline-variant/20 rounded-2xl shadow-2xl z-50"
-                  >
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Font Size</label>
-                          <span className="text-[10px] font-mono text-primary">{displayPrefs.fontSize}px</span>
-                        </div>
-                        <input 
-                          type="range" min="12" max="32" step="1"
-                          value={displayPrefs.fontSize}
-                          onChange={(e) => setDisplayPrefs({ ...displayPrefs, fontSize: parseInt(e.target.value) })}
-                          className="w-full accent-primary"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Line Spacing</label>
-                          <span className="text-[10px] font-mono text-primary">{displayPrefs.lineHeight}</span>
-                        </div>
-                        <input 
-                          type="range" min="1" max="2.5" step="0.1"
-                          value={displayPrefs.lineHeight}
-                          onChange={(e) => setDisplayPrefs({ ...displayPrefs, lineHeight: parseFloat(e.target.value) })}
-                          className="w-full accent-primary"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Content Width</label>
-                        <div className="grid grid-cols-5 gap-1">
-                          {['max-w-xl', 'max-w-2xl', 'max-w-3xl', 'max-w-4xl', 'max-w-full'].map((w) => (
-                            <button
-                              key={w}
-                              onClick={() => setDisplayPrefs({ ...displayPrefs, maxWidth: w })}
-                              className={`h-6 rounded border text-[8px] flex items-center justify-center transition-all ${
-                                displayPrefs.maxWidth === w 
-                                  ? 'bg-primary border-primary text-on-primary-fixed' 
-                                  : 'border-outline-variant/30 text-on-surface-variant hover:border-primary/50'
-                              }`}
-                            >
-                              {w.split('-').pop()}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            <div className="w-px h-6 bg-outline-variant/20 mx-1"></div>
-            
-            {/* Contextual Subtools */}
+          <div className="flex items-center gap-2">
             {editorMode === 'drafting' && (
                <button
                   onClick={() => setShowRecentChanges(!showRecentChanges)}
@@ -197,50 +116,93 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                   <span className="hidden sm:inline-block">Local Diff</span>
                </button>
             )}
-
-            {/* Mode Toggles (ONLY visible in Zen Mode) */}
-            {isZenMode && (
-              <>
-                <div className="w-px h-6 bg-outline-variant/20 mx-1"></div>
-                <button 
-                  onClick={() => {
-                    setActiveTab('draft');
-                    setEditorMode('drafting');
-                    setShowDiff(false);
-                  }}
-                  className={`p-2 rounded-lg transition-all ${editorMode === 'drafting' ? 'bg-primary text-on-primary-fixed shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-highest'}`}
-                  title="Drafting Mode"
-                >
-                  <PenTool className="w-4 h-4" />
-                </button>
-                <button 
-                  onClick={() => {
-                    dispatchDraft({ type: 'SET_ORIGINAL', payload: draftState.present });
-                    setEditorMode('polishing');
-                    setShowRecentChanges(false);
-                    setSurgicalSelection(selection);
-                    if (selection) {
-                      setShowDiff(true);
-                    }
-                  }}
-                  className={`p-2 rounded-lg transition-all ${editorMode === 'polishing' ? 'bg-primary text-on-primary-fixed shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-highest'}`}
-                  title="Manual Revision"
-                >
-                  <Scissors className="w-4 h-4" />
-                </button>
-              </>
-            )}
           </div>
         </div>
+
+        {/* Display HUD (Sliding Panel) */}
+        <AnimatePresence>
+          {showDisplayHUD && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden bg-surface-container-low/50 border-b border-outline-variant/10"
+            >
+              <div className="p-4 px-8 flex flex-wrap items-center justify-center gap-8">
+                <div className="flex flex-col gap-1 w-48">
+                  <div className="flex justify-between items-center">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant/60">Font Size</label>
+                    <span className="text-[10px] font-mono text-primary">{displayPrefs.fontSize}px</span>
+                  </div>
+                  <input 
+                    type="range" min="14" max="24" step="1"
+                    value={displayPrefs.fontSize}
+                    onChange={(e) => setDisplayPrefs({ ...displayPrefs, fontSize: parseInt(e.target.value) })}
+                    className="w-full accent-primary h-1 bg-surface-container-highest rounded-full appearance-none cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1 w-48">
+                  <div className="flex justify-between items-center">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant/60">Line Height</label>
+                    <span className="text-[10px] font-mono text-primary">{displayPrefs.lineHeight}</span>
+                  </div>
+                  <input 
+                    type="range" min="1.4" max="2.5" step="0.1"
+                    value={displayPrefs.lineHeight}
+                    onChange={(e) => setDisplayPrefs({ ...displayPrefs, lineHeight: parseFloat(e.target.value) })}
+                    className="w-full accent-primary h-1 bg-surface-container-highest rounded-full appearance-none cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1 w-48">
+                  <div className="flex justify-between items-center">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant/60">Paragraph Spacing</label>
+                    <span className="text-[10px] font-mono text-primary">{displayPrefs.paragraphSpacing}em</span>
+                  </div>
+                  <input 
+                    type="range" min="0.5" max="3" step="0.1"
+                    value={displayPrefs.paragraphSpacing}
+                    onChange={(e) => setDisplayPrefs({ ...displayPrefs, paragraphSpacing: parseFloat(e.target.value) })}
+                    className="w-full accent-primary h-1 bg-surface-container-highest rounded-full appearance-none cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant/60">Content Width</label>
+                  <div className="flex gap-1">
+                    {['max-w-xl', 'max-w-2xl', 'max-w-3xl', 'max-w-4xl', 'max-w-full'].map((w) => (
+                      <button
+                        key={w}
+                        onClick={() => setDisplayPrefs({ ...displayPrefs, maxWidth: w })}
+                        className={`px-2 py-1 rounded border text-[8px] font-bold uppercase tracking-tighter transition-all ${
+                          displayPrefs.maxWidth === w 
+                            ? 'bg-primary border-primary text-on-primary-fixed' 
+                            : 'border-outline-variant/30 text-on-surface-variant hover:border-primary/50'
+                        }`}
+                      >
+                        {w.split('-').pop()}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      <div className={`flex-1 min-h-0 flex flex-col overflow-hidden w-full mx-auto ${displayPrefs.maxWidth}`} style={{ fontSize: `${displayPrefs.fontSize}px`, lineHeight: displayPrefs.lineHeight }}>
+      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-8 lg:p-16">
+        <div className={`w-full mx-auto ${displayPrefs.maxWidth}`}>
           <RichTextEditor
               editorRef={editorRef}
               content={draftState.present}
               onChange={(markdown) => dispatchDraft({ type: 'SET', payload: markdown })}
               onSelectionChange={setSelection}
               className="text-on-surface"
+              fontSize={displayPrefs.fontSize}
+              lineHeight={displayPrefs.lineHeight}
+              paragraphSpacing={displayPrefs.paragraphSpacing}
           />
           {editorMode === 'polishing' && showDiff && (
               <div className="mt-4 border-t border-outline-variant/20 pt-4 animate-in slide-in-from-bottom-4 fade-in duration-500">
@@ -278,6 +240,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
                   </div>
               </div>
           )}
+        </div>
       </div>
 
       <div className={`absolute bottom-4 right-8 z-20 transition-all duration-500 ${isZenMode ? 'zen-ui-element' : ''} ${isZenMode && !isUIVisible ? 'zen-ui-hidden' : 'zen-ui-visible'}`}>

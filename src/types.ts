@@ -182,6 +182,7 @@ export interface Chapter {
 
 export interface Scene {
   id: string;
+  projectId?: string;
   chapterId?: string;
   title: string;
   content: string;
