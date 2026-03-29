@@ -481,7 +481,7 @@ export default function App() {
 
   const totalWordCount = useMemo(() => {
     return scenes.reduce((total, scene) => {
-      const text = scene.content.trim();
+      const text = (scene.content || '').trim();
       return total + (text === '' ? 0 : text.split(/\s+/).length);
     }, 0);
   }, [scenes]);

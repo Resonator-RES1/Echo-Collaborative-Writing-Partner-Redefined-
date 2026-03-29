@@ -107,7 +107,8 @@ export function GlobalSearchModal({
     return results;
   }, [query, scenes, loreEntries, voiceProfiles, authorVoices]);
 
-  const getSnippet = (text: string, index: number, length: number) => {
+  const getSnippet = (text: string | undefined, index: number, length: number) => {
+      if (!text) return '';
       const start = Math.max(0, index - 30);
       const end = Math.min(text.length, index + length + 30);
       return (start > 0 ? '...' : '') + text.substring(start, end) + (end < text.length ? '...' : '');

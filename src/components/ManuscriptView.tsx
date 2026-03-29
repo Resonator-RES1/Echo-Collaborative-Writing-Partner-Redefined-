@@ -42,7 +42,7 @@ export const ManuscriptPanel: React.FC<ManuscriptPanelProps> = ({
 
   const totalWordCount = useMemo(() => {
     return scenes.reduce((acc, scene) => {
-      const words = scene.content.trim().split(/\s+/).filter(w => w.length > 0).length;
+      const words = (scene.content || '').trim().split(/\s+/).filter(w => w.length > 0).length;
       return acc + words;
     }, 0);
   }, [scenes]);

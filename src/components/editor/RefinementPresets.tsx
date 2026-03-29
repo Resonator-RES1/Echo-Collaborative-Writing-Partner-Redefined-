@@ -79,7 +79,7 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
         const isTargeted = selection && selection.text.trim().length > 0;
         const textToRefine = isTargeted ? selection.text : fullDraft;
         
-        if (textToRefine.split(/\s+/).length < 10) {
+        if ((textToRefine || '').split(/\s+/).length < 10) {
             showToast("Text is too short. Echo needs more context to refine effectively.");
             return;
         }
@@ -206,8 +206,8 @@ export const RefinementPresets: React.FC<RefinementPresetsProps> = React.memo((p
     }, [getDraft, selection, model, feedbackDepth, focusAreas, showToast, setIsRefining, onNewVersion, loreEntries, voiceProfiles, authorVoices, currentSceneId, editorRef, setActiveTab]);
 
     // Calculate Prompt Efficiency
-    const totalLoreChars = loreEntries.reduce((acc, e) => acc + e.description.length, 0);
-    const activeLoreChars = loreEntries.filter(e => e.isActive).reduce((acc, e) => acc + e.description.length, 0);
+    const totalLoreChars = loreEntries.reduce((acc, e) => acc + (e.description?.length || 0), 0);
+    const activeLoreChars = loreEntries.filter(e => e.isActive).reduce((acc, e) => acc + (e.description?.length || 0), 0);
     const totalVoiceChars = voiceProfiles.reduce((acc, p) => acc + (p.soulPattern?.length || 0), 0);
     const activeVoiceChars = voiceProfiles.filter(p => p.isActive).reduce((acc, p) => acc + (p.soulPattern?.length || 0), 0);
     

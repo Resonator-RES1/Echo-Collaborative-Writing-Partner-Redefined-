@@ -132,11 +132,11 @@ export function LoreScreen({ onClose }: LoreScreenProps) {
 
       {/* Drawer */}
       <motion.div 
-        initial={{ x: '100%' }}
-        animate={{ x: 0 }}
-        exit={{ x: '100%' }}
+        initial={{ y: '-100%', opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: '-100%', opacity: 0 }}
         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-        className="fixed top-0 right-0 h-full w-[95vw] md:w-[60vw] lg:w-[45vw] bg-surface-container-lowest/98 backdrop-blur-2xl shadow-2xl border-l border-outline-variant/20 z-[60] flex flex-col overflow-hidden"
+        className="fixed top-[60px] inset-x-0 mx-auto max-w-4xl h-[60vh] rounded-b-3xl bg-surface-container-lowest/98 backdrop-blur-2xl shadow-2xl border-b border-x border-outline-variant/20 z-[60] flex flex-col overflow-hidden"
       >
         <AnimatePresence mode="wait">
           {view === 'index' ? (

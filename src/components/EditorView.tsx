@@ -133,6 +133,15 @@ const Editor: React.FC<EditorProps> = ({
     setActiveTab
   });
 
+  // Zen Mode Logic
+  useEffect(() => {
+    if (isZenMode) {
+      setActiveTab('draft');
+      setActiveHUD(null);
+      setIsUIVisible(true);
+    }
+  }, [isZenMode, setIsZenMode]);
+
   // Sovereign Keymap
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -224,8 +233,8 @@ const Editor: React.FC<EditorProps> = ({
   const currentVersion: RefinedVersion = versionHistory[currentVersionIndex] || { id: 'initial', text: '', timestamp: new Date().toISOString(), conflicts: [] };
 
   const wordCount = useMemo(() => {
-      const text = draftState.present.trim();
-      return text === '' ? 0 : text.split(/\\s+/).length;
+      const text = (draftState.present || '').trim();
+      return text === '' ? 0 : text.split(/\s+/).length;
   }, [draftState.present]);
 
   const handleShowComparison = useCallback(() => {
@@ -476,7 +485,8 @@ const Editor: React.FC<EditorProps> = ({
                 { id: 'construct', label: 'Construct', icon: Book, action: () => setShowConstruct(!showConstruct), active: showConstruct },
                 { id: 'axioms', label: 'Axioms', icon: Database, action: () => setActiveHUD(activeHUD === 'lore' ? null : 'lore'), active: activeHUD === 'lore' },
                 { id: 'voices', label: 'Voice DNA', icon: Mic2, action: () => setActiveHUD(activeHUD === 'voices' ? null : 'voices'), active: activeHUD === 'voices' },
-                { id: 'ledger', label: 'The Ledger', icon: FileText, action: () => window.dispatchEvent(new CustomEvent('navigate', { detail: 'ledger' })) },
+                { id: 'audit', label: 'Audit', icon: Sparkles, action: () => setActiveTab('refine'), active: activeTab === 'refine' },
+                { id: 'ledger', label: 'The Ledger', icon: FileText, action: () => setActiveTab('archive'), active: activeTab === 'archive' },
               ].map(item => (
                 <button
                   key={item.id}
@@ -549,44 +559,10 @@ const Editor: React.FC<EditorProps> = ({
         {/* HUD Overlays */}
         <AnimatePresence>
           {activeHUD === 'lore' && (
-            <motion.div
-              initial={{ y: -400, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -400, opacity: 0 }}
-              className="absolute top-0 left-0 right-0 h-[400px] bg-surface-container-lowest border-b border-outline-variant/20 z-30 shadow-2xl overflow-hidden"
-            >
-              <div className="h-full flex flex-col">
-                <div className="p-4 border-b border-outline-variant/10 flex items-center justify-between">
-                  <h2 className="font-headline text-lg">Axioms (Lore)</h2>
-                  <button onClick={() => setActiveHUD(null)} className="p-2 hover:bg-surface-container-highest rounded-full">
-                    <ChevronUp className="w-5 h-5" />
-                  </button>
-                </div>
-                <div className="flex-1 overflow-y-auto">
-                  <LoreView onClose={() => setActiveHUD(null)} />
-                </div>
-              </div>
-            </motion.div>
+            <LoreView onClose={() => setActiveHUD(null)} />
           )}
           {activeHUD === 'voices' && (
-            <motion.div
-              initial={{ y: -400, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -400, opacity: 0 }}
-              className="absolute top-0 left-0 right-0 h-[400px] bg-surface-container-lowest border-b border-outline-variant/20 z-30 shadow-2xl overflow-hidden"
-            >
-              <div className="h-full flex flex-col">
-                <div className="p-4 border-b border-outline-variant/10 flex items-center justify-between">
-                  <h2 className="font-headline text-lg">Voice DNA</h2>
-                  <button onClick={() => setActiveHUD(null)} className="p-2 hover:bg-surface-container-highest rounded-full">
-                    <ChevronUp className="w-5 h-5" />
-                  </button>
-                </div>
-                <div className="flex-1 overflow-y-auto">
-                  <VoicesView onClose={() => setActiveHUD(null)} />
-                </div>
-              </div>
-            </motion.div>
+            <VoicesView onClose={() => setActiveHUD(null)} />
           )}
         </AnimatePresence>
 
@@ -694,8 +670,8 @@ const Editor: React.FC<EditorProps> = ({
           <div className="flex-1 flex items-center justify-center gap-8">
             {[
               { id: 'draft', label: 'Drafting', active: activeTab === 'draft' },
-              { id: 'refine', label: 'Refining', active: activeTab === 'refine' },
-              { id: 'archive', label: 'Archiving', active: activeTab === 'archive' },
+              { id: 'refine', label: 'Audit', active: activeTab === 'refine' },
+              { id: 'archive', label: 'The Ledger', active: activeTab === 'archive' },
               { id: 'report', label: 'Reporting', active: activeTab === 'report' },
             ].map((stage, idx) => (
               <div key={stage.id} className="flex items-center gap-4">

@@ -39,7 +39,7 @@ const ReportPanelComponent: React.FC<ReportPanelProps> = ({
         );
     }
 
-    if (version.text.startsWith('Error:')) {
+    if (version.text?.startsWith('Error:')) {
         return (
             <EmptyState 
                 icon={Activity}
